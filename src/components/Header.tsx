@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -9,7 +10,7 @@ const Header: React.FC = () => {
         <div className="flex items-center">
           <a href="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/1a639097-f17e-4568-bc9f-063d6afdde73.png" 
+              src="/lovable-uploads/15469034-65cd-4df5-83a4-140a47eee54f.png" 
               alt="ChapterCreator Logo" 
               className="h-8" 
             />
