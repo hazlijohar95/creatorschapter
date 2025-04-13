@@ -7,13 +7,12 @@ const Header: React.FC = () => {
     <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-darkbg/80 border-b border-glassBorder">
       <div className="container mx-auto flex justify-between items-center py-4 px-5 md:px-8">
         <div className="flex items-center">
-          <a href="/" className="flex items-center text-neon font-space text-2xl font-bold">
+          <a href="/" className="flex items-center">
             <img 
               src="/lovable-uploads/1a639097-f17e-4568-bc9f-063d6afdde73.png" 
               alt="ChapterCreator Logo" 
-              className="h-8 mr-2" 
+              className="h-8" 
             />
-            CHAPTERCREATOR
           </a>
         </div>
         <nav className="hidden md:flex items-center space-x-8">

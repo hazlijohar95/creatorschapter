@@ -6,16 +6,9 @@ const Footer: React.FC = () => {
     <footer className="bg-darkbg/95 border-t border-glassBorder py-12">
       <div className="container mx-auto px-5 md:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start">
-          <div className="mb-8 md:mb-0 flex items-center">
-            <img 
-              src="/lovable-uploads/1a639097-f17e-4568-bc9f-063d6afdde73.png" 
-              alt="ChapterCreator Logo" 
-              className="h-8 mr-3" 
-            />
-            <div>
-              <div className="text-neon font-space text-2xl font-bold mb-1">CHAPTERCREATOR</div>
-              <p className="text-white/70 max-w-sm">Empowering creators to write their success story.</p>
-            </div>
+          <div className="mb-8 md:mb-0">
+            <div className="text-neon font-space text-2xl font-bold mb-1">CHAPTERCREATOR</div>
+            <p className="text-white/70 max-w-sm">Empowering creators to write their success story.</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
