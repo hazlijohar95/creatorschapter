@@ -36,7 +36,7 @@ const WaitlistSection: React.FC = () => {
     
     try {
       // Insert the form data into the waitlist_submissions table
-      const { error } = await supabase.from('waitlist_submissions').insert({
+      const { error: dbError } = await supabase.from('waitlist_submissions').insert({
         name: data.name,
         email: data.email,
         social_handle: data.socialHandle || null,
@@ -44,18 +44,40 @@ const WaitlistSection: React.FC = () => {
         niche: data.niche || null
       });
       
-      if (error) {
-        throw error;
+      if (dbError) {
+        throw dbError;
       }
       
-      // Show success toast and update UI
-      toast({
-        title: "Success!",
-        description: "You've been added to our waitlist.",
-        variant: "default",
+      // Call edge function to send emails
+      const emailResponse = await supabase.functions.invoke('send-waitlist-emails', {
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          socialHandle: data.socialHandle,
+          followerCount: data.followerCount,
+          niche: data.niche
+        })
       });
+
+      if (emailResponse.error) {
+        console.error('Email sending failed:', emailResponse.error);
+        // Optionally show a more specific toast about email sending
+        toast({
+          title: "Email Notification Issue",
+          description: "Your submission was saved, but we couldn't send confirmation emails.",
+          variant: "destructive",
+        });
+      } else {
+        // Show success toast and update UI
+        toast({
+          title: "Success!",
+          description: "You've been added to our waitlist. Check your email for confirmation.",
+          variant: "default",
+        });
+        
+        setSubmitted(true);
+      }
       
-      setSubmitted(true);
     } catch (error) {
       console.error('Error submitting form:', error);
       toast({
