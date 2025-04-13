@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 
 @tailwind base;
@@ -96,10 +97,11 @@
   }
   
   .hero-gradient {
-    @apply bg-gradient-to-br from-purplegrad to-navygrad;
+    @apply bg-gradient-to-br from-premiumBlack to-darkbg;
   }
   
   .section-padding {
     @apply py-20 px-5 md:px-10 lg:px-16;
   }
 }
+

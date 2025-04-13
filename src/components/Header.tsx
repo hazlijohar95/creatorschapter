@@ -12,7 +12,9 @@ const Header: React.FC = () => {
             <img 
               src="/lovable-uploads/15469034-65cd-4df5-83a4-140a47eee54f.png" 
               alt="ChapterCreator Logo" 
-              className="h-8" 
+              className="h-8"
+              loading="eager" 
+              decoding="async"
             />
           </a>
         </div>

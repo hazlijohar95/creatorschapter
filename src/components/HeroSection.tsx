@@ -31,13 +31,15 @@ const HeroSection: React.FC = () => {
               </a>
             </div>
           </div>
-          <div className="lg:w-1/2 mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="lg:w-1/2 mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="relative">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-neon/50 to-purplegrad/50 rounded-xl blur-xl opacity-75"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-neon/50 to-premiumBlack/50 rounded-xl blur-xl opacity-75"></div>
               <img 
                 src="/lovable-uploads/8ccdeef9-35e4-4146-808b-d80bd959b82d.png" 
                 alt="Dashboard UI" 
                 className="relative w-full h-auto rounded-xl shadow-2xl border border-glassBorder"
+                loading="eager"
+                decoding="async"
               />
             </div>
           </div>
