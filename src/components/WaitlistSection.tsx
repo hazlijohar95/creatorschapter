@@ -1,11 +1,18 @@
 
 import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 // Define the schema for the waitlist form
 const waitlistSchema = z.object({
@@ -22,19 +29,25 @@ type WaitlistFormData = z.infer<typeof waitlistSchema>;
 const WaitlistSection: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
   
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    reset
   } = useForm<WaitlistFormData>({
     resolver: zodResolver(waitlistSchema)
   });
 
   const onSubmit = async (data: WaitlistFormData) => {
     setIsSubmitting(true);
+    setErrorDetails(null);
     
     try {
+      console.log('Submitting waitlist form:', data);
+      
       // Insert the form data into the waitlist_submissions table
       const { error: dbError } = await supabase.from('waitlist_submissions').insert({
         name: data.name,
@@ -45,8 +58,11 @@ const WaitlistSection: React.FC = () => {
       });
       
       if (dbError) {
-        throw dbError;
+        console.error('Database error:', dbError);
+        throw new Error(`Database error: ${dbError.message}`);
       }
+      
+      console.log('Successfully saved to database, now calling email function');
       
       // Call edge function to send emails
       const emailResponse = await supabase.functions.invoke('send-waitlist-emails', {
@@ -59,16 +75,47 @@ const WaitlistSection: React.FC = () => {
         })
       });
 
+      console.log('Email function response:', emailResponse);
+
+      // Check for different types of responses
       if (emailResponse.error) {
-        console.error('Email sending failed:', emailResponse.error);
-        // Optionally show a more specific toast about email sending
+        // Handle function invocation error
+        console.error('Function error:', emailResponse.error);
+        setErrorDetails(`Function error: ${emailResponse.error}`);
+        
         toast({
-          title: "Email Notification Issue",
-          description: "Your submission was saved, but we couldn't send confirmation emails.",
-          variant: "destructive",
+          title: "Submission Saved",
+          description: "Your information was saved, but we couldn't send confirmation emails. We'll contact you soon!",
+          variant: "default",
         });
+        
+        setSubmitted(true);
+      } else if (emailResponse.data?.status === 'partial_success') {
+        // Handle partial success (saved but email issues)
+        console.warn('Partial success:', emailResponse.data);
+        
+        toast({
+          title: "Submission Received",
+          description: "You've been added to our waitlist, but there was an issue with email confirmation.",
+          variant: "default",
+        });
+        
+        setSubmitted(true);
+      } else if (emailResponse.data?.error) {
+        // Handle errors reported by the function itself
+        console.error('Email sending error:', emailResponse.data.error);
+        setErrorDetails(emailResponse.data.error);
+        
+        toast({
+          title: "Submission Saved",
+          description: "Your submission was saved, but we encountered an issue with email notifications.",
+          variant: "default",
+        });
+        
+        setSubmitted(true);
       } else {
-        // Show success toast and update UI
+        // Complete success
+        console.log('Complete success!');
         toast({
           title: "Success!",
           description: "You've been added to our waitlist. Check your email for confirmation.",
@@ -76,15 +123,19 @@ const WaitlistSection: React.FC = () => {
         });
         
         setSubmitted(true);
+        reset();
       }
-      
     } catch (error) {
       console.error('Error submitting form:', error);
+      setErrorDetails(error.message);
+      
       toast({
         title: "Error",
         description: "There was an error submitting your form. Please try again.",
         variant: "destructive",
       });
+      
+      setShowErrorDialog(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -203,14 +254,37 @@ const WaitlistSection: React.FC = () => {
                 </div>
                 <h3 className="text-2xl font-bold mb-4">Thanks! You're on the waitlist.</h3>
                 <p className="text-white/70 mb-6">
-                  We'll reach out soon with early access information. 
-                  In the meantime, follow us on social media for updates.
+                  We've saved your information and will reach out soon with early access details.
+                  {errorDetails ? ' (Note: There was an issue sending confirmation emails)' : ''}
                 </p>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Error details dialog */}
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Submission Error Details</DialogTitle>
+            <DialogDescription>
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <div className="flex">
+                  <AlertCircle className="text-red-500 mr-2" />
+                  <div>
+                    <p className="text-red-700 font-medium">There was an error with your submission:</p>
+                    <p className="text-sm text-red-600 mt-1">{errorDetails}</p>
+                  </div>
+                </div>
+              </div>
+              <p className="mt-4">
+                Please try again or contact support if the problem persists.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
