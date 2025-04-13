@@ -7,7 +7,6 @@ import {
   Html,
   Preview,
   Text,
-  Code,
 } from 'npm:@react-email/components@0.0.22'
 import * as React from 'npm:react@18.3.1'
 
@@ -33,13 +32,13 @@ export const AdminNotificationEmail = ({
       <Container style={container}>
         <Heading style={h1}>New Waitlist Submission</Heading>
         <Text style={text}>Details of the new signup:</Text>
-        <Code style={codeBlock}>
-          Name: {name}
-          Email: {email}
-          {socialHandle && `Social Handle: ${socialHandle}`}
-          {followerCount && `Follower Count: ${followerCount}`}
-          {niche && `Niche: ${niche}`}
-        </Code>
+        <div style={codeBlock}>
+          <Text style={codeText}>Name: {name}</Text>
+          <Text style={codeText}>Email: {email}</Text>
+          {socialHandle && <Text style={codeText}>Social Handle: {socialHandle}</Text>}
+          {followerCount && <Text style={codeText}>Follower Count: {followerCount}</Text>}
+          {niche && <Text style={codeText}>Niche: {niche}</Text>}
+        </div>
       </Container>
     </Body>
   </Html>
@@ -82,4 +81,9 @@ const codeBlock = {
   borderRadius: '4px',
   whiteSpace: 'pre-wrap',
   wordWrap: 'break-word',
+}
+
+const codeText = {
+  fontFamily: 'monospace',
+  margin: '4px 0',
 }
