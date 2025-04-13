@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -120,7 +119,8 @@ export default {
 			},
 			fontFamily: {
 				'inter': ['Inter', 'sans-serif'],
-				'space': ['"Space Grotesk"', 'sans-serif']
+				'space': ['"Space Grotesk"', 'sans-serif'],
+				'manrope': ['Manrope', 'sans-serif']
 			}
 		}
 	},

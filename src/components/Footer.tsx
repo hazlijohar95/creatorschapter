@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Instagram, Twitter, TrendingUp } from 'lucide-react';
 
@@ -7,9 +6,16 @@ const Footer: React.FC = () => {
     <footer className="bg-darkbg/95 border-t border-glassBorder py-12">
       <div className="container mx-auto px-5 md:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start">
-          <div className="mb-8 md:mb-0">
-            <div className="text-neon font-space text-2xl font-bold mb-3">DEALFLOW</div>
-            <p className="text-white/70 max-w-sm">Built for creators who want real partnerships.</p>
+          <div className="mb-8 md:mb-0 flex items-center">
+            <img 
+              src="/lovable-uploads/1a639097-f17e-4568-bc9f-063d6afdde73.png" 
+              alt="ChapterCreator Logo" 
+              className="h-8 mr-3" 
+            />
+            <div>
+              <div className="text-neon font-space text-2xl font-bold mb-1">CHAPTERCREATOR</div>
+              <p className="text-white/70 max-w-sm">Empowering creators to write their success story.</p>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
@@ -50,7 +56,7 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="mt-12 pt-6 border-t border-glassBorder flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/50 text-sm">© {new Date().getFullYear()} DEALFLOW. All rights reserved.</p>
+          <p className="text-white/50 text-sm">© {new Date().getFullYear()} CHAPTERCREATOR. All rights reserved.</p>
           <p className="text-white/50 text-sm mt-2 md:mt-0">Made for creators, by creators.</p>
         </div>
       </div>
