@@ -8,7 +8,7 @@ const Header: React.FC = () => {
     <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-darkbg/80 border-b border-glassBorder">
       <div className="container mx-auto flex justify-between items-center py-4 px-5 md:px-8">
         <div className="flex items-center">
-          <a href="/" className="flex items-center">
+          <Link to="/" className="flex items-center">
             <img 
               src="/lovable-uploads/15469034-65cd-4df5-83a4-140a47eee54f.png" 
               alt="ChapterCreator Logo" 
@@ -16,7 +16,7 @@ const Header: React.FC = () => {
               loading="eager" 
               decoding="async"
             />
-          </a>
+          </Link>
         </div>
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#how-it-works" className="text-white/80 hover:text-neon transition-colors">How It Works</a>
