@@ -52,7 +52,7 @@ serve(async (req) => {
 
     const adminEmailResponse = await resend.emails.send({
       from: 'ChapterCreator Waitlist <waitlist@chaptercreator.dev>',
-      to: ['admin@chaptercreator.dev'], // Replace with your admin email
+      to: ['hello@creatorchapter.com'], // Updated admin email
       subject: 'New Waitlist Submission',
       html: adminEmailHtml,
     });
@@ -79,3 +79,4 @@ serve(async (req) => {
     });
   }
 });
+
