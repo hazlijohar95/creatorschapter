@@ -75,7 +75,8 @@
   }
   
   body {
-    @apply bg-darkbg text-white font-manrope m-0 p-0;
+    @apply bg-darkbg text-white font-manrope m-0 p-0 overflow-x-hidden;
+    -webkit-tap-highlight-color: transparent;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -93,7 +94,7 @@
   }
   
   .btn-neon {
-    @apply bg-neon text-darkbg font-bold rounded-full py-3 px-8 hover:animate-glow transition-all transform hover:scale-105 duration-300 inline-block;
+    @apply bg-neon text-darkbg font-bold rounded-full py-3 px-8 hover:animate-glow transition-all transform hover:scale-105 duration-300 inline-block active:scale-95;
   }
   
   .hero-gradient {
@@ -101,7 +102,51 @@
   }
   
   .section-padding {
-    @apply py-20 px-5 md:px-10 lg:px-16;
+    @apply py-16 md:py-20 px-5 md:px-10 lg:px-16;
+  }
+
+  /* Mobile optimizations */
+  .mobile-menu-item {
+    @apply w-full text-center py-3 text-lg font-medium;
+  }
+
+  /* Add smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Account for fixed header */
+  }
+
+  /* Improve touch targets for mobile */
+  button, a {
+    @apply min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-neon/50;
   }
 }
 
+/* Optimize animations for mobile */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Fix iOS height issues */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Momentum scrolling for iOS */
+.overflow-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Remove outlines on mobile devices */
+@media (max-width: 767px) {
+  * {
+    outline: none !important;
+  }
+}

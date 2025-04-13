@@ -10,9 +10,32 @@ import WaitlistSection from '../components/WaitlistSection';
 import Footer from '../components/Footer';
 
 const Index = () => {
+  // Add mobile specific detection
   useEffect(() => {
     console.log("Index page mounted");
     document.title = "DEALFLOW - Get Better Brand Deals Without the Back-and-Forth";
+    
+    // Mobile optimization code
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    console.log("Is mobile device:", isMobile);
+    
+    // Add mobile class to body if on mobile
+    if (isMobile) {
+      document.body.classList.add('is-mobile');
+    }
+    
+    // Handle mobile viewport height issue (iOS Safari)
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    
+    setVh();
+    window.addEventListener('resize', setVh);
+    
+    return () => {
+      window.removeEventListener('resize', setVh);
+    };
   }, []);
   
   return (

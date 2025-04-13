@@ -11,7 +11,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="hero-gradient min-h-screen flex items-center pt-20 section-padding" id="hero">
+    <section className="hero-gradient min-h-[100svh] flex items-center pt-20 section-padding" id="hero">
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row items-center">
           <div className="lg:w-1/2 animate-fade-in">
@@ -31,7 +31,7 @@ const HeroSection: React.FC = () => {
               </a>
             </div>
           </div>
-          <div className="lg:w-1/2 mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <div className="lg:w-1/2 mt-12 lg:mt-0 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-neon/50 to-premiumBlack/50 rounded-xl blur-xl opacity-75"></div>
               <img 
