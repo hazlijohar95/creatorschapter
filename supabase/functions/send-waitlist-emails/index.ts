@@ -7,6 +7,8 @@ import UserConfirmationEmail from './templates/user-confirmation.tsx';
 import AdminNotificationEmail from './templates/admin-notification.tsx';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'coding@hazlijohar.com'; // Default to the verified email
+const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default domain
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,30 +57,55 @@ serve(async (req) => {
       );
     }
 
+    // Determine if user email matches verified email in Resend
+    const isEmailVerified = email === ADMIN_EMAIL;
+    console.log(`Is email verified for Resend testing: ${isEmailVerified}`);
+
+    // Information about email sending status
+    const emailResults = {
+      userEmailSent: false,
+      userEmailError: null,
+      adminEmailSent: false,
+      adminEmailError: null
+    };
+
     console.log('Rendering user email template');
     // Send user confirmation email
     const userEmailHtml = await renderAsync(
       React.createElement(UserConfirmationEmail, { name })
     );
     
-    console.log('Sending user confirmation email to:', email);
-    let userEmailResponse;
+    console.log('Attempting to send user confirmation email to:', email);
+    
     try {
-      userEmailResponse = await resend.emails.send({
-        from: 'ChapterCreator <onboarding@resend.dev>', // Changed to use resend.dev domain instead
-        to: [email],
-        subject: 'Welcome to ChapterCreator Waitlist!',
-        html: userEmailHtml,
-      });
-      console.log('User email sent successfully:', userEmailResponse);
+      // Only send directly to user if their email matches the verified one
+      if (isEmailVerified) {
+        const userEmailResponse = await resend.emails.send({
+          from: `ChapterCreator <${SENDER_EMAIL}>`,
+          to: [email],
+          subject: 'Welcome to ChapterCreator Waitlist!',
+          html: userEmailHtml,
+        });
+        
+        if (userEmailResponse.error) {
+          throw new Error(userEmailResponse.error.message);
+        }
+        
+        console.log('User email sent successfully to verified address');
+        emailResults.userEmailSent = true;
+      } else {
+        // For unverified emails during testing, we send the notification to the admin
+        // In the real world with a verified domain, we would send directly to the user
+        console.log('User email could not be sent directly due to Resend testing limitations');
+        emailResults.userEmailError = 'Cannot send to unverified email addresses in test mode';
+      }
     } catch (emailError) {
       console.error('Error sending user confirmation email:', emailError);
-      // Continue execution to try sending admin email
-      userEmailResponse = { error: emailError.message };
+      emailResults.userEmailError = emailError.message;
     }
 
     console.log('Rendering admin notification email template');
-    // Send admin notification email
+    // Send admin notification email with user's information
     const adminEmailHtml = await renderAsync(
       React.createElement(AdminNotificationEmail, { 
         name, 
@@ -89,41 +116,55 @@ serve(async (req) => {
       })
     );
     
-    console.log('Sending admin notification email');
-    let adminEmailResponse;
+    console.log('Sending admin notification email to:', ADMIN_EMAIL);
+    
     try {
-      adminEmailResponse = await resend.emails.send({
-        from: 'ChapterCreator Waitlist <onboarding@resend.dev>', // Changed to use resend.dev domain
-        to: ['hello@creatorchapter.com'], // Admin email
+      const adminEmailResponse = await resend.emails.send({
+        from: `ChapterCreator Waitlist <${SENDER_EMAIL}>`,
+        to: [ADMIN_EMAIL], // Always send to the verified admin email
         subject: 'New Waitlist Submission',
         html: adminEmailHtml,
       });
-      console.log('Admin email sent successfully:', adminEmailResponse);
+
+      if (adminEmailResponse.error) {
+        throw new Error(adminEmailResponse.error.message);
+      }
+      
+      console.log('Admin email sent successfully');
+      emailResults.adminEmailSent = true;
     } catch (emailError) {
       console.error('Error sending admin notification email:', emailError);
-      adminEmailResponse = { error: emailError.message };
+      emailResults.adminEmailError = emailError.message;
     }
 
-    // Determine if there were any email sending errors
-    const hasErrors = userEmailResponse.error || (adminEmailResponse && adminEmailResponse.error);
+    // Determine overall status
+    const allEmailsSent = emailResults.userEmailSent && emailResults.adminEmailSent;
+    const noEmailsSent = !emailResults.userEmailSent && !emailResults.adminEmailSent;
     
-    if (hasErrors) {
-      console.log('Email errors encountered:', { 
-        userEmailError: userEmailResponse.error, 
-        adminEmailError: adminEmailResponse && adminEmailResponse.error 
-      });
-      
+    if (noEmailsSent) {
       return new Response(
         JSON.stringify({ 
-          status: 'partial_success',
-          message: 'Submission saved but email delivery had issues',
-          userEmailResponse, 
-          adminEmailResponse,
-          details: 'Using default Resend domain due to domain verification issue' 
+          status: 'error',
+          message: 'Unable to send any notification emails',
+          details: 'Unable to send emails. This is likely because no verified domain is set up in Resend.',
+          emailResults
         }), 
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 207 // Partial success
+          status: 500
+        }
+      );
+    } else if (!allEmailsSent) {
+      return new Response(
+        JSON.stringify({ 
+          status: 'partial_success',
+          message: 'Submission processed but not all emails could be sent',
+          details: 'In test mode, Resend can only send emails to verified addresses. To send to any recipient, verify a domain at resend.com/domains.',
+          emailResults 
+        }), 
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 207
         }
       );
     }
@@ -131,8 +172,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         status: 'success',
-        userEmailResponse, 
-        adminEmailResponse 
+        message: 'Submission processed and all notifications sent',
+        emailResults 
       }), 
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
