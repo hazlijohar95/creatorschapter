@@ -65,7 +65,7 @@ serve(async (req) => {
     let userEmailResponse;
     try {
       userEmailResponse = await resend.emails.send({
-        from: 'ChapterCreator <onboarding@chaptercreator.dev>',
+        from: 'ChapterCreator <onboarding@resend.dev>', // Changed to use resend.dev domain instead
         to: [email],
         subject: 'Welcome to ChapterCreator Waitlist!',
         html: userEmailHtml,
@@ -93,7 +93,7 @@ serve(async (req) => {
     let adminEmailResponse;
     try {
       adminEmailResponse = await resend.emails.send({
-        from: 'ChapterCreator Waitlist <waitlist@chaptercreator.dev>',
+        from: 'ChapterCreator Waitlist <onboarding@resend.dev>', // Changed to use resend.dev domain
         to: ['hello@creatorchapter.com'], // Admin email
         subject: 'New Waitlist Submission',
         html: adminEmailHtml,
@@ -105,15 +105,21 @@ serve(async (req) => {
     }
 
     // Determine if there were any email sending errors
-    const hasErrors = userEmailResponse.error || adminEmailResponse.error;
+    const hasErrors = userEmailResponse.error || (adminEmailResponse && adminEmailResponse.error);
     
     if (hasErrors) {
+      console.log('Email errors encountered:', { 
+        userEmailError: userEmailResponse.error, 
+        adminEmailError: adminEmailResponse && adminEmailResponse.error 
+      });
+      
       return new Response(
         JSON.stringify({ 
           status: 'partial_success',
           message: 'Submission saved but email delivery had issues',
           userEmailResponse, 
-          adminEmailResponse 
+          adminEmailResponse,
+          details: 'Using default Resend domain due to domain verification issue' 
         }), 
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
