@@ -1,29 +1,71 @@
 
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+
+// Define the schema for the waitlist form
+const waitlistSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
+  email: z.string().email({ message: 'Please enter a valid email' }),
+  socialHandle: z.string().optional(),
+  followerCount: z.string().optional(),
+  niche: z.string().min(1, { message: 'Please select a content niche' })
+});
+
+// Create a TypeScript type from the schema
+type WaitlistFormData = z.infer<typeof waitlistSchema>;
 
 const WaitlistSection: React.FC = () => {
-  const [formState, setFormState] = useState({
-    name: '',
-    email: '',
-    socialHandle: '',
-    followerCount: '',
-    niche: '',
-    submitted: false
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<WaitlistFormData>({
+    resolver: zodResolver(waitlistSchema)
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormState(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically submit to an API endpoint
-    console.log("Form submitted:", formState);
+  const onSubmit = async (data: WaitlistFormData) => {
+    setIsSubmitting(true);
     
-    // For demo purposes, just set submitted to true
-    setFormState(prev => ({ ...prev, submitted: true }));
+    try {
+      // Insert the form data into the waitlist_submissions table
+      const { error } = await supabase.from('waitlist_submissions').insert({
+        name: data.name,
+        email: data.email,
+        social_handle: data.socialHandle || null,
+        follower_count: data.followerCount || null,
+        niche: data.niche || null
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Show success toast and update UI
+      toast({
+        title: "Success!",
+        description: "You've been added to our waitlist.",
+        variant: "default",
+      });
+      
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Error",
+        description: "There was an error submitting your form. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -38,38 +80,37 @@ const WaitlistSection: React.FC = () => {
 
         <div className="max-w-2xl mx-auto">
           <div className="glass-card p-8">
-            {!formState.submitted ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
+            {!submitted ? (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-white/90 mb-2">
                       Full Name
                     </label>
                     <input
-                      type="text"
                       id="name"
-                      name="name"
-                      value={formState.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-darkbg/50 border border-glassBorder rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50"
+                      {...register('name')}
+                      className={`w-full bg-darkbg/50 border ${errors.name ? 'border-red-500' : 'border-glassBorder'} rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50`}
                       placeholder="Your name"
                     />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
                       Email Address
                     </label>
                     <input
-                      type="email"
                       id="email"
-                      name="email"
-                      value={formState.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full bg-darkbg/50 border border-glassBorder rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50"
+                      type="email"
+                      {...register('email')}
+                      className={`w-full bg-darkbg/50 border ${errors.email ? 'border-red-500' : 'border-glassBorder'} rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50`}
                       placeholder="you@example.com"
                     />
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+                    )}
                   </div>
                 </div>
                 
@@ -79,12 +120,8 @@ const WaitlistSection: React.FC = () => {
                       Social Media Handle
                     </label>
                     <input
-                      type="text"
                       id="socialHandle"
-                      name="socialHandle"
-                      value={formState.socialHandle}
-                      onChange={handleChange}
-                      required
+                      {...register('socialHandle')}
                       className="w-full bg-darkbg/50 border border-glassBorder rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50"
                       placeholder="@yourusername"
                     />
@@ -94,12 +131,8 @@ const WaitlistSection: React.FC = () => {
                       Follower Count
                     </label>
                     <input
-                      type="text"
                       id="followerCount"
-                      name="followerCount"
-                      value={formState.followerCount}
-                      onChange={handleChange}
-                      required
+                      {...register('followerCount')}
                       className="w-full bg-darkbg/50 border border-glassBorder rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50"
                       placeholder="e.g., 10K"
                     />
@@ -112,13 +145,10 @@ const WaitlistSection: React.FC = () => {
                   </label>
                   <select
                     id="niche"
-                    name="niche"
-                    value={formState.niche}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-darkbg/50 border border-glassBorder rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50"
+                    {...register('niche')}
+                    className={`w-full bg-darkbg/50 border ${errors.niche ? 'border-red-500' : 'border-glassBorder'} rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-neon/50`}
                   >
-                    <option value="" disabled>Select your primary niche</option>
+                    <option value="">Select your primary niche</option>
                     <option value="fashion">Fashion</option>
                     <option value="beauty">Beauty</option>
                     <option value="fitness">Fitness</option>
@@ -129,14 +159,18 @@ const WaitlistSection: React.FC = () => {
                     <option value="gaming">Gaming</option>
                     <option value="other">Other</option>
                   </select>
+                  {errors.niche && (
+                    <p className="mt-1 text-sm text-red-500">{errors.niche.message}</p>
+                  )}
                 </div>
                 
                 <div className="text-center pt-4">
                   <button
                     type="submit"
-                    className="btn-neon text-lg px-12"
+                    disabled={isSubmitting}
+                    className={`btn-neon text-lg px-12 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                   >
-                    Apply Now
+                    {isSubmitting ? 'Submitting...' : 'Apply Now'}
                   </button>
                 </div>
               </form>
