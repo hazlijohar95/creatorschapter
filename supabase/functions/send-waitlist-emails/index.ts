@@ -1,14 +1,13 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
-import * as React from 'npm:react@18.3.1'; // Explicitly import React
+import * as React from 'npm:react@18.3.1';
 import UserConfirmationEmail from './templates/user-confirmation.tsx';
 import AdminNotificationEmail from './templates/admin-notification.tsx';
 
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'coding@hazlijohar.com'; // Default to the verified email
-const SENDER_EMAIL = 'onboarding@resend.dev'; // Using Resend's default domain
+const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'hello@creatorchapter.com';
+const SENDER_EMAIL = 'onboarding@creatorchapter.com';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,7 +15,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -33,7 +31,6 @@ serve(async (req) => {
     
     console.log('Submission data:', { name, email, socialHandle, followerCount, niche });
 
-    // Check for required fields
     if (!name || !email) {
       console.error('Missing required fields');
       return new Response(
@@ -45,7 +42,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate RESEND_API_KEY
     if (!Deno.env.get('RESEND_API_KEY')) {
       console.error('Missing RESEND_API_KEY environment variable');
       return new Response(
@@ -57,11 +53,9 @@ serve(async (req) => {
       );
     }
 
-    // Determine if user email matches verified email in Resend
     const isEmailVerified = email === ADMIN_EMAIL;
     console.log(`Is email verified for Resend testing: ${isEmailVerified}`);
 
-    // Information about email sending status
     const emailResults = {
       userEmailSent: false,
       userEmailError: null,
@@ -70,7 +64,6 @@ serve(async (req) => {
     };
 
     console.log('Rendering user email template');
-    // Send user confirmation email
     const userEmailHtml = await renderAsync(
       React.createElement(UserConfirmationEmail, { name })
     );
@@ -78,7 +71,6 @@ serve(async (req) => {
     console.log('Attempting to send user confirmation email to:', email);
     
     try {
-      // Only send directly to user if their email matches the verified one
       if (isEmailVerified) {
         const userEmailResponse = await resend.emails.send({
           from: `ChapterCreator <${SENDER_EMAIL}>`,
@@ -94,8 +86,6 @@ serve(async (req) => {
         console.log('User email sent successfully to verified address');
         emailResults.userEmailSent = true;
       } else {
-        // For unverified emails during testing, we send the notification to the admin
-        // In the real world with a verified domain, we would send directly to the user
         console.log('User email could not be sent directly due to Resend testing limitations');
         emailResults.userEmailError = 'Cannot send to unverified email addresses in test mode';
       }
@@ -105,7 +95,6 @@ serve(async (req) => {
     }
 
     console.log('Rendering admin notification email template');
-    // Send admin notification email with user's information
     const adminEmailHtml = await renderAsync(
       React.createElement(AdminNotificationEmail, { 
         name, 
@@ -121,7 +110,7 @@ serve(async (req) => {
     try {
       const adminEmailResponse = await resend.emails.send({
         from: `ChapterCreator Waitlist <${SENDER_EMAIL}>`,
-        to: [ADMIN_EMAIL], // Always send to the verified admin email
+        to: [ADMIN_EMAIL],
         subject: 'New Waitlist Submission',
         html: adminEmailHtml,
       });
@@ -137,7 +126,6 @@ serve(async (req) => {
       emailResults.adminEmailError = emailError.message;
     }
 
-    // Determine overall status
     const allEmailsSent = emailResults.userEmailSent && emailResults.adminEmailSent;
     const noEmailsSent = !emailResults.userEmailSent && !emailResults.adminEmailSent;
     
