@@ -1,11 +1,25 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const Header: React.FC = () => {
+  const isMobile = useIsMobile();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Handle scroll events for header styling
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -15,8 +29,22 @@ const Header: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
+  // Navigation items for reusability
+  const navItems = [
+    { href: "#how-it-works", label: "How It Works" },
+    { href: "#features", label: "Features" },
+    { href: "#testimonials", label: "Testimonials" },
+    { href: "#for-brands", label: "For Brands" }
+  ];
+
   return (
-    <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-darkbg/80 border-b border-glassBorder">
+    <header 
+      className={cn(
+        "fixed top-0 w-full z-50 backdrop-blur-md transition-all duration-300",
+        isScrolled ? "bg-darkbg/90 shadow-md" : "bg-darkbg/80",
+        "border-b border-glassBorder"
+      )}
+    >
       <div className="container mx-auto flex justify-between items-center py-4 px-5 md:px-8">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
@@ -32,10 +60,15 @@ const Header: React.FC = () => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#how-it-works" className="text-white/80 hover:text-neon transition-colors">How It Works</a>
-          <a href="#features" className="text-white/80 hover:text-neon transition-colors">Features</a>
-          <a href="#testimonials" className="text-white/80 hover:text-neon transition-colors">Testimonials</a>
-          <a href="#for-brands" className="text-white/80 hover:text-neon transition-colors">For Brands</a>
+          {navItems.map((item) => (
+            <a 
+              key={item.href}
+              href={item.href} 
+              className="text-white/80 hover:text-neon transition-colors"
+            >
+              {item.label}
+            </a>
+          ))}
         </nav>
         
         {/* Desktop CTA */}
@@ -46,61 +79,41 @@ const Header: React.FC = () => {
           </a>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden flex items-center text-white" 
-          onClick={toggleMobileMenu}
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Navigation Menu */}
-      <div 
-        className={cn(
-          "fixed inset-0 bg-darkbg/95 z-40 flex flex-col pt-20 px-6 transition-transform duration-300 ease-in-out md:hidden",
-          mobileMenuOpen ? "translate-y-0" : "translate-y-full"
+        {/* Mobile Menu - Using Shadcn Sheet for better UX */}
+        {isMobile && (
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <button 
+                className="md:hidden flex items-center text-white" 
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                <Menu size={24} />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="bg-darkbg/95 border-l border-glassBorder pt-16">
+              <nav className="flex flex-col space-y-6 items-center text-center">
+                {navItems.map((item) => (
+                  <a 
+                    key={item.href}
+                    href={item.href} 
+                    className="text-xl text-white hover:text-neon transition-colors" 
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+                <a 
+                  href="#waitlist" 
+                  className="btn-neon flex items-center mt-4 px-8 py-3"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span>Join Waitlist</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </nav>
+            </SheetContent>
+          </Sheet>
         )}
-      >
-        <nav className="flex flex-col space-y-6 items-center text-center">
-          <a 
-            href="#how-it-works" 
-            className="text-xl text-white hover:text-neon transition-colors" 
-            onClick={closeMobileMenu}
-          >
-            How It Works
-          </a>
-          <a 
-            href="#features" 
-            className="text-xl text-white hover:text-neon transition-colors" 
-            onClick={closeMobileMenu}
-          >
-            Features
-          </a>
-          <a 
-            href="#testimonials" 
-            className="text-xl text-white hover:text-neon transition-colors" 
-            onClick={closeMobileMenu}
-          >
-            Testimonials
-          </a>
-          <a 
-            href="#for-brands" 
-            className="text-xl text-white hover:text-neon transition-colors" 
-            onClick={closeMobileMenu}
-          >
-            For Brands
-          </a>
-          <a 
-            href="#waitlist" 
-            className="btn-neon flex items-center mt-4 px-8 py-3"
-            onClick={closeMobileMenu}
-          >
-            <span>Join Waitlist</span>
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </a>
-        </nav>
       </div>
     </header>
   );

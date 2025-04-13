@@ -8,8 +8,15 @@ import { useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-// Create a new query client instance
-const queryClient = new QueryClient();
+// Create a new query client instance with retry configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 // ScrollToTop component to reset scroll position on navigation
 const ScrollToTop = () => {
@@ -23,8 +30,9 @@ const ScrollToTop = () => {
 };
 
 const App = () => {
-  // Prevent pull-to-refresh on mobile
+  // Mobile optimizations
   useEffect(() => {
+    // Prevent pull-to-refresh on mobile
     const preventPullToRefresh = (e: TouchEvent) => {
       // Prevent only if scrolled to top
       if (document.documentElement.scrollTop === 0) {
@@ -32,10 +40,23 @@ const App = () => {
       }
     };
 
+    // Disable double-tap to zoom (without affecting pinch zoom)
+    const disableDoubleTapZoom = (e: TouchEvent) => {
+      const now = Date.now();
+      const timeDiff = now - (e.target as any).__lastTouch || 0;
+      if (timeDiff < 300) {
+        e.preventDefault();
+      }
+      (e.target as any).__lastTouch = now;
+    };
+
+    // Apply mobile optimizations
     document.addEventListener('touchstart', preventPullToRefresh, { passive: false });
+    document.addEventListener('touchend', disableDoubleTapZoom, { passive: false });
     
     return () => {
       document.removeEventListener('touchstart', preventPullToRefresh);
+      document.removeEventListener('touchend', disableDoubleTapZoom);
     };
   }, []);
 

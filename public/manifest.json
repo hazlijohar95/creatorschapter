@@ -2,20 +2,27 @@
 {
   "short_name": "DEALFLOW",
   "name": "DEALFLOW - AI-Powered Brand Deals",
+  "description": "Get better brand deals without the back-and-forth using AI-powered tools for creators",
   "icons": [
     {
       "src": "/lovable-uploads/15469034-65cd-4df5-83a4-140a47eee54f.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/lovable-uploads/15469034-65cd-4df5-83a4-140a47eee54f.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#0B0B0B",
-  "background_color": "#0B0B0B"
+  "background_color": "#0B0B0B",
+  "prefer_related_applications": false,
+  "categories": ["business", "productivity", "social"]
 }

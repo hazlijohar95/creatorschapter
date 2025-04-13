@@ -77,6 +77,7 @@
   body {
     @apply bg-darkbg text-white font-manrope m-0 p-0 overflow-x-hidden;
     -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -85,6 +86,33 @@
   
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Account for fixed header */
+    overscroll-behavior-y: none;
+  }
+
+  /* Improve font loading performance */
+  @media screen and (max-width: 767px) {
+    h1 {
+      @apply text-3xl;
+    }
+    
+    h2 {
+      @apply text-xl;
+    }
+    
+    h3 {
+      @apply text-lg;
+    }
+  }
+
+  /* Better handling of image loading */
+  img {
+    @apply transition-opacity;
+    opacity: 0;
+  }
+  
+  img.loaded {
+    opacity: 1;
   }
 }
 
@@ -110,19 +138,20 @@
     @apply w-full text-center py-3 text-lg font-medium;
   }
 
-  /* Add smooth scrolling for anchor links */
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 80px; /* Account for fixed header */
+  /* Improved form elements for mobile */
+  input, textarea, select, button {
+    @apply appearance-none;
+    font-size: 16px; /* Prevents zoom on iOS */
   }
 
-  /* Improve touch targets for mobile */
-  button, a {
-    @apply min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-neon/50;
+  /* Improved touch targets for mobile */
+  .is-mobile button:not(.btn-neon), 
+  .is-mobile a:not(.btn-neon) {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
 }
 
-/* Optimize animations for mobile */
+/* Better handling of animations on mobile */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -136,17 +165,53 @@
 @supports (-webkit-touch-callout: none) {
   .min-h-screen {
     min-height: -webkit-fill-available;
+    min-height: 100vh;
+    /* Modern iOS Safari measurement */
+    min-height: 100dvh;
   }
 }
 
 /* Momentum scrolling for iOS */
-.overflow-scroll {
+.overflow-scroll,
+.overflow-x-scroll,
+.overflow-y-scroll {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Remove outlines on mobile devices */
+/* Better scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-darkbg;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-glassBorder rounded-full;
+}
+
+/* Optimize loading for images */
 @media (max-width: 767px) {
-  * {
-    outline: none !important;
+  img[loading="lazy"] {
+    content-visibility: auto;
   }
 }
+
+/* Mobile-specific styles */
+.is-mobile .section-padding {
+  @apply py-10 px-4;
+}
+
+.is-mobile h1 {
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
+}
+
+.is-mobile .btn-neon {
+  @apply py-2 px-6;
+  touch-action: manipulation;
+}
+
+/* Make sure layer utilities are loaded last */
+@tailwind utilities;

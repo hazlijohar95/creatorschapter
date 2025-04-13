@@ -23,8 +23,40 @@
     <!-- Prevent iOS from detecting phone numbers and formatting them -->
     <meta name="format-detection" content="telephone=no">
     
+    <!-- Optimize mobile experience -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-title" content="DEALFLOW">
+    <meta name="application-name" content="DEALFLOW">
+    
+    <!-- Disable automatic detection and formatting of possible phone numbers -->
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Apple specific meta tags -->
+    <link rel="apple-touch-icon" href="/lovable-uploads/15469034-65cd-4df5-83a4-140a47eee54f.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <!-- PWA support -->
     <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap" as="style">
+    
+    <!-- Critical CSS inline -->
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #0B0B0B;
+        font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #fff;
+      }
+      #root {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+    </style>
   </head>
 
   <body>

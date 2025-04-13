@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { useIsMobile } from '../hooks/use-mobile';
 import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
 import HowItWorksSection from '../components/HowItWorksSection';
@@ -10,19 +11,12 @@ import WaitlistSection from '../components/WaitlistSection';
 import Footer from '../components/Footer';
 
 const Index = () => {
-  // Add mobile specific detection
+  const isMobile = useIsMobile();
+  
+  // Handle viewport height for mobile
   useEffect(() => {
     console.log("Index page mounted");
     document.title = "DEALFLOW - Get Better Brand Deals Without the Back-and-Forth";
-    
-    // Mobile optimization code
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    console.log("Is mobile device:", isMobile);
-    
-    // Add mobile class to body if on mobile
-    if (isMobile) {
-      document.body.classList.add('is-mobile');
-    }
     
     // Handle mobile viewport height issue (iOS Safari)
     const setVh = () => {
@@ -32,11 +26,20 @@ const Index = () => {
     
     setVh();
     window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+    
+    // Add specific mobile body class
+    if (isMobile) {
+      document.body.classList.add('is-mobile');
+    } else {
+      document.body.classList.remove('is-mobile');
+    }
     
     return () => {
       window.removeEventListener('resize', setVh);
+      window.removeEventListener('orientationchange', setVh);
     };
-  }, []);
+  }, [isMobile]);
   
   return (
     <div className="min-h-screen bg-darkbg text-white overflow-x-hidden">
