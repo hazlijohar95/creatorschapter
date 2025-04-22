@@ -9,6 +9,165 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      creator_profiles: {
+        Row: {
+          categories: string[] | null
+          collaboration_types:
+            | Database["public"]["Enums"]["collaboration_type"][]
+            | null
+          content_formats:
+            | Database["public"]["Enums"]["content_format"][]
+            | null
+          engagement_rate: number | null
+          id: string
+          payment_preferences: string[] | null
+          pricing_info: Json | null
+          target_audience: Json | null
+        }
+        Insert: {
+          categories?: string[] | null
+          collaboration_types?:
+            | Database["public"]["Enums"]["collaboration_type"][]
+            | null
+          content_formats?:
+            | Database["public"]["Enums"]["content_format"][]
+            | null
+          engagement_rate?: number | null
+          id: string
+          payment_preferences?: string[] | null
+          pricing_info?: Json | null
+          target_audience?: Json | null
+        }
+        Update: {
+          categories?: string[] | null
+          collaboration_types?:
+            | Database["public"]["Enums"]["collaboration_type"][]
+            | null
+          content_formats?:
+            | Database["public"]["Enums"]["content_format"][]
+            | null
+          engagement_rate?: number | null
+          id?: string
+          payment_preferences?: string[] | null
+          pricing_info?: Json | null
+          target_audience?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_items: {
+        Row: {
+          created_at: string | null
+          creator_id: string | null
+          description: string | null
+          external_link: string | null
+          id: string
+          is_featured: boolean | null
+          media_url: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          external_link?: string | null
+          id?: string
+          is_featured?: boolean | null
+          media_url?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          external_link?: string | null
+          id?: string
+          is_featured?: boolean | null
+          media_url?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_items_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          location: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+          username: string | null
+          website_url: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          location?: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          username?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          username?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      social_links: {
+        Row: {
+          id: string
+          platform: string
+          profile_id: string | null
+          url: string
+        }
+        Insert: {
+          id?: string
+          platform: string
+          profile_id?: string | null
+          url: string
+        }
+        Update: {
+          id?: string
+          platform?: string
+          profile_id?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_links_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist_submissions: {
         Row: {
           created_at: string
@@ -47,7 +206,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      collaboration_type:
+        | "sponsored_post"
+        | "product_review"
+        | "brand_ambassador"
+        | "affiliate_marketing"
+        | "event_appearance"
+        | "content_creation"
+      content_format:
+        | "video"
+        | "photo"
+        | "blog"
+        | "podcast"
+        | "livestream"
+        | "story"
+      user_role: "creator" | "brand"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -162,6 +335,24 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      collaboration_type: [
+        "sponsored_post",
+        "product_review",
+        "brand_ambassador",
+        "affiliate_marketing",
+        "event_appearance",
+        "content_creation",
+      ],
+      content_format: [
+        "video",
+        "photo",
+        "blog",
+        "podcast",
+        "livestream",
+        "story",
+      ],
+      user_role: ["creator", "brand"],
+    },
   },
 } as const

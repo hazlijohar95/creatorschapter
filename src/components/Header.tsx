@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+
+import { useState } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AuthButton } from './auth/AuthButton';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,6 +32,7 @@ const Header: React.FC = () => {
           <a href="#features" className="text-white/80 hover:text-neon transition-colors">Features</a>
           <a href="#testimonials" className="text-white/80 hover:text-neon transition-colors">Testimonials</a>
           <a href="#for-brands" className="text-white/80 hover:text-neon transition-colors">For Brands</a>
+          <AuthButton />
         </nav>
         
         {/* Mobile Menu Button */}
@@ -40,14 +43,6 @@ const Header: React.FC = () => {
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-
-        {/* Desktop CTA */}
-        <div className="hidden md:flex items-center space-x-4">
-          <a href="#waitlist" className="btn-neon flex items-center">
-            <span>Join Waitlist</span>
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </a>
-        </div>
       </div>
 
       {/* Mobile Navigation */}
@@ -66,10 +61,7 @@ const Header: React.FC = () => {
             <a href="#for-brands" onClick={closeMenu} className="text-xl text-white/80 hover:text-neon transition-colors">
               For Brands
             </a>
-            <a href="#waitlist" onClick={closeMenu} className="btn-neon flex items-center mt-4">
-              <span>Join Waitlist</span>
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
+            <AuthButton />
           </nav>
         </div>
       )}

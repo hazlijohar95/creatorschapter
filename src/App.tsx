@@ -1,6 +1,10 @@
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { supabase } from './integrations/supabase/client';
+import { useAuthStore } from './lib/auth';
 import Index from './pages/Index';
+import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -8,10 +12,29 @@ import CookiePolicy from './pages/CookiePolicy';
 import './App.css';
 
 function App() {
+  const { setUser, setSession } = useAuthStore();
+
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [setUser, setSession]);
+
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/terms" element={<TermsAndConditions />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/cookies" element={<CookiePolicy />} />
