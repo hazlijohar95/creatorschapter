@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
@@ -81,9 +80,8 @@ export function useProfileCompletion() {
         throw err;
       }
     },
-    // Replace onError with onSettled to handle errors
-    onSettled: (data, error: Error | null) => {
-      if (error) {
+    meta: {
+      onError: (error: Error) => {
         console.error("Profile completion query error:", error);
         toast({
           title: "Error checking profile status",
