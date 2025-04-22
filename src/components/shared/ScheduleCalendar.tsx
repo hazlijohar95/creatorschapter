@@ -98,10 +98,10 @@ export function ScheduleCalendar({
             onSelect={handleDateSelect}
             className="border rounded-md p-3 order-1 md:order-2"
             components={{
-              DayContent: ({ date, ...props }) => {
+              DayContent: ({ date }) => {
                 const hasEvent = hasEventsOnDay(date);
                 return (
-                  <div {...props} className={`${props.className || ''} ${hasEvent ? "font-semibold relative" : ""}`}>
+                  <div className={`relative ${hasEvent ? "font-semibold" : ""}`}>
                     {format(date, 'd')}
                     {hasEvent && <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 h-1 w-1 bg-primary rounded-full"></span>}
                   </div>

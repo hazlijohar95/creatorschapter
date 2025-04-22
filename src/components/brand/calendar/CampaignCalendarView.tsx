@@ -84,12 +84,6 @@ export function CampaignCalendarView() {
     ? events.filter(event => format(event.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))
     : [];
 
-  // Fixed: Use an object type for classNames instead of a function
-  const dayStyles = {
-    day: "relative",
-    day_has_event: "bg-primary/10 rounded-md"
-  };
-
   return (
     <div className="space-y-4">
       <Card>
@@ -120,10 +114,10 @@ export function CampaignCalendarView() {
                 day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
               }}
               components={{
-                DayContent: ({ date: dayDate, ...props }) => {
+                DayContent: ({ date: dayDate }) => {
                   const hasEvent = hasEventsOnDay(dayDate);
                   return (
-                    <div {...props} className={`${props.className || ''} ${hasEvent ? "font-semibold relative" : ""}`}>
+                    <div className={`relative ${hasEvent ? "font-semibold" : ""}`}>
                       {format(dayDate, 'd')}
                       {hasEvent && <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 h-1 w-1 bg-primary rounded-full"></span>}
                     </div>
