@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "@/components/ui/use-toast";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -42,19 +43,64 @@ export default function Auth() {
             },
           },
         });
-        if (error) throw error;
+        if (error) {
+          // Check for unique email violation
+          if (
+            error.message &&
+            error.message.toLowerCase().includes("duplicate key value") &&
+            error.message.includes("profiles_email_key")
+          ) {
+            setError("This email address is already in use.");
+            toast({
+              title: "Sign up error",
+              description: "This email address is already in use.",
+              variant: "destructive",
+            });
+          } else {
+            setError(error.message);
+            toast({
+              title: "Sign up error",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
+          setIsLoading(false);
+          return;
+        }
+        toast({
+          title: "Account created",
+          description: "Sign up successful! Please check your email for confirmation (or log in if already confirmed).",
+        });
         navigate("/");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+        if (error) {
+          setError(error.message);
+          toast({
+            title: "Login error",
+            description: error.message,
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        toast({
+          title: "Welcome back!",
+          description: "Signed in successfully",
+        });
         navigate("/");
       }
     } catch (error) {
       const result = handleError(error as Error);
       setError(result.error);
+      toast({
+        title: isSignUp ? "Sign up error" : "Login error",
+        description: result.error,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +127,7 @@ export default function Auth() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
 
@@ -92,6 +139,7 @@ export default function Auth() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete={isSignUp ? "new-password" : "current-password"}
               />
             </div>
 
