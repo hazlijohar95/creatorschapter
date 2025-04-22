@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Instagram, Twitter, TrendingUp } from 'lucide-react';
 
@@ -49,7 +50,11 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="mt-12 pt-6 border-t border-glassBorder flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/50 text-sm">© {new Date().getFullYear()} DEALFLOW. All rights reserved.</p>
+          <div className="text-white/50 text-sm flex flex-col md:flex-row items-center gap-2">
+            <span>© {new Date().getFullYear()} Creator Chapter Sdn.Bhd.</span>
+            <span className="hidden md:inline">•</span>
+            <span>Kuala Lumpur, Malaysia</span>
+          </div>
           <p className="text-white/50 text-sm mt-2 md:mt-0">Made for creators, by creators.</p>
         </div>
       </div>

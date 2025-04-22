@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowDown } from 'lucide-react';
 
@@ -38,8 +37,11 @@ const HeroSection: React.FC = () => {
                 src="/lovable-uploads/8ccdeef9-35e4-4146-808b-d80bd959b82d.png" 
                 alt="Dashboard UI" 
                 className="relative w-full h-auto rounded-xl shadow-2xl border border-glassBorder"
+                width="800"
+                height="600"
                 loading="eager"
                 decoding="async"
+                fetchPriority="high"
               />
             </div>
           </div>
