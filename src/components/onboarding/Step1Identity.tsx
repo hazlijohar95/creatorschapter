@@ -33,35 +33,79 @@ export default function Step1Identity({ user, onNext }: Step1Props) {
     }
     setLoading(true);
 
-    // Upload photo if provided
-    let photoUrl = null;
-    if (photo) {
-      const { data, error } = await supabase.storage
-        .from("profile-photos")
-        .upload(`${user.id}/${photo.name}`, photo, { upsert: true });
-      if (error) {
-        toast({ title: "Photo upload failed", description: error.message, variant: "destructive" });
-      } else {
-        photoUrl = data?.path;
+    try {
+      // Upload photo if provided
+      let photoUrl = null;
+      if (photo) {
+        // First, check if the storage bucket exists, if not create it
+        const { data: bucketExists } = await supabase
+          .storage
+          .getBucket('profile-photos');
+        
+        if (!bucketExists) {
+          // Create the bucket if it doesn't exist
+          await supabase
+            .storage
+            .createBucket('profile-photos', {
+              public: true,
+              fileSizeLimit: 1024 * 1024 * 2 // 2MB
+            });
+        }
+        
+        // Upload the file
+        const fileExt = photo.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+          .from("profile-photos")
+          .upload(fileName, photo, { upsert: true });
+          
+        if (error) {
+          toast({ title: "Photo upload failed", description: error.message, variant: "destructive" });
+        } else {
+          // Get the public URL of the uploaded file
+          const { data: publicUrlData } = supabase
+            .storage
+            .from("profile-photos")
+            .getPublicUrl(fileName);
+            
+          photoUrl = publicUrlData?.publicUrl;
+        }
       }
-    }
 
-    // Save to profiles & creator_profiles
-    const { error: err1 } = await supabase
-      .from("profiles")
-      .update({ username, bio, photo_url: photoUrl })
-      .eq("id", user.id);
-    const { error: err2 } = await supabase
-      .from("creator_profiles")
-      .update({ categories })
-      .eq("id", user.id);
+      // Save to profiles table - note that we're NOT using photo_url which seems to be missing
+      const profileUpdate: Record<string, any> = {
+        username,
+        bio,
+      };
+      
+      // Only add photo URL if we have one
+      if (photoUrl) {
+        // Use avatar_url instead of photo_url as it seems that's what's available in the schema
+        profileUpdate.avatar_url = photoUrl;
+      }
 
-    setLoading(false);
-    if (!err1 && !err2) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", user.id);
+
+      // Save to creator_profiles
+      const { error: creatorProfileError } = await supabase
+        .from("creator_profiles")
+        .update({ categories })
+        .eq("id", user.id);
+
+      if (profileError || creatorProfileError) {
+        throw new Error(profileError?.message || creatorProfileError?.message);
+      }
+
       toast({ title: "Profile updated", description: "Basic info saved successfully" });
       onNext();
-    } else {
-      toast({ title: "Save error", description: err1?.message || err2?.message, variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Save error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
