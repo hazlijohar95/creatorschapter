@@ -4,7 +4,6 @@ import { Calendar } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export function CampaignCalendarView() {
   const [date, setDate] = useState<Date>();
@@ -37,8 +36,7 @@ export function CampaignCalendarView() {
                 "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
                 "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground rounded-md"
               ),
-              // Removed 'today' property which was causing the TypeScript error
-              outside: "text-muted-foreground opacity-50",
+              day_outside: "text-muted-foreground opacity-50", // Changed from 'outside' to 'day_outside'
               selected:
                 "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-md",
               disabled: "opacity-50 pointer-events-none",
