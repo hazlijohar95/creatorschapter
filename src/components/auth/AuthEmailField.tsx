@@ -11,7 +11,7 @@ export default function AuthEmailField({
   error
 }: AuthEmailFieldProps) {
   return <div className="space-y-2">
-      <Label htmlFor="email" className="text-base font-inter font-medium bg-gray-950">
+      <Label htmlFor="email" className="text-base font-inter font-medium bg-transparent">
         Email
       </Label>
       <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="focus:ring-2 focus:ring-neon ring-offset-2 bg-background/75 border border-border placeholder:text-muted-foreground font-manrope" placeholder="your@email.com" aria-label="Email" />

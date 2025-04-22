@@ -1,10 +1,8 @@
-
 import React from "react";
 import PasswordField from "./PasswordField";
 import AuthEmailField from "./AuthEmailField";
 import AuthFullNameField from "./AuthFullNameField";
 import RoleSelector from "./RoleSelector";
-
 type AuthFieldsProps = {
   email: string;
   setEmail: (e: string) => void;
@@ -15,10 +13,11 @@ type AuthFieldsProps = {
   setFullName: (e: string) => void;
   role: "creator" | "brand";
   setRole: (r: "creator" | "brand") => void;
-  fieldErrors: { [key: string]: string };
+  fieldErrors: {
+    [key: string]: string;
+  };
   passwordValid: boolean;
 };
-
 export default function AuthFields({
   email,
   setEmail,
@@ -30,18 +29,14 @@ export default function AuthFields({
   role,
   setRole,
   fieldErrors,
-  passwordValid,
+  passwordValid
 }: AuthFieldsProps) {
-  return (
-    <div className="w-full space-y-4">
+  return <div className="w-full space-y-4 bg-transparent">
       <AuthEmailField email={email} setEmail={setEmail} error={fieldErrors.email} />
       <PasswordField value={password} onChange={setPassword} error={fieldErrors.password} isSignUp={isSignUp} />
-      {isSignUp && (
-        <div className="space-y-3 animate-fade-in">
+      {isSignUp && <div className="space-y-3 animate-fade-in">
           <AuthFullNameField fullName={fullName} setFullName={setFullName} error={fieldErrors.fullName} />
           <RoleSelector value={role} onChange={setRole} />
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 }
