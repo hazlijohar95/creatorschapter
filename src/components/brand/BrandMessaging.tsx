@@ -16,7 +16,7 @@ const CONVERSATIONS = [
     avatar: "",
     lastMessage: "When do you need the content by?",
     timestamp: "10:25 AM",
-    unread: true
+    unread: true,
   },
   {
     id: 2,
@@ -25,7 +25,7 @@ const CONVERSATIONS = [
     avatar: "",
     lastMessage: "I'll send you the draft tomorrow",
     timestamp: "Yesterday",
-    unread: false
+    unread: false,
   },
   {
     id: 3,
@@ -34,8 +34,8 @@ const CONVERSATIONS = [
     avatar: "",
     lastMessage: "Thanks for the opportunity!",
     timestamp: "May 20",
-    unread: false
-  }
+    unread: false,
+  },
 ];
 
 const MESSAGES = [
@@ -43,39 +43,44 @@ const MESSAGES = [
     id: 1,
     senderId: "brand",
     text: "Hi Alex! Thanks for joining our Summer Collection campaign.",
-    timestamp: "10:15 AM"
+    timestamp: "10:15 AM",
   },
   {
     id: 2,
     senderId: "creator",
     text: "Thank you for the opportunity! I'm excited to work with your brand.",
-    timestamp: "10:18 AM"
+    timestamp: "10:18 AM",
   },
   {
     id: 3,
     senderId: "brand",
     text: "Great! I'll send you the product details and requirements shortly.",
-    timestamp: "10:20 AM"
+    timestamp: "10:20 AM",
   },
   {
     id: 4,
     senderId: "creator",
     text: "When do you need the content by?",
-    timestamp: "10:25 AM"
-  }
+    timestamp: "10:25 AM",
+  },
 ];
 
 export function BrandMessaging() {
   const [activeConversation, setActiveConversation] = useState(1);
   const [messageInput, setMessageInput] = useState("");
-  
+
+  // For consistent theme use, Tailwind colors are used for dark/light.
+  // Brand (sent) = primary color; Creator (received) = soft accent.
+
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col">
       <div className="flex h-full">
         {/* Conversation list */}
-        <div className="w-full md:w-80 border-r flex flex-col">
-          <div className="p-4 border-b">
-            <h1 className="text-xl font-bold">Messages</h1>
+        <div className="w-full md:w-80 border-r border-border bg-card/60 backdrop-blur-lg flex flex-col">
+          <div className="p-4 border-b border-muted">
+            <h1 className="text-xl font-bold text-gradient bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              Messages
+            </h1>
           </div>
           <div className="p-2">
             <div className="relative">
@@ -87,23 +92,27 @@ export function BrandMessaging() {
             {CONVERSATIONS.map((conversation) => (
               <div
                 key={conversation.id}
-                className={`p-3 cursor-pointer hover:bg-accent ${
-                  activeConversation === conversation.id ? "bg-accent" : ""
+                className={`p-3 cursor-pointer hover:bg-accent/60 transition-colors rounded-xl mb-1 ${
+                  activeConversation === conversation.id
+                    ? "bg-gradient-to-r from-muted to-accent/60"
+                    : ""
                 }`}
                 onClick={() => setActiveConversation(conversation.id)}
               >
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   <div className="relative">
-                    <Avatar>
+                    <Avatar className="h-10 w-10">
                       <AvatarImage src={conversation.avatar} />
-                      <AvatarFallback>{conversation.creatorName.substring(0, 2)}</AvatarFallback>
+                      <AvatarFallback>
+                        {conversation.creatorName.substring(0, 2)}
+                      </AvatarFallback>
                     </Avatar>
                     {conversation.unread && (
-                      <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary"></span>
+                      <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-primary ring-2 ring-card"></span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="font-medium truncate">{conversation.creatorName}</span>
                       <span className="text-xs text-muted-foreground">{conversation.timestamp}</span>
                     </div>
@@ -114,66 +123,95 @@ export function BrandMessaging() {
             ))}
           </ScrollArea>
         </div>
-        
+
         {/* Message thread */}
-        <div className="hidden md:flex flex-col flex-1 h-full">
-          <div className="flex items-center p-4 border-b">
+        <div className="hidden md:flex flex-col flex-1 h-full bg-gradient-to-br from-background via-card to-muted/70 backdrop-blur-lg px-0 py-0">
+          {/* Header */}
+          <div className="flex items-center p-4 border-b border-muted bg-card rounded-t-2xl">
             <Avatar className="h-10 w-10 mr-3">
               <AvatarImage src="" />
               <AvatarFallback>AJ</AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-semibold">Alex Johnson</h2>
+              <h2 className="font-semibold text-base text-foreground">
+                Alex Johnson
+              </h2>
               <p className="text-xs text-muted-foreground">@alexcreates</p>
             </div>
           </div>
-          
-          <ScrollArea className="flex-1 p-4">
+
+          {/* Messages */}
+          <ScrollArea className="flex-1 px-4 py-5">
             <div className="space-y-4">
               {MESSAGES.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.senderId === "brand" ? "justify-end" : ""}`}
+                  className={`w-full flex ${
+                    message.senderId === "brand"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
                 >
                   <div
-                    className={`max-w-[80%] px-4 py-2 rounded-lg ${
+                    className={`max-w-[80%] px-5 py-3 rounded-2xl text-[15px] shadow-lg
+                    ${
                       message.senderId === "brand"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
+                        ? "bg-gradient-to-br from-primary to-purple-600 text-white border border-primary/20"
+                        : "bg-muted/90 text-foreground border border-muted/30"
+                    }
+                    `}
                   >
-                    <p>{message.text}</p>
-                    <p className="text-xs mt-1 opacity-70">{message.timestamp}</p>
+                    <p className="break-words">{message.text}</p>
+                    <p
+                      className={`text-xs mt-2 opacity-70 ${
+                        message.senderId === "brand"
+                          ? "text-white/70"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {message.timestamp}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           </ScrollArea>
-          
-          <div className="p-4 border-t">
-            <div className="flex gap-2">
-              <Input 
+
+          {/* Input */}
+          <div className="p-4 border-t border-muted bg-card rounded-b-2xl">
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setMessageInput("");
+              }}
+            >
+              <Input
                 placeholder="Type your message..."
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
-                className="flex-1"
+                className="flex-1 text-base"
+                autoComplete="off"
               />
-              <Button>
+              <Button type="submit" className="bg-primary text-white shadow">
                 <Send className="h-4 w-4" />
                 <span className="sr-only">Send message</span>
               </Button>
-            </div>
+            </form>
           </div>
         </div>
-        
+
         {/* Empty state for mobile */}
-        <div className="flex-1 items-center justify-center hidden">
+        <div className="flex-1 flex items-center justify-center md:hidden bg-background/60">
           <div className="text-center p-8">
-            <h3 className="font-medium">Select a conversation</h3>
-            <p className="text-muted-foreground text-sm">Choose a conversation from the list to start messaging</p>
+            <h3 className="font-semibold text-lg">Select a conversation</h3>
+            <p className="text-muted-foreground text-sm">
+              Choose a conversation from the list to start messaging
+            </p>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
