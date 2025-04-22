@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Trash, Plus } from "lucide-react";
+
+// Type definitions for demographic data
+interface TargetAudience {
+  age_ranges?: string[];
+  interests?: string[];
+}
 
 // Country data for location dropdown
 const COUNTRIES = [
@@ -77,7 +82,7 @@ export default function SocialMediaProfile() {
       
       return {
         location: profile?.location || "",
-        targetAudience: creatorProfile?.target_audience || { age_ranges: [], interests: [] },
+        targetAudience: (creatorProfile?.target_audience as TargetAudience) || { age_ranges: [], interests: [] },
         socialLinks: links || []
       };
     },

@@ -32,14 +32,17 @@ import CollaborationManagement from "@/components/dashboard/CollaborationManagem
 import SocialMediaProfile from "@/components/dashboard/SocialMediaProfile";
 import SettingsPanel from "@/components/dashboard/SettingsPanel";
 
-export default function CreatorDashboard() {
+export default function CreatorDashboard(): JSX.Element {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { step2Complete, loading } = useProfileCompletion();
   const [activeTab, setActiveTab] = useState<string>("overview");
 
   if (loading) return <div className="p-6">Loading...</div>;
-  if (!step2Complete) return navigate("/onboarding");
+  if (!step2Complete) {
+    navigate("/onboarding");
+    return <div className="p-6">Redirecting to onboarding...</div>;
+  }
   
   const renderContent = () => {
     switch(activeTab) {

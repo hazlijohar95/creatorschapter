@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -241,7 +240,7 @@ export default function PortfolioManagement() {
                   {item.media_url ? (
                     <div className="bg-gray-100 h-36 rounded-md flex items-center justify-center overflow-hidden">
                       <img 
-                        src={`${supabase.storageUrl}/object/public/portfolio-media/${item.media_url}`} 
+                        src={`${process.env.SUPABASE_URL || 'https://xceitaturyhtqzuoibrd.supabase.co'}/storage/v1/object/public/portfolio-media/${item.media_url}`} 
                         alt={item.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -292,7 +291,57 @@ export default function PortfolioManagement() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[525px]">
-                {/* Same dialog content as above */}
+                <DialogHeader>
+                  <DialogTitle>Add New Portfolio Item</DialogTitle>
+                  <DialogDescription>
+                    Showcase your work by adding a new item to your portfolio.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handlePortfolioUpload} className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label htmlFor="title" className="text-sm font-medium">Title</label>
+                    <Input
+                      id="title"
+                      required
+                      placeholder="Enter a title for your portfolio item"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="description" className="text-sm font-medium">Description</label>
+                    <Textarea
+                      id="description"
+                      placeholder="Describe your work (optional)"
+                      value={desc}
+                      onChange={(e) => setDesc(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="media" className="text-sm font-medium">Upload Media (optional)</label>
+                    <Input
+                      id="media"
+                      type="file"
+                      onChange={(e) => setMedia(e.target.files?.[0] || null)}
+                      accept="image/*,video/*"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="externalLink" className="text-sm font-medium">External Link (optional)</label>
+                    <Input
+                      id="externalLink"
+                      placeholder="https://example.com/your-work"
+                      value={externalLink}
+                      onChange={(e) => setExternalLink(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? "Adding..." : "Add to Portfolio"}
+                    </Button>
+                  </DialogFooter>
+                </form>
               </DialogContent>
             </Dialog>
           </div>
