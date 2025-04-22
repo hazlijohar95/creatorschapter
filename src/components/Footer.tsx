@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Instagram, Twitter, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -8,7 +9,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-5 md:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start">
           <div className="mb-8 md:mb-0">
-            <div className="text-neon font-space text-2xl font-bold mb-1">DEALFLOW</div>
+            <div className="text-neon font-space text-2xl font-bold mb-1">creator chapter</div>
             <p className="text-white/70 max-w-sm">Empowering creators to write their success story.</p>
           </div>
           
@@ -26,9 +27,15 @@ const Footer: React.FC = () => {
             <div>
               <h3 className="text-white font-medium mb-4">Legal</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-white/70 hover:text-neon">Terms & Conditions</a></li>
-                <li><a href="#" className="text-white/70 hover:text-neon">Privacy Policy</a></li>
-                <li><a href="#" className="text-white/70 hover:text-neon">Cookie Policy</a></li>
+                <li>
+                  <Link to="/terms" className="text-white/70 hover:text-neon">Terms & Conditions</Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="text-white/70 hover:text-neon">Privacy Policy</Link>
+                </li>
+                <li>
+                  <Link to="/cookies" className="text-white/70 hover:text-neon">Cookie Policy</Link>
+                </li>
               </ul>
             </div>
             
