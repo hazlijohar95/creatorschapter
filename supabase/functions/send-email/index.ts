@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY')
@@ -50,7 +49,7 @@ serve(async (req) => {
         personalizations: [{
           to: [{ email: to }],
         }],
-        from: { email: 'waitlist@dealflow.com', name: 'Dealflow Waitlist' },
+        from: { email: 'hello@creatorchapter.com', name: 'Dealflow Waitlist' },
         subject: subject,
         content: [{
           type: 'text/html',
