@@ -69,7 +69,6 @@ Make sure these environment variables are properly configured in your deployment
 
 - `SUPABASE_URL`: Your Supabase project URL
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `RESEND_API_KEY`: API key for email service (if using email features)
 
 ## Custom Domain Setup
 
