@@ -16,12 +16,18 @@ import Dashboard from "./pages/Dashboard";
 import CreatorOnboarding from "./pages/CreatorOnboarding";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import BrandDashboard from "./pages/BrandDashboard";
+import { CreatorOverview } from "./components/creator/CreatorOverview";
 import { BrandOverview } from "./components/brand/BrandOverview";
 import { CreatorDiscovery } from "./components/brand/CreatorDiscovery";
 import { CampaignManagement } from "./components/brand/CampaignManagement";
 import { ApplicationReview } from "./components/brand/ApplicationReview";
 import { BrandMessaging } from "./components/brand/BrandMessaging";
 import { Toaster } from "./components/ui/toaster";
+import OpportunityDiscovery from "./components/dashboard/OpportunityDiscovery";
+import PortfolioManagement from "./components/dashboard/PortfolioManagement";
+import CollaborationManagement from "./components/dashboard/CollaborationManagement";
+import SocialMediaProfile from "./components/dashboard/SocialMediaProfile";
+import SettingsPanel from "./components/dashboard/SettingsPanel";
 
 function App() {
   const { setUser, setSession, user } = useAuthStore();
@@ -81,7 +87,17 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/creator-dashboard" element={<CreatorDashboard />} />
+            
+            {/* Creator Dashboard Routes - Updated to nested routes */}
+            <Route path="/creator-dashboard" element={<CreatorDashboard />}>
+              <Route index element={<CreatorOverview />} />
+              <Route path="opportunities" element={<OpportunityDiscovery />} />
+              <Route path="portfolio" element={<PortfolioManagement />} />
+              <Route path="collaborations" element={<CollaborationManagement />} />
+              <Route path="social" element={<SocialMediaProfile />} />
+              <Route path="settings" element={<SettingsPanel />} />
+            </Route>
+            
             <Route path="/onboarding" element={<CreatorOnboarding />} />
             
             {/* Brand Dashboard Routes */}
