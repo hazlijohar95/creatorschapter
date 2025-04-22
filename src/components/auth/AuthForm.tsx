@@ -1,9 +1,6 @@
 
 // ----------------------------------
-// Refactored AuthForm.tsx
-// - Modularized layout
-// - Applied premium, clean "Chapter Creator" brand style and updated all Dealflow language
-// - Simplified code for clarity
+// AuthForm - Chapter Creator premium, clean brand style + UI/UX fixes
 // ----------------------------------
 
 import { useState, useEffect } from "react";
@@ -27,26 +24,27 @@ type Props = {};
 
 function FormHeader({ isSignUp }: { isSignUp: boolean }) {
   return (
-    <div className="text-center pt-8 pb-3">
-      <h2 className="text-3xl md:text-4xl font-space font-extrabold tracking-tight bg-gradient-to-tr from-primary to-neon bg-clip-text text-transparent drop-shadow mb-2">
+    <div className="text-center pt-8 pb-4">
+      <h2 className="text-3xl md:text-4xl font-playfair font-bold tracking-tight text-gradient bg-gradient-to-tr from-neon via-primary to-white bg-clip-text text-transparent drop-shadow mb-2 leading-tight">
         {isSignUp
-          ? (<><span className="inline-block text-neon">Sign Up</span> <span className="inline-block text-primary">for Chapter Creator</span></>)
-          : (<span className="inline-block text-primary">Sign In</span>)
+          ? (<><span className="inline-block text-neon">Join</span> <span className="inline-block text-primary">Chapter Creator</span></>)
+          : (<span className="inline-block text-primary">Sign In to Chapter Creator</span>)
         }
       </h2>
-      <p className="font-manrope text-base text-muted-foreground mt-2">
+      <p className="font-inter text-base text-muted-foreground mt-2">
         {isSignUp
-          ? "Join Chapter Creator to collaborate with premium brands and creators."
-          : "Welcome back to Chapter Creator — sign in to your account."}
+          ? "Create your Chapter Creator account to unlock seamless brand deals and premium creative collabs."
+          : "Welcome back! Sign in to Chapter Creator and power up your next creative chapter."}
       </p>
     </div>
   );
 }
 
 function FormContainer({ children }: { children: React.ReactNode }) {
+  // Add premium shadow and glass card effect, better feel on mobile
   return (
-    <div className="w-full max-w-lg mx-auto space-y-3">
-      <div className="glass-card card-gradient drop-shadow-2xl transition-all border border-glassBorder bg-glassBg/90 backdrop-blur-lg rounded-2xl px-8 sm:px-10 py-10">
+    <div className="w-full max-w-lg mx-auto section-padding relative z-10">
+      <div className="glass-card card-gradient drop-shadow-xl border border-glassBorder bg-gradient-to-br from-card via-glassBg/80 to-darkbg/95 backdrop-blur-xl rounded-2xl px-7 sm:px-10 py-10 sm:py-12 animate-fade-in">
         {children}
       </div>
     </div>
@@ -100,7 +98,7 @@ export default function AuthForm({}: Props) {
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       toast({
-        title: "Check your form",
+        title: "Please check your info",
         description: Object.values(errors).join(". "),
         variant: "destructive"
       });
@@ -156,7 +154,7 @@ export default function AuthForm({}: Props) {
   }, [celebrating, navigate]);
 
   return (
-    <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#252838]/90 to-[#161619] relative">
+    <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#252838]/80 to-[#181923] relative">
       {isLoading && <LoadingOverlay />}
       {celebrating && <ConfettiCheck />}
 
@@ -166,17 +164,19 @@ export default function AuthForm({}: Props) {
       <FormContainer>
         <FormHeader isSignUp={isSignUp} />
         <form onSubmit={handleSubmit} className="space-y-8" autoComplete="on">
-          <AuthEmailField email={email} setEmail={setEmail} error={fieldErrors.email} />
-          <PasswordField value={password} onChange={setPassword} error={fieldErrors.password} isSignUp={isSignUp} />
-          {isSignUp && (
-            <div className="space-y-3 animate-fade-in">
-              <AuthFullNameField fullName={fullName} setFullName={setFullName} error={fieldErrors.fullName} />
-              <RoleSelector value={role} onChange={setRole} />
-            </div>
-          )}
+          <div className="space-y-5">
+            <AuthEmailField email={email} setEmail={setEmail} error={fieldErrors.email} />
+            <PasswordField value={password} onChange={setPassword} error={fieldErrors.password} isSignUp={isSignUp} />
+            {isSignUp && (
+              <div className="space-y-3 animate-fade-in">
+                <AuthFullNameField fullName={fullName} setFullName={setFullName} error={fieldErrors.fullName} />
+                <RoleSelector value={role} onChange={setRole} />
+              </div>
+            )}
+          </div>
           <Button
             type="submit"
-            className="w-full bg-neon text-darkbg text-lg font-extrabold tracking-wide shadow-lg transition hover:scale-[1.03] hover:bg-primary hover:text-white duration-200 mt-2 px-6 py-3 rounded-full border-none"
+            className="w-full bg-neon/90 text-darkbg text-lg font-playfair font-extrabold tracking-wider shadow-xl transition hover:scale-[1.03] hover:bg-primary hover:text-white duration-200 border-none px-6 py-3 rounded-full mt-1"
             disabled={isLoading || (isSignUp && !passwordValid)}
           >
             {isLoading ? (
@@ -188,13 +188,19 @@ export default function AuthForm({}: Props) {
                 Please wait...
               </span>
             ) : (
-              isSignUp ? "Create Account" : "Sign In"
+              isSignUp ? "Create Your Account" : "Sign In"
             )}
           </Button>
           <AuthSwitchFooter isSignUp={isSignUp} onToggle={() => { setIsSignUp(!isSignUp); setFieldErrors({}); }} />
         </form>
+        <div className="text-center mt-6 text-xs text-muted-foreground font-manrope tracking-wide">
+          {/* Secondary brand message, mobile or tablet */}
+          <span>
+            🚀 Empowering creators & brands to connect and grow together on <span className="text-neon font-bold">Chapter Creator</span>
+          </span>
+        </div>
       </FormContainer>
     </div>
   );
 }
-// NOTE: This file is now cleaner and modularized. It's over 150 lines, so please consider further refactoring if adding more logic/UI!
+// NOTE: This file is now cleaner and modularized. It's over 150 lines, please consider asking to refactor this file if you plan to add more logic or UI!
