@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
@@ -16,7 +17,9 @@ export function useProfileCompletion() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['profile-check', user?.id],
     enabled: !!user,
-    retry: 2, // Only retry twice to avoid infinite loading
+    retry: 1, // Reduce retries to avoid excessive calls
+    staleTime: 30000, // Cache data for 30 seconds to prevent frequent refetches
+    cacheTime: 60000, // Keep data in cache for 1 minute
     queryFn: async (): Promise<ProfileCheck> => {
       if (!user) return { step1Complete: false, step2Complete: false };
       
@@ -98,5 +101,6 @@ export function useProfileCompletion() {
     loading: isLoading,
     error,
     refetch,
+    hasCreatorProfile: data !== undefined, // Add a flag to indicate if profile data was fetched successfully
   };
 }

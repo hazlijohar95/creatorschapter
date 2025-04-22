@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
@@ -7,68 +7,43 @@ import { useSessionRecovery } from "@/hooks/useSessionRecovery";
 import { CreatorSidebar } from "@/components/creator/CreatorSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader, AlertCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CreatorDashboard(): JSX.Element {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const { step2Complete, loading: profileLoading, error: profileError } = useProfileCompletion();
+  const { step2Complete, loading: profileLoading, error: profileError, hasCreatorProfile } = useProfileCompletion();
   const { isRecovering } = useSessionRecovery();
   const { toast } = useToast();
-  const [verifyingProfile, setVerifyingProfile] = useState(true);
-  const [hasCreatorProfile, setHasCreatorProfile] = useState<boolean | null>(null);
   
-  // Combine loading states
-  const isLoading = isRecovering || profileLoading || verifyingProfile;
+  // Combine loading states - simplified from previous implementation
+  const isLoading = isRecovering || profileLoading;
   
-  // First verify that the user actually has a creator_profile
+  // Debug logging - kept for troubleshooting
   useEffect(() => {
-    if (!user) return;
-    
-    const verifyCreatorProfile = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("creator_profiles")
-          .select("id")
-          .eq("id", user.id)
-          .maybeSingle();
-        
-        if (error) {
-          console.error("Error checking creator profile:", error);
-          toast({
-            title: "Error",
-            description: "Could not verify your creator profile",
-            variant: "destructive"
-          });
-          setHasCreatorProfile(false);
-        } else {
-          setHasCreatorProfile(!!data);
-        }
-      } catch (err) {
-        console.error("Exception checking creator profile:", err);
-        setHasCreatorProfile(false);
-      } finally {
-        setVerifyingProfile(false);
-      }
-    };
-    
-    verifyCreatorProfile();
-  }, [user, toast]);
-  
+    console.log({
+      isRecovering,
+      profileLoading,
+      hasCreatorProfile,
+      step2Complete,
+      isLoading,
+      user: !!user
+    });
+  }, [isRecovering, profileLoading, hasCreatorProfile, step2Complete, isLoading, user]);
+
   // Redirect logic based on profile checks
   useEffect(() => {
     // Only proceed if we have finished all loading states
     if (isLoading) return;
     
-    // If no user or missing creator profile, redirect to appropriate page
+    // If no user, redirect to authentication
     if (!user) {
       navigate("/auth");
       return;
     }
     
     // If profile verification is complete and user doesn't have a creator profile
-    if (hasCreatorProfile === false) {
+    if (!isLoading && hasCreatorProfile === false) {
       navigate("/dashboard");
       return;
     }
@@ -78,18 +53,6 @@ export default function CreatorDashboard(): JSX.Element {
       navigate("/onboarding");
     }
   }, [isLoading, step2Complete, user, navigate, hasCreatorProfile]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log({
-      isRecovering,
-      profileLoading,
-      verifyingProfile,
-      hasCreatorProfile,
-      step2Complete,
-      isLoading
-    });
-  }, [isRecovering, profileLoading, verifyingProfile, hasCreatorProfile, step2Complete, isLoading]);
 
   // Error handling
   if (profileError) {
