@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-5 md:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start">
           <div className="mb-8 md:mb-0">
-            <div className="text-neon font-space text-2xl font-bold mb-1">CHAPTERCREATOR</div>
+            <div className="text-neon font-space text-2xl font-bold mb-1">DEALFLOW</div>
             <p className="text-white/70 max-w-sm">Empowering creators to write their success story.</p>
           </div>
           
@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="mt-12 pt-6 border-t border-glassBorder flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/50 text-sm">© {new Date().getFullYear()} CHAPTERCREATOR. All rights reserved.</p>
+          <p className="text-white/50 text-sm">© {new Date().getFullYear()} DEALFLOW. All rights reserved.</p>
           <p className="text-white/50 text-sm mt-2 md:mt-0">Made for creators, by creators.</p>
         </div>
       </div>
