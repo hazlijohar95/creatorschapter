@@ -12,6 +12,7 @@ import { useAuthStore } from "@/lib/auth";
 import { validateSocialUrl, ensureHttps } from "@/lib/socialMediaValidation";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, CheckCircle, Save } from "lucide-react";
+import { TargetAudience } from "@/types/profiles";
 
 const formSchema = z.object({
   instagram: z.string().optional()
@@ -38,12 +39,6 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-interface TargetAudience {
-  age_group?: string;
-  gender?: string;
-  interests?: string[];
-}
 
 export default function SocialMediaProfile() {
   const { user } = useAuthStore();
