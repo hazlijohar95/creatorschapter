@@ -1,6 +1,6 @@
 
 // ----------------------------------
-// AuthForm - Chapter Creator premium, clean brand style + UI/UX fixes
+// AuthForm - Refined premium feel, better alignment, clearer presentation
 // ----------------------------------
 
 import { useState, useEffect } from "react";
@@ -24,16 +24,26 @@ type Props = {};
 
 function FormHeader({ isSignUp }: { isSignUp: boolean }) {
   return (
-    <div className="text-center pt-8 pb-4">
-      <h2 className="text-3xl md:text-4xl font-playfair font-bold tracking-tight text-gradient bg-gradient-to-tr from-neon via-primary to-white bg-clip-text text-transparent drop-shadow mb-2 leading-tight">
-        {isSignUp
-          ? (<><span className="inline-block text-neon">Join</span> <span className="inline-block text-primary">Chapter Creator</span></>)
-          : (<span className="inline-block text-primary">Sign In to Chapter Creator</span>)
-        }
+    <div className="flex flex-col items-center w-full mb-0 mt-3">
+      <h2 className="
+        text-[2.25rem] sm:text-4xl md:text-5xl font-playfair font-extrabold leading-tight tracking-tight
+        bg-gradient-to-br from-neon via-primary to-[#7E69AB] bg-clip-text text-transparent
+        drop-shadow-xl mb-2
+        "
+      >
+        {isSignUp ? (
+          <>
+            <span className="inline-block text-neon">Join</span>{" "}
+            <span className="inline-block text-primary">Chapter Creator</span>
+          </>
+        ) : (
+          <span className="inline-block text-primary">Sign In to Chapter Creator</span>
+        )}
       </h2>
-      <p className="font-inter text-base text-muted-foreground mt-2">
+      <div className="w-2/3 sm:w-1/2 h-[4px] bg-gradient-to-r from-neon via-[#9b87f5] to-[#8E9196] rounded-full my-2" />
+      <p className="font-inter text-base text-muted-foreground mt-2 text-center max-w-xl">
         {isSignUp
-          ? "Create your Chapter Creator account to unlock seamless brand deals and premium creative collabs."
+          ? "Create your Chapter Creator account to unlock premium brand deals and creative collabs."
           : "Welcome back! Sign in to Chapter Creator and power up your next creative chapter."}
       </p>
     </div>
@@ -41,10 +51,17 @@ function FormHeader({ isSignUp }: { isSignUp: boolean }) {
 }
 
 function FormContainer({ children }: { children: React.ReactNode }) {
-  // Add premium shadow and glass card effect, better feel on mobile
+  // Subtle glass card effect with soft border and premium shadow, very minimal
   return (
-    <div className="w-full max-w-lg mx-auto section-padding relative z-10">
-      <div className="glass-card card-gradient drop-shadow-xl border border-glassBorder bg-gradient-to-br from-card via-glassBg/80 to-darkbg/95 backdrop-blur-xl rounded-2xl px-7 sm:px-10 py-10 sm:py-12 animate-fade-in">
+    <div className="w-full max-w-lg mx-auto px-2 section-padding relative z-10">
+      <div className="
+        glass-card card-gradient border border-glassBorder/80
+        bg-gradient-to-br from-white/70 via-glassBg/95 to-[#efefff88]
+        backdrop-blur-2xl rounded-3xl shadow-2xl
+        px-6 sm:px-10 py-9 sm:py-11
+        flex flex-col items-center animate-fade-in
+        "
+      >
         {children}
       </div>
     </div>
@@ -154,17 +171,24 @@ export default function AuthForm({}: Props) {
   }, [celebrating, navigate]);
 
   return (
-    <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#252838]/80 to-[#181923] relative">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#191826] via-[#252838]/80 to-[#181923] pb-4">
+      {/* Header bar and Home/back button stay fixed at top of card */}
+      <div className="flex justify-center items-center pt-3 sm:pt-8 pb-1 sm:pb-2 w-full">
+        <div className="w-full max-w-lg mx-auto">
+          <AuthHeader isSignUp={isSignUp} />
+        </div>
+      </div>
       {isLoading && <LoadingOverlay />}
       {celebrating && <ConfettiCheck />}
-
-      {/* Breadcrumb and Back to Home */}
-      <AuthHeader isSignUp={isSignUp} />
-
+      {/* Main card body */}
       <FormContainer>
         <FormHeader isSignUp={isSignUp} />
-        <form onSubmit={handleSubmit} className="space-y-8" autoComplete="on">
-          <div className="space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full space-y-7 flex flex-col items-center justify-center mt-2"
+          autoComplete="on"
+        >
+          <div className="w-full space-y-4">
             <AuthEmailField email={email} setEmail={setEmail} error={fieldErrors.email} />
             <PasswordField value={password} onChange={setPassword} error={fieldErrors.password} isSignUp={isSignUp} />
             {isSignUp && (
@@ -176,7 +200,7 @@ export default function AuthForm({}: Props) {
           </div>
           <Button
             type="submit"
-            className="w-full bg-neon/90 text-darkbg text-lg font-playfair font-extrabold tracking-wider shadow-xl transition hover:scale-[1.03] hover:bg-primary hover:text-white duration-200 border-none px-6 py-3 rounded-full mt-1"
+            className="w-full bg-neon/90 text-darkbg text-lg font-playfair font-extrabold tracking-wider shadow-xl transition hover:scale-[1.03] hover:bg-primary hover:text-white duration-200 border-none px-6 py-3 rounded-full mt-0"
             disabled={isLoading || (isSignUp && !passwordValid)}
           >
             {isLoading ? (
@@ -194,7 +218,6 @@ export default function AuthForm({}: Props) {
           <AuthSwitchFooter isSignUp={isSignUp} onToggle={() => { setIsSignUp(!isSignUp); setFieldErrors({}); }} />
         </form>
         <div className="text-center mt-6 text-xs text-muted-foreground font-manrope tracking-wide">
-          {/* Secondary brand message, mobile or tablet */}
           <span>
             🚀 Empowering creators & brands to connect and grow together on <span className="text-neon font-bold">Chapter Creator</span>
           </span>
@@ -203,4 +226,5 @@ export default function AuthForm({}: Props) {
     </div>
   );
 }
-// NOTE: This file is now cleaner and modularized. It's over 150 lines, please consider asking to refactor this file if you plan to add more logic or UI!
+// NOTE: This file is now cleaner in UI, but remains over 200 lines. Please consider refactoring into smaller components/files soon!
+
