@@ -1,139 +1,109 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FolderOpen, MessageSquare, Search, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function CreatorOverview() {
   return (
-    <div className="p-6 md:p-8 space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Dashboard Overview</h1>
+    <div className="p-6 md:p-8 space-y-8">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold text-muted-foreground">Dashboard Overview</h1>
       </div>
       
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Opportunities</CardTitle>
-            <Search className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">
-              +2 from last month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Portfolio Views</CardTitle>
-            <FolderOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">158</div>
-            <p className="text-xs text-muted-foreground">
-              +23% from last month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">
-              2 unread
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Collaborations</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">
-              1 pending review
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { 
+            icon: Search, 
+            title: "Active Opportunities", 
+            value: "3", 
+            change: "+2 from last month",
+            className: "text-blue-500" 
+          },
+          { 
+            icon: FolderOpen, 
+            title: "Portfolio Views", 
+            value: "158", 
+            change: "+23% from last month",
+            className: "text-green-500" 
+          },
+          { 
+            icon: MessageSquare, 
+            title: "Messages", 
+            value: "5", 
+            change: "2 unread",
+            className: "text-purple-500" 
+          },
+          { 
+            icon: Users, 
+            title: "Collaborations", 
+            value: "2", 
+            change: "1 pending review",
+            className: "text-orange-500" 
+          }
+        ].map(({ icon: Icon, title, value, change, className }) => (
+          <Card key={title} className="hover:shadow-sm transition-shadow duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+              <Icon className={cn("h-4 w-4", className)} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-light text-foreground">{value}</div>
+              <p className="text-xs text-muted-foreground">{change}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
       
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Recent Opportunities</CardTitle>
-            <CardDescription>
-              Latest opportunities that match your profile
-            </CardDescription>
+            <CardTitle className="text-lg text-muted-foreground">Recent Opportunities</CardTitle>
+            <CardDescription>Latest opportunities that match your profile</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 border rounded-lg">
-                <div>
-                  <p className="font-medium">Instagram Story Campaign</p>
-                  <p className="text-sm text-muted-foreground">Fitness Brand • $500-750</p>
+            <div className="space-y-4">
+              {[
+                { title: "Instagram Story Campaign", brand: "Fitness Brand", price: "$500-750", tag: "New", tagStyle: "bg-green-100 text-green-800" },
+                { title: "YouTube Product Review", brand: "Tech Company", price: "$1000-1500", tag: "Perfect Match", tagStyle: "bg-blue-100 text-blue-800" },
+                { title: "Podcast Guest Appearance", brand: "Media Company", price: "$300", tag: "3d ago", tagStyle: "bg-gray-100 text-gray-800" }
+              ].map(({ title, brand, price, tag, tagStyle }) => (
+                <div key={title} className="flex justify-between items-center p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                  <div>
+                    <p className="font-medium text-sm">{title}</p>
+                    <p className="text-xs text-muted-foreground">{brand} • {price}</p>
+                  </div>
+                  <span className={`text-xs ${tagStyle} px-2 py-1 rounded-full`}>{tag}</span>
                 </div>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">New</span>
-              </div>
-              
-              <div className="flex justify-between items-center p-3 border rounded-lg">
-                <div>
-                  <p className="font-medium">YouTube Product Review</p>
-                  <p className="text-sm text-muted-foreground">Tech Company • $1000-1500</p>
-                </div>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Perfect Match</span>
-              </div>
-              
-              <div className="flex justify-between items-center p-3 border rounded-lg">
-                <div>
-                  <p className="font-medium">Podcast Guest Appearance</p>
-                  <p className="text-sm text-muted-foreground">Media Company • $300</p>
-                </div>
-                <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">3d ago</span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
         
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Featured Portfolio</CardTitle>
-            <CardDescription>
-              Your most viewed content
-            </CardDescription>
+            <CardTitle className="text-lg text-muted-foreground">Featured Portfolio</CardTitle>
+            <CardDescription>Your most viewed content</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-2 border rounded-lg">
-                <div className="bg-gray-100 w-16 h-16 rounded flex items-center justify-center">
-                  <FolderOpen className="w-8 h-8 text-gray-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Summer Collection Showcase</p>
-                  <div className="flex gap-2">
-                    <span className="text-xs text-muted-foreground">Video</span>
-                    <span className="text-xs text-muted-foreground">87 views</span>
+            <div className="space-y-4">
+              {[
+                { title: "Summer Collection Showcase", type: "Video", views: "87" },
+                { title: "Product Review: Tech Gadget", type: "Blog", views: "42" }
+              ].map(({ title, type, views }) => (
+                <div key={title} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-accent/50 transition-colors">
+                  <div className="bg-accent/30 w-16 h-16 rounded flex items-center justify-center">
+                    <FolderOpen className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{title}</p>
+                    <div className="flex gap-2 text-xs text-muted-foreground">
+                      <span>{type}</span>
+                      <span>•</span>
+                      <span>{views} views</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-3 p-2 border rounded-lg">
-                <div className="bg-gray-100 w-16 h-16 rounded flex items-center justify-center">
-                  <FolderOpen className="w-8 h-8 text-gray-400" />
-                </div>
-                <div>
-                  <p className="font-medium">Product Review: Tech Gadget</p>
-                  <div className="flex gap-2">
-                    <span className="text-xs text-muted-foreground">Blog</span>
-                    <span className="text-xs text-muted-foreground">42 views</span>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
