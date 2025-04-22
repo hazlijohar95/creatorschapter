@@ -22,6 +22,8 @@ import {
   BreadcrumbSeparator,
   BreadcrumbLink,
 } from "@/components/ui/breadcrumb";
+import { Eye, EyeOff } from "lucide-react";
+import { validatePasswordStrength } from "@/lib/passwordStrength";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -40,12 +42,26 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<"creator" | "brand">("creator");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrengthMsg, setPasswordStrengthMsg] = useState("");
+  const [passwordValid, setPasswordValid] = useState(true);
 
   useEffect(() => {
     try {
       sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false");
     } catch { /* Ignore */ }
   }, [isSignUp]);
+
+  useEffect(() => {
+    if (isSignUp && password) {
+      const { valid, message } = validatePasswordStrength(password);
+      setPasswordStrengthMsg(message);
+      setPasswordValid(valid);
+    } else {
+      setPasswordStrengthMsg("");
+      setPasswordValid(true);
+    }
+  }, [password, isSignUp]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,14 +192,34 @@ export default function Auth() {
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete={isSignUp ? "new-password" : "current-password"}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-primary"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {isSignUp && password && (
+                  <p
+                    className={`text-xs mt-1 ${passwordValid ? "text-green-600" : "text-red-500"}`}
+                  >
+                    {passwordValid
+                      ? "Password meets requirements."
+                      : passwordStrengthMsg}
+                  </p>
+                )}
               </div>
 
               {isSignUp && (
@@ -216,8 +252,12 @@ export default function Auth() {
 
               {error && <p className="text-sm text-red-500">{error}</p>}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Please wait..." : isSignUp ? "Create account" : "Sign in"}
+              <Button type="submit" className="w-full" disabled={isLoading || (isSignUp && !passwordValid)}>
+                {isLoading
+                  ? "Please wait..."
+                  : isSignUp
+                    ? "Create account"
+                    : "Sign in"}
               </Button>
 
               <p className="text-sm text-center">
