@@ -1,36 +1,21 @@
-
 import { useLocation, Link } from "react-router-dom";
 import { Users, Briefcase, MessageSquare, Bell } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
-import { 
-  Sidebar, 
-  SidebarHeader, 
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton, 
-} from "@/components/ui/sidebar";
-
+import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 export function BrandSidebar() {
   const location = useLocation();
-  const { user } = useAuthStore();
-  
+  const {
+    user
+  } = useAuthStore();
   const isActive = (path: string) => {
     return location.pathname === path;
   };
-
-  return (
-    <Sidebar
-      style={{ "--sidebar-width": "16rem" } as React.CSSProperties}
-      className="border-r"
-    >
+  return <Sidebar style={{
+    "--sidebar-width": "16rem"
+  } as React.CSSProperties} className="border-r">
       <SidebarHeader className="border-b">
         <div className="p-4">
-          <h2 className="font-space text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+          <h2 className="font-space text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-gray-50">
             Brand Dashboard
           </h2>
         </div>
@@ -42,11 +27,7 @@ export function BrandSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/brand-dashboard")}
-                  tooltip="Overview"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/brand-dashboard")} tooltip="Overview">
                   <Link to="/brand-dashboard">
                     <Briefcase />
                     <span>Overview</span>
@@ -62,11 +43,7 @@ export function BrandSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/brand-dashboard/discover")}
-                  tooltip="Discover Creators"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/brand-dashboard/discover")} tooltip="Discover Creators">
                   <Link to="/brand-dashboard/discover">
                     <Users />
                     <span>Discover Creators</span>
@@ -75,11 +52,7 @@ export function BrandSidebar() {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/brand-dashboard/campaigns")}
-                  tooltip="Campaigns"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/brand-dashboard/campaigns")} tooltip="Campaigns">
                   <Link to="/brand-dashboard/campaigns">
                     <Briefcase />
                     <span>Campaigns</span>
@@ -88,11 +61,7 @@ export function BrandSidebar() {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/brand-dashboard/applications")}
-                  tooltip="Applications"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/brand-dashboard/applications")} tooltip="Applications">
                   <Link to="/brand-dashboard/applications">
                     <Bell />
                     <span>Applications</span>
@@ -101,11 +70,7 @@ export function BrandSidebar() {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/brand-dashboard/messages")}
-                  tooltip="Messages"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/brand-dashboard/messages")} tooltip="Messages">
                   <Link to="/brand-dashboard/messages">
                     <MessageSquare />
                     <span>Messages</span>
@@ -125,6 +90,5 @@ export function BrandSidebar() {
           </div>
         </div>
       </SidebarFooter>
-    </Sidebar>
-  );
+    </Sidebar>;
 }
