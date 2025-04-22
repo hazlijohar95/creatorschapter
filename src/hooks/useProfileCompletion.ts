@@ -81,13 +81,16 @@ export function useProfileCompletion() {
         throw err;
       }
     },
-    onError: (error: Error) => {
-      console.error("Profile completion query error:", error);
-      toast({
-        title: "Error checking profile status",
-        description: error.message || "Failed to verify your profile status",
-        variant: "destructive"
-      });
+    // Replace onError with onSettled to handle errors
+    onSettled: (data, error: Error | null) => {
+      if (error) {
+        console.error("Profile completion query error:", error);
+        toast({
+          title: "Error checking profile status",
+          description: error.message || "Failed to verify your profile status",
+          variant: "destructive"
+        });
+      }
     }
   });
 
