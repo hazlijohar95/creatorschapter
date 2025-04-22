@@ -1,8 +1,7 @@
 
 // ----------------------------------
-// AuthForm - Refined premium feel, better alignment, clearer presentation
+// AuthForm v2 - Clean, Premium-First, Improved Layout/Contrast
 // ----------------------------------
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,54 +18,10 @@ import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
 import RoleSelector from "./RoleSelector";
 import AuthHeader from "./AuthHeader";
+import AuthGlassCard from "./AuthGlassCard";
+import AuthPremiumHeader from "./AuthPremiumHeader";
 
 type Props = {};
-
-function FormHeader({ isSignUp }: { isSignUp: boolean }) {
-  return (
-    <div className="flex flex-col items-center w-full mb-0 mt-3">
-      <h2 className="
-        text-[2.25rem] sm:text-4xl md:text-5xl font-playfair font-extrabold leading-tight tracking-tight
-        bg-gradient-to-br from-neon via-primary to-[#7E69AB] bg-clip-text text-transparent
-        drop-shadow-xl mb-2
-        "
-      >
-        {isSignUp ? (
-          <>
-            <span className="inline-block text-neon">Join</span>{" "}
-            <span className="inline-block text-primary">Chapter Creator</span>
-          </>
-        ) : (
-          <span className="inline-block text-primary">Sign In to Chapter Creator</span>
-        )}
-      </h2>
-      <div className="w-2/3 sm:w-1/2 h-[4px] bg-gradient-to-r from-neon via-[#9b87f5] to-[#8E9196] rounded-full my-2" />
-      <p className="font-inter text-base text-muted-foreground mt-2 text-center max-w-xl">
-        {isSignUp
-          ? "Create your Chapter Creator account to unlock premium brand deals and creative collabs."
-          : "Welcome back! Sign in to Chapter Creator and power up your next creative chapter."}
-      </p>
-    </div>
-  );
-}
-
-function FormContainer({ children }: { children: React.ReactNode }) {
-  // Subtle glass card effect with soft border and premium shadow, very minimal
-  return (
-    <div className="w-full max-w-lg mx-auto px-2 section-padding relative z-10">
-      <div className="
-        glass-card card-gradient border border-glassBorder/80
-        bg-gradient-to-br from-white/70 via-glassBg/95 to-[#efefff88]
-        backdrop-blur-2xl rounded-3xl shadow-2xl
-        px-6 sm:px-10 py-9 sm:py-11
-        flex flex-col items-center animate-fade-in
-        "
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
 
 export default function AuthForm({}: Props) {
   const navigate = useNavigate();
@@ -172,17 +127,17 @@ export default function AuthForm({}: Props) {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#191826] via-[#252838]/80 to-[#181923] pb-4">
-      {/* Header bar and Home/back button stay fixed at top of card */}
-      <div className="flex justify-center items-center pt-3 sm:pt-8 pb-1 sm:pb-2 w-full">
+      {/* Header bar + back/home button: always at top edge of card */}
+      <div className="flex justify-center items-start pt-5 sm:pt-10 pb-2 w-full">
         <div className="w-full max-w-lg mx-auto">
           <AuthHeader isSignUp={isSignUp} />
         </div>
       </div>
       {isLoading && <LoadingOverlay />}
       {celebrating && <ConfettiCheck />}
-      {/* Main card body */}
-      <FormContainer>
-        <FormHeader isSignUp={isSignUp} />
+      {/* Main glass card body */}
+      <AuthGlassCard>
+        <AuthPremiumHeader isSignUp={isSignUp} />
         <form
           onSubmit={handleSubmit}
           className="w-full space-y-7 flex flex-col items-center justify-center mt-2"
@@ -222,7 +177,7 @@ export default function AuthForm({}: Props) {
             🚀 Empowering creators & brands to connect and grow together on <span className="text-neon font-bold">Chapter Creator</span>
           </span>
         </div>
-      </FormContainer>
+      </AuthGlassCard>
     </div>
   );
 }
