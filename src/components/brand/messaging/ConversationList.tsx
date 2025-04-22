@@ -1,50 +1,41 @@
+
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Mock data (to be replaced with actual data fetching)
-const CONVERSATIONS = [
-  {
-    id: 1,
-    creatorName: "Alex Johnson",
-    creatorHandle: "@alexcreates",
-    avatar: "",
-    lastMessage: "When do you need the content by?",
-    timestamp: "10:25 AM",
-    unread: true,
-  },
-  {
-    id: 2,
-    creatorName: "Jamie Smith",
-    creatorHandle: "@jamiesmith",
-    avatar: "",
-    lastMessage: "I'll send you the draft tomorrow",
-    timestamp: "Yesterday",
-    unread: false,
-  },
-  {
-    id: 3,
-    creatorName: "Taylor Wilson",
-    creatorHandle: "@taylorwilson",
-    avatar: "",
-    lastMessage: "Thanks for the opportunity!",
-    timestamp: "May 20",
-    unread: false,
-  },
-];
+interface Conversation {
+  id: number;
+  creatorName: string;
+  creatorHandle: string;
+  avatar: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: boolean;
+}
 
 interface ConversationListProps {
+  conversations: Conversation[];
   activeConversation: number;
   onConversationSelect: (id: number) => void;
 }
 
-export function ConversationList({ 
-  activeConversation, 
-  onConversationSelect 
+export function ConversationList({
+  conversations,
+  activeConversation,
+  onConversationSelect
 }: ConversationListProps) {
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Optionally filter conversations by creatorName or handle
+  const filtered = searchTerm
+    ? conversations.filter(
+        (c) =>
+          c.creatorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.creatorHandle.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : conversations;
 
   return (
     <div className="w-80 bg-black/90 border-r border-white/10 flex flex-col">
@@ -54,8 +45,8 @@ export function ConversationList({
       <div className="p-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/50" />
-          <Input 
-            placeholder="Search conversations..." 
+          <Input
+            placeholder="Search conversations..."
             className="pl-8 bg-black/50 border-white/10 text-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -63,12 +54,12 @@ export function ConversationList({
         </div>
       </div>
       <ScrollArea className="flex-1">
-        {CONVERSATIONS.map((conversation) => (
+        {filtered.map((conversation) => (
           <div
             key={conversation.id}
-            className={`p-3 cursor-pointer hover:bg-white/5 transition-colors 
+            className={`p-3 cursor-pointer hover:bg-white/10 transition-colors 
               ${activeConversation === conversation.id 
-                ? "bg-yellow-500/10" 
+                ? "bg-yellow-500/10 border-l-4 border-yellow-400" 
                 : ""}`}
             onClick={() => onConversationSelect(conversation.id)}
           >
@@ -81,7 +72,7 @@ export function ConversationList({
                   </AvatarFallback>
                 </Avatar>
                 {conversation.unread && (
-                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-yellow-500"></span>
+                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-yellow-400"></span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -94,6 +85,11 @@ export function ConversationList({
             </div>
           </div>
         ))}
+        {filtered.length === 0 && (
+          <div className="px-4 py-10 text-sm text-white/60 text-center">
+            No conversations found.
+          </div>
+        )}
       </ScrollArea>
     </div>
   );
