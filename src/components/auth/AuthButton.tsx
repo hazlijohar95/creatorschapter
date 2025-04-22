@@ -12,7 +12,7 @@ export function AuthButton() {
     navigate("/");
   };
   if (user) {
-    return <Button variant="outline" onClick={handleSignOut}>
+    return <Button variant="outline" onClick={handleSignOut} className="text-gray-950 font-semibold">
         Sign Out
       </Button>;
   }
