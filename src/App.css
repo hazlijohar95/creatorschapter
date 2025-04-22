@@ -1,9 +1,11 @@
 
-/* Remove restrictive global styles that were causing layout issues */
+/* Base styling that doesn't restrict layout but maintains proper rendering */
 #root {
-  /* Remove max-width constraint */
-  /* Remove default padding */
-  /* Remove forced center alignment */
+  /* Reset any restrictive styles but keep basic structure */
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
