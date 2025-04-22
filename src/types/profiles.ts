@@ -3,6 +3,8 @@
 export interface TargetAudience {
   age_ranges?: string[];
   interests?: string[];
+  age_group?: string;
+  gender?: string;
 }
 
 export interface PricingInfo {

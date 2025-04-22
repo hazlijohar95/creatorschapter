@@ -39,6 +39,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+interface TargetAudience {
+  age_group?: string;
+  gender?: string;
+  interests?: string[];
+}
+
 export default function SocialMediaProfile() {
   const { user } = useAuthStore();
   const { toast } = useToast();
@@ -94,10 +100,25 @@ export default function SocialMediaProfile() {
           socialLinks[link.platform] = link.url;
         });
         
-        const targetAudience = creatorData?.target_audience || {};
-        const location = profileData?.location ? 
-          (typeof profileData.location === 'string' ? JSON.parse(profileData.location) : profileData.location) : 
-          {};
+        let targetAudience: TargetAudience = {};
+        if (creatorData?.target_audience) {
+          if (typeof creatorData.target_audience === 'object' && creatorData.target_audience !== null) {
+            targetAudience = creatorData.target_audience as TargetAudience;
+          }
+        }
+        
+        let location = { country: '', city: '' };
+        if (profileData?.location) {
+          try {
+            if (typeof profileData.location === 'string') {
+              location = JSON.parse(profileData.location);
+            } else if (typeof profileData.location === 'object') {
+              location = profileData.location as { country: string; city: string };
+            }
+          } catch (e) {
+            console.error("Error parsing location data:", e);
+          }
+        }
         
         form.reset({
           instagram: socialLinks.instagram || "",
@@ -108,7 +129,7 @@ export default function SocialMediaProfile() {
           city: location.city || "",
           ageGroup: targetAudience.age_group || "",
           gender: targetAudience.gender || "",
-          interests: (targetAudience.interests || []).join(", ")
+          interests: Array.isArray(targetAudience.interests) ? targetAudience.interests.join(", ") : ""
         });
       } catch (error) {
         console.error("Error loading social data:", error);
@@ -136,7 +157,7 @@ export default function SocialMediaProfile() {
         city: values.city,
       };
       
-      const targetAudience = {
+      const targetAudience: TargetAudience = {
         age_group: values.ageGroup,
         gender: values.gender,
         interests: values.interests ? values.interests.split(",").map(item => item.trim()) : [],
