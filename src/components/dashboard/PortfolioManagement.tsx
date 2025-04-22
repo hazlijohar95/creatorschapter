@@ -147,7 +147,7 @@ export default function PortfolioManagement() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">  {/* Added pb-12 for extra bottom padding */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">My Portfolio</h2>
         <Dialog>

@@ -94,7 +94,7 @@ export default function SettingsPanel() {
   if (isLoading) return <div className="flex items-center justify-center p-6"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">  {/* Added pb-12 for extra bottom padding */}
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <form onSubmit={handleUpdateProfile}>

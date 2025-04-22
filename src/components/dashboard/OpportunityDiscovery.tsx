@@ -64,7 +64,7 @@ export default function OpportunityDiscovery() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">  {/* Added pb-12 for extra bottom padding */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full max-w-lg">
           <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
