@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Check, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
@@ -14,7 +13,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
-// Define the schema for the waitlist form
 const waitlistSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
   email: z.string().email({ message: 'Please enter a valid email' }),
@@ -23,7 +21,6 @@ const waitlistSchema = z.object({
   niche: z.string().min(1, { message: 'Please select a content niche' })
 });
 
-// Create a TypeScript type from the schema
 type WaitlistFormData = z.infer<typeof waitlistSchema>;
 
 const WaitlistSection: React.FC = () => {
@@ -48,7 +45,6 @@ const WaitlistSection: React.FC = () => {
     try {
       console.log('Submitting waitlist form:', data);
       
-      // Insert the form data into the waitlist_submissions table
       const { error: dbError } = await supabase.from('waitlist_submissions').insert({
         name: data.name,
         email: data.email,
@@ -62,69 +58,62 @@ const WaitlistSection: React.FC = () => {
         throw new Error(`Database error: ${dbError.message}`);
       }
       
-      console.log('Successfully saved to database, now calling email function');
-      
-      // Call edge function to send emails
-      const emailResponse = await supabase.functions.invoke('send-waitlist-emails', {
+      console.log('Successfully saved to database, now sending confirmation emails');
+
+      const userEmailResponse = await supabase.functions.invoke('send-email', {
         body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          socialHandle: data.socialHandle,
-          followerCount: data.followerCount,
-          niche: data.niche
+          to: data.email,
+          subject: 'Welcome to Dealflow Waitlist!',
+          template: 'waitlist-confirmation',
+          templateData: {
+            name: data.name,
+            socialHandle: data.socialHandle,
+            niche: data.niche
+          }
         })
       });
 
-      console.log('Email function response:', emailResponse);
+      console.log('User confirmation email response:', userEmailResponse);
 
-      // Check for different types of responses
-      if (emailResponse.error) {
-        // Handle function invocation error
-        console.error('Function error:', emailResponse.error);
-        setErrorDetails(`Function error: ${emailResponse.error}`);
+      const adminEmail = 'your-admin-email@yourdomain.com'; // Update this with your admin email
+      const adminEmailResponse = await supabase.functions.invoke('send-email', {
+        body: JSON.stringify({
+          to: adminEmail,
+          subject: 'New Waitlist Submission',
+          template: 'admin-notification',
+          templateData: {
+            name: data.name,
+            email: data.email,
+            socialHandle: data.socialHandle,
+            followerCount: data.followerCount,
+            niche: data.niche
+          }
+        })
+      });
+
+      console.log('Admin notification email response:', adminEmailResponse);
+
+      if (userEmailResponse.error || adminEmailResponse.error) {
+        console.warn('Email sending issues:', { 
+          userEmail: userEmailResponse.error, 
+          adminEmail: adminEmailResponse.error 
+        });
         
         toast({
           title: "Submission Saved",
           description: "Your information was saved, but we couldn't send confirmation emails. We'll contact you soon!",
           variant: "default",
         });
-        
-        setSubmitted(true);
-      } else if (emailResponse.data?.status === 'partial_success') {
-        // Handle partial success (saved but email issues)
-        console.warn('Partial success:', emailResponse.data);
-        
-        toast({
-          title: "Submission Received",
-          description: "You've been added to our waitlist, but there was an issue with email confirmation.",
-          variant: "default",
-        });
-        
-        setSubmitted(true);
-      } else if (emailResponse.data?.error) {
-        // Handle errors reported by the function itself
-        console.error('Email sending error:', emailResponse.data.error);
-        setErrorDetails(emailResponse.data.error);
-        
-        toast({
-          title: "Submission Saved",
-          description: "Your submission was saved, but we encountered an issue with email notifications.",
-          variant: "default",
-        });
-        
-        setSubmitted(true);
       } else {
-        // Complete success
-        console.log('Complete success!');
         toast({
           title: "Success!",
           description: "You've been added to our waitlist. Check your email for confirmation.",
           variant: "default",
         });
-        
-        setSubmitted(true);
-        reset();
       }
+      
+      setSubmitted(true);
+      reset();
     } catch (error) {
       console.error('Error submitting form:', error);
       setErrorDetails(error.message);
@@ -263,7 +252,6 @@ const WaitlistSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Error details dialog */}
       <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
         <DialogContent>
           <DialogHeader>
