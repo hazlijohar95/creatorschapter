@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './integrations/supabase/client';
@@ -11,6 +10,9 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import CookiePolicy from './pages/CookiePolicy';
 import './App.css';
 import LoadingOverlay from './components/LoadingOverlay';
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Dashboard from "./pages/Dashboard";
+import CreatorOnboarding from "./pages/CreatorOnboarding";
 
 function App() {
   const { setUser, setSession } = useAuthStore();
@@ -60,6 +62,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/onboarding" element={<CreatorOnboarding />} />
+          </Route>
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/cookies" element={<CookiePolicy />} />
