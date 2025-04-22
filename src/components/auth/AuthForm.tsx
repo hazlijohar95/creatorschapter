@@ -1,29 +1,24 @@
 
 // ----------------------------------
-// AuthForm v2 - Clean, Premium-First, Improved Layout/Contrast
+// AuthForm v2 - Refactored into smaller components
 // ----------------------------------
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { handleError } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import ConfettiCheck from "@/components/ConfettiCheck";
-import LoadingOverlay from "@/components/LoadingOverlay";
-import PasswordField from "./PasswordField";
-import AuthEmailField from "./AuthEmailField";
-import AuthFullNameField from "./AuthFullNameField";
-import AuthSwitchFooter from "./AuthSwitchFooter";
 import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
-import RoleSelector from "./RoleSelector";
 import AuthHeader from "./AuthHeader";
-import AuthGlassCard from "./AuthGlassCard";
 import AuthPremiumHeader from "./AuthPremiumHeader";
+import AuthGlassCard from "./AuthGlassCard";
+import AuthSwitchFooter from "./AuthSwitchFooter";
+import AuthFormCard from "./AuthFormCard";
+import AuthFields from "./AuthFields";
+import AuthSubmitButton from "./AuthSubmitButton";
+import AuthBrandStatement from "./AuthBrandStatement";
 
-type Props = {};
-
-export default function AuthForm({}: Props) {
+export default function AuthForm() {
   const navigate = useNavigate();
   const lastIsSignUp = (() => {
     try {
@@ -38,11 +33,11 @@ export default function AuthForm({}: Props) {
   const [role, setRole] = useState<"creator" | "brand">("creator");
   const [celebrating, setCelebrating] = useState(false);
 
-  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [passwordValid, setPasswordValid] = useState(true);
 
   useEffect(() => {
-    try { sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false"); } catch {}
+    try { sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false"); } catch { }
   }, [isSignUp]);
 
   useEffect(() => {
@@ -52,7 +47,7 @@ export default function AuthForm({}: Props) {
   }, [password, isSignUp]);
 
   const validateAll = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
     if (!validateEmail(email)) newErrors.email = "Enter a valid email address";
     if (isSignUp && !validatePasswordStrength(password).valid) {
       newErrors.password = validatePasswordStrength(password).message || "Password not strong enough";
@@ -105,7 +100,7 @@ export default function AuthForm({}: Props) {
         navigate("/");
       }
     } catch (error) {
-      const result = handleError(error as Error);
+      handleError(error as Error);
       toast({
         title: isSignUp ? "Sign up error" : "Login error",
         description: "Unexpected error. Try again.",
@@ -133,53 +128,34 @@ export default function AuthForm({}: Props) {
           <AuthHeader isSignUp={isSignUp} />
         </div>
       </div>
-      {isLoading && <LoadingOverlay />}
-      {celebrating && <ConfettiCheck />}
-      {/* Main glass card body */}
-      <AuthGlassCard>
-        <AuthPremiumHeader isSignUp={isSignUp} />
+      <AuthFormCard isSignUp={isSignUp} isLoading={isLoading} celebrating={celebrating}>
         <form
           onSubmit={handleSubmit}
           className="w-full space-y-7 flex flex-col items-center justify-center mt-2"
           autoComplete="on"
         >
-          <div className="w-full space-y-4">
-            <AuthEmailField email={email} setEmail={setEmail} error={fieldErrors.email} />
-            <PasswordField value={password} onChange={setPassword} error={fieldErrors.password} isSignUp={isSignUp} />
-            {isSignUp && (
-              <div className="space-y-3 animate-fade-in">
-                <AuthFullNameField fullName={fullName} setFullName={setFullName} error={fieldErrors.fullName} />
-                <RoleSelector value={role} onChange={setRole} />
-              </div>
-            )}
-          </div>
-          <Button
-            type="submit"
-            className="w-full bg-neon/90 text-darkbg text-lg font-playfair font-extrabold tracking-wider shadow-xl transition hover:scale-[1.03] hover:bg-primary hover:text-white duration-200 border-none px-6 py-3 rounded-full mt-0"
+          <AuthFields
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            isSignUp={isSignUp}
+            fullName={fullName}
+            setFullName={setFullName}
+            role={role}
+            setRole={setRole}
+            fieldErrors={fieldErrors}
+            passwordValid={passwordValid}
+          />
+          <AuthSubmitButton
+            isLoading={isLoading}
+            isSignUp={isSignUp}
             disabled={isLoading || (isSignUp && !passwordValid)}
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-darkbg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                Please wait...
-              </span>
-            ) : (
-              isSignUp ? "Create Your Account" : "Sign In"
-            )}
-          </Button>
+          />
           <AuthSwitchFooter isSignUp={isSignUp} onToggle={() => { setIsSignUp(!isSignUp); setFieldErrors({}); }} />
         </form>
-        <div className="text-center mt-6 text-xs text-muted-foreground font-manrope tracking-wide">
-          <span>
-            🚀 Empowering creators & brands to connect and grow together on <span className="text-neon font-bold">Chapter Creator</span>
-          </span>
-        </div>
-      </AuthGlassCard>
+        <AuthBrandStatement />
+      </AuthFormCard>
     </div>
   );
 }
-// NOTE: This file is now cleaner in UI, but remains over 200 lines. Please consider refactoring into smaller components/files soon!
-
