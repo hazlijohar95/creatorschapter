@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Enums } from "@/integrations/supabase/types";
 
 interface Step2Props {
   user: any;
@@ -10,7 +10,8 @@ interface Step2Props {
 
 export default function Step2Portfolio({ user, onDone }: Step2Props) {
   const { toast } = useToast();
-  const [formats, setFormats] = useState<string[]>([]);
+  
+  const [formats, setFormats] = useState<Enums['content_format'][]>([]);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [media, setMedia] = useState<File | null>(null);
@@ -18,7 +19,29 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
   const [externalLink, setExternalLink] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const formatOptions = ["video", "photo", "blog", "podcast", "livestream", "story"];
+  const formatOptions: Enums['content_format'][] = [
+    "video", 
+    "photo", 
+    "blog", 
+    "podcast", 
+    "livestream", 
+    "story"
+  ];
+
+  const toggleFormat = (fmt: Enums['content_format']) =>
+    setFormats(f =>
+      f.includes(fmt) ? f.filter(v => v !== fmt) : [...f, fmt]
+    );
+
+  const saveFormats = async () => {
+    const { error } = await supabase
+      .from("creator_profiles")
+      .update({ content_formats: formats })
+      .eq("id", user.id);
+    
+    if (!error) toast({ title: "Formats saved" });
+    else toast({ title: "Error", description: error.message, variant: "destructive" });
+  };
 
   const handlePortfolioUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,20 +75,6 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
     } else {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
-  };
-
-  const toggleFormat = (fmt: string) =>
-    setFormats(f =>
-      f.includes(fmt) ? f.filter(v => v !== fmt) : [...f, fmt]
-    );
-
-  const saveFormats = async () => {
-    const { error } = await supabase
-      .from("creator_profiles")
-      .update({ content_formats: formats })
-      .eq("id", user.id);
-    if (!error) toast({ title: "Formats saved" });
-    else toast({ title: "Error", description: error.message, variant: "destructive" });
   };
 
   return (
