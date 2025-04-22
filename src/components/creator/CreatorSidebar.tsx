@@ -1,44 +1,21 @@
-
 import { useLocation, Link } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Search, 
-  FolderOpen, 
-  MessageSquare, 
-  Users, 
-  Settings,
-  Globe
-} from "lucide-react";
+import { LayoutDashboard, Search, FolderOpen, MessageSquare, Users, Settings, Globe } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
-import { 
-  Sidebar, 
-  SidebarHeader, 
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton, 
-} from "@/components/ui/sidebar";
-
+import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 export function CreatorSidebar() {
   const location = useLocation();
-  const { user } = useAuthStore();
-  
+  const {
+    user
+  } = useAuthStore();
   const isActive = (path: string) => {
     return location.pathname === path;
   };
-
-  return (
-    <Sidebar
-      style={{ "--sidebar-width": "16rem" } as React.CSSProperties}
-      className="border-r"
-    >
+  return <Sidebar style={{
+    "--sidebar-width": "16rem"
+  } as React.CSSProperties} className="border-r">
       <SidebarHeader className="border-b">
         <div className="p-4">
-          <h2 className="font-space text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+          <h2 className="font-space text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-gray-50">
             Creator Dashboard
           </h2>
         </div>
@@ -50,11 +27,7 @@ export function CreatorSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/creator-dashboard")}
-                  tooltip="Overview"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard")} tooltip="Overview">
                   <Link to="/creator-dashboard">
                     <LayoutDashboard />
                     <span>Overview</span>
@@ -62,11 +35,7 @@ export function CreatorSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/creator-dashboard/opportunities")}
-                  tooltip="Discover Opportunities"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/opportunities")} tooltip="Discover Opportunities">
                   <Link to="/creator-dashboard/opportunities">
                     <Search />
                     <span>Opportunities</span>
@@ -74,11 +43,7 @@ export function CreatorSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/creator-dashboard/portfolio")}
-                  tooltip="Portfolio Management"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/portfolio")} tooltip="Portfolio Management">
                   <Link to="/creator-dashboard/portfolio">
                     <FolderOpen />
                     <span>Portfolio</span>
@@ -94,11 +59,7 @@ export function CreatorSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/creator-dashboard/collaborations")}
-                  tooltip="Manage Collaborations"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/collaborations")} tooltip="Manage Collaborations">
                   <Link to="/creator-dashboard/collaborations">
                     <Users />
                     <span>Collaborations</span>
@@ -106,11 +67,7 @@ export function CreatorSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/creator-dashboard/social")}
-                  tooltip="Social Media Profile"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/social")} tooltip="Social Media Profile">
                   <Link to="/creator-dashboard/social">
                     <Globe />
                     <span>Platform & Reach</span>
@@ -125,11 +82,7 @@ export function CreatorSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive("/creator-dashboard/settings")}
-                  tooltip="Settings"
-                >
+                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/settings")} tooltip="Settings">
                   <Link to="/creator-dashboard/settings">
                     <Settings />
                     <span>Settings</span>
@@ -149,6 +102,5 @@ export function CreatorSidebar() {
           </div>
         </div>
       </SidebarFooter>
-    </Sidebar>
-  );
+    </Sidebar>;
 }
