@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { Tables } from "@/integrations/supabase/types";
+
+type PortfolioItem = Tables<'portfolio_items'>;
 
 export default function PortfolioManagement() {
   const { user } = useAuthStore();
@@ -136,6 +140,12 @@ export default function PortfolioManagement() {
     }
   };
 
+  // Helper function to get the proper storage URL for media
+  const getMediaUrl = (mediaPath: string | null) => {
+    if (!mediaPath) return null;
+    return `${supabase.storage.from("portfolio-media").getPublicUrl(mediaPath).data.publicUrl}`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -205,7 +215,7 @@ export default function PortfolioManagement() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {portfolioItems && portfolioItems.length > 0 ? (
-          portfolioItems.map((item: any) => (
+          portfolioItems.map((item: PortfolioItem) => (
             <Card key={item.id} className={item.is_featured ? "border-amber-400 shadow-md" : ""}>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
@@ -214,7 +224,7 @@ export default function PortfolioManagement() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={() => toggleFeatured(item.id, item.is_featured)}
+                      onClick={() => item.id && toggleFeatured(item.id, Boolean(item.is_featured))}
                     >
                       {item.is_featured ? (
                         <Star className="h-4 w-4 text-amber-500" fill="currentColor" />
@@ -228,7 +238,7 @@ export default function PortfolioManagement() {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => deleteItem(item.id)}
+                      onClick={() => item.id && deleteItem(item.id)}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
@@ -240,8 +250,8 @@ export default function PortfolioManagement() {
                   {item.media_url ? (
                     <div className="bg-gray-100 h-36 rounded-md flex items-center justify-center overflow-hidden">
                       <img 
-                        src={`${process.env.SUPABASE_URL || 'https://xceitaturyhtqzuoibrd.supabase.co'}/storage/v1/object/public/portfolio-media/${item.media_url}`} 
-                        alt={item.title}
+                        src={getMediaUrl(item.media_url)}
+                        alt={item.title || "Portfolio item"}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/placeholder.svg';

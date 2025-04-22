@@ -88,7 +88,9 @@ export default function AuthForm() {
           setIsLoading(false);
           return;
         }
-        setCelebrating(true);
+        toast({ title: "Account created!", description: "Welcome to Creator Chapter" });
+        // Redirect new users to onboarding instead of home page
+        navigate("/onboarding");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -97,7 +99,7 @@ export default function AuthForm() {
           return;
         }
         toast({ title: "Welcome back!", description: "Signed in successfully" });
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error) {
       handleError(error as Error);
@@ -111,18 +113,9 @@ export default function AuthForm() {
     }
   };
 
-  useEffect(() => {
-    if (!celebrating) return;
-    const timeout = setTimeout(() => {
-      setCelebrating(false);
-      navigate("/");
-    }, 1350);
-    return () => clearTimeout(timeout);
-  }, [celebrating, navigate]);
-
+  // We no longer need celebrating state since we navigate directly now
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#191826] via-[#252838]/80 to-[#181923] pb-4">
-      {/* Header bar + back/home button: always at top edge of card */}
       <div className="flex justify-center items-start pt-5 sm:pt-10 pb-2 w-full">
         <div className="w-full max-w-lg mx-auto">
           <AuthHeader isSignUp={isSignUp} />

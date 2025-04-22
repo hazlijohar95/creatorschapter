@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Trash, Plus } from "lucide-react";
-
-// Type definitions for demographic data
-interface TargetAudience {
-  age_ranges?: string[];
-  interests?: string[];
-}
+import { TargetAudience, SocialLink } from "@/types/profiles";
 
 // Country data for location dropdown
 const COUNTRIES = [
@@ -29,12 +25,18 @@ const INTERESTS = [
   "Food", "Music", "Art", "Photography", "Lifestyle", "Finance", "Education"
 ];
 
+interface ProfileData {
+  location: string;
+  targetAudience: TargetAudience;
+  socialLinks: SocialLink[];
+}
+
 export default function SocialMediaProfile() {
   const { user } = useAuthStore();
   const { toast } = useToast();
   
   // Social media links state
-  const [socialLinks, setSocialLinks] = useState<{id?: string, platform: string, url: string}[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [newPlatform, setNewPlatform] = useState("");
   const [newUrl, setNewUrl] = useState("");
   
@@ -57,7 +59,7 @@ export default function SocialMediaProfile() {
   // Fetch existing data
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['social-profile', user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<ProfileData | null> => {
       if (!user) return null;
       
       // Get profile data
@@ -80,9 +82,11 @@ export default function SocialMediaProfile() {
         .select("*")
         .eq("profile_id", user.id);
       
+      const targetAudience = creatorProfile?.target_audience as TargetAudience || { age_ranges: [], interests: [] };
+      
       return {
         location: profile?.location || "",
-        targetAudience: (creatorProfile?.target_audience as TargetAudience) || { age_ranges: [], interests: [] },
+        targetAudience,
         socialLinks: links || []
       };
     },
@@ -94,8 +98,8 @@ export default function SocialMediaProfile() {
     if (data) {
       setLocation(data.location);
       setSocialLinks(data.socialLinks);
-      setSelectedAgeRanges(data.targetAudience.age_ranges || []);
-      setSelectedInterests(data.targetAudience.interests || []);
+      setSelectedAgeRanges(data.targetAudience?.age_ranges || []);
+      setSelectedInterests(data.targetAudience?.interests || []);
     }
   }, [data]);
   

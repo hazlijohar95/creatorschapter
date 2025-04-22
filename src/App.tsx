@@ -21,10 +21,12 @@ import { CreatorDiscovery } from "./components/brand/CreatorDiscovery";
 import { CampaignManagement } from "./components/brand/CampaignManagement";
 import { ApplicationReview } from "./components/brand/ApplicationReview";
 import { BrandMessaging } from "./components/brand/BrandMessaging";
+import { Toaster } from "./components/ui/toaster";
 
 function App() {
-  const { setUser, setSession } = useAuthStore();
+  const { setUser, setSession, user } = useAuthStore();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigateEvents = typeof window !== "undefined" && window.addEventListener;
 
   useEffect(() => {
@@ -50,18 +52,25 @@ function App() {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-
+    // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setSession(session);
       setUser(session?.user ?? null);
     });
 
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
     return () => subscription.unsubscribe();
   }, [setUser, setSession]);
+
+  if (isLoading) {
+    return <LoadingOverlay />;
+  }
 
   return (
     <>
@@ -90,6 +99,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
+      <Toaster />
     </>
   );
 }

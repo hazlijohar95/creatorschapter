@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
@@ -23,7 +23,8 @@ import {
   MessageSquare, 
   Users, 
   Settings,
-  Globe
+  Globe,
+  Loader
 } from "lucide-react";
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
 import OpportunityDiscovery from "@/components/dashboard/OpportunityDiscovery";
@@ -37,11 +38,38 @@ export default function CreatorDashboard(): JSX.Element {
   const navigate = useNavigate();
   const { step2Complete, loading } = useProfileCompletion();
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const [redirecting, setRedirecting] = useState(false);
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (!step2Complete) {
-    navigate("/onboarding");
-    return <div className="p-6">Redirecting to onboarding...</div>;
+  useEffect(() => {
+    if (!loading && !step2Complete && user) {
+      setRedirecting(true);
+      navigate("/onboarding");
+    }
+  }, [loading, step2Complete, user, navigate]);
+  
+  if (loading || redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-lg">{redirecting ? "Redirecting to onboarding..." : "Loading..."}</span>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl font-semibold mb-4">Authentication Required</p>
+          <button 
+            onClick={() => navigate("/auth")}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
   }
   
   const renderContent = () => {
