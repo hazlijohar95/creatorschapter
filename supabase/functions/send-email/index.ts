@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY')
+const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,6 +24,7 @@ serve(async (req) => {
 
   try {
     const { to, subject, template, templateData }: EmailRequest = await req.json()
+    console.log('Processing email request:', { to, subject, template })
 
     let htmlContent = ''
     
@@ -48,7 +50,7 @@ serve(async (req) => {
         personalizations: [{
           to: [{ email: to }],
         }],
-        from: { email: 'notifications@yourdomain.com', name: 'Dealflow' },
+        from: { email: 'waitlist@dealflow.com', name: 'Dealflow Waitlist' },
         subject: subject,
         content: [{
           type: 'text/html',
