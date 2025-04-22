@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      brand_profiles: {
+        Row: {
+          campaign_preferences: Json | null
+          company_name: string | null
+          company_size: string | null
+          created_at: string | null
+          id: string
+          industry: string | null
+          target_audience: Json | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          campaign_preferences?: Json | null
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string | null
+          id: string
+          industry?: string | null
+          target_audience?: Json | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          campaign_preferences?: Json | null
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string | null
+          id?: string
+          industry?: string | null
+          target_audience?: Json | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       creator_profiles: {
         Row: {
           categories: string[] | null

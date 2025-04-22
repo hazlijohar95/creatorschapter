@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './integrations/supabase/client';
@@ -16,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import CreatorOnboarding from "./pages/CreatorOnboarding";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import BrandDashboard from "./pages/BrandDashboard";
+import BrandOnboarding from "./pages/BrandOnboarding";
 import { CreatorOverview } from "./components/creator/CreatorOverview";
 import { BrandOverview } from "./components/brand/BrandOverview";
 import { CreatorDiscovery } from "./components/brand/CreatorDiscovery";
@@ -58,13 +58,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setSession(session);
       setUser(session?.user ?? null);
     });
 
-    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -88,7 +86,6 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             
-            {/* Creator Dashboard Routes - Updated to nested routes */}
             <Route path="/creator-dashboard" element={<CreatorDashboard />}>
               <Route index element={<CreatorOverview />} />
               <Route path="opportunities" element={<OpportunityDiscovery />} />
@@ -99,8 +96,8 @@ function App() {
             </Route>
             
             <Route path="/onboarding" element={<CreatorOnboarding />} />
+            <Route path="/brand-onboarding" element={<BrandOnboarding />} />
             
-            {/* Brand Dashboard Routes */}
             <Route path="/brand-dashboard" element={<BrandDashboard />}>
               <Route index element={<BrandOverview />} />
               <Route path="discover" element={<CreatorDiscovery />} />

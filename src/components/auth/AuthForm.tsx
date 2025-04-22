@@ -89,17 +89,32 @@ export default function AuthForm() {
           return;
         }
         toast({ title: "Account created!", description: "Welcome to Creator Chapter" });
-        // Redirect new users to onboarding instead of home page
-        navigate("/onboarding");
+        // Redirect new users to the appropriate onboarding
+        if (role === "brand") {
+          navigate("/brand-onboarding");
+        } else {
+          navigate("/onboarding");
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
           toast({ title: "Login error", description: "Invalid credentials. Try again.", variant: "destructive" });
           setIsLoading(false);
           return;
         }
         toast({ title: "Welcome back!", description: "Signed in successfully" });
-        navigate("/dashboard");
+        // Retrieve profile to check role and redirect
+        const userId = data?.user?.id;
+        if (userId) {
+          const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+          if (profile?.role === "brand") {
+            navigate("/brand-dashboard");
+          } else {
+            navigate("/dashboard");
+          }
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (error) {
       handleError(error as Error);
