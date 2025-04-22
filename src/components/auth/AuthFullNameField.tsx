@@ -11,7 +11,7 @@ type AuthFullNameFieldProps = {
 export default function AuthFullNameField({ fullName, setFullName, error }: AuthFullNameFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="fullName" className="text-base font-inter font-medium">
+      <Label htmlFor="fullName" className="text-base font-inter font-medium text-black">
         Full Name
       </Label>
       <Input
@@ -19,7 +19,7 @@ export default function AuthFullNameField({ fullName, setFullName, error }: Auth
         value={fullName}
         onChange={e => setFullName(e.target.value)}
         required
-        className="focus:ring-2 focus:ring-neon ring-offset-2 bg-background/75 border border-border placeholder:text-muted-foreground font-manrope"
+        className="focus:ring-2 focus:ring-neon ring-offset-2 bg-background/75 border border-border placeholder:text-black/70 font-manrope text-black"
         placeholder="Your full name"
         aria-label="Full name"
       />

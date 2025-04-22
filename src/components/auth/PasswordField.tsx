@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -32,10 +33,10 @@ export default function PasswordField({
     }
   }, [isSignUp, value]);
   return <div className="space-y-2 bg-transparent">
-      <Label htmlFor="password">Password</Label>
+      <Label htmlFor="password" className="text-black">Password</Label>
       <div className="relative">
-        <Input id="password" type={showPassword ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)} required autoComplete={isSignUp ? "new-password" : "current-password"} aria-invalid={!!error} aria-describedby={error ? "password-error" : undefined} />
-        <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-primary" tabIndex={-1}>
+        <Input id="password" type={showPassword ? "text" : "password"} value={value} onChange={e => onChange(e.target.value)} required autoComplete={isSignUp ? "new-password" : "current-password"} aria-invalid={!!error} aria-describedby={error ? "password-error" : undefined} className="text-black placeholder:text-black/70" />
+        <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black/70 transition hover:text-primary" tabIndex={-1}>
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
       </div>
