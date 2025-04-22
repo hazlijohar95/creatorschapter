@@ -1,8 +1,9 @@
+
+/* Remove restrictive global styles that were causing layout issues */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  /* Remove max-width constraint */
+  /* Remove default padding */
+  /* Remove forced center alignment */
 }
 
 .logo {
