@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,16 +14,16 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import PasswordField from "./PasswordField";
 import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
-
 type Props = {};
-
 export default function AuthForm({}: Props) {
   const navigate = useNavigate();
   const lastIsSignUp = (() => {
-    try { return sessionStorage.getItem("isSignUp") === "true"; }
-    catch { return true; }
+    try {
+      return sessionStorage.getItem("isSignUp") === "true";
+    } catch {
+      return true;
+    }
   })();
-
   const [isSignUp, setIsSignUp] = useState(lastIsSignUp);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -34,17 +33,20 @@ export default function AuthForm({}: Props) {
   const [celebrating, setCelebrating] = useState(false);
 
   // Validation state
-  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    [key: string]: string;
+  }>({});
   const [passwordValid, setPasswordValid] = useState(true);
-
   useEffect(() => {
-    try { sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false"); }
-    catch {}
+    try {
+      sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false");
+    } catch {}
   }, [isSignUp]);
-
   useEffect(() => {
     if (isSignUp && password) {
-      const { valid } = validatePasswordStrength(password);
+      const {
+        valid
+      } = validatePasswordStrength(password);
       setPasswordValid(valid);
     } else {
       setPasswordValid(true);
@@ -53,7 +55,9 @@ export default function AuthForm({}: Props) {
 
   // Validation helpers
   const validateAll = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: {
+      [key: string]: string;
+    } = {};
     if (!validateEmail(email)) {
       newErrors.email = "Enter a valid email address";
     }
@@ -65,7 +69,6 @@ export default function AuthForm({}: Props) {
     }
     return newErrors;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({}); // clear
@@ -82,32 +85,33 @@ export default function AuthForm({}: Props) {
     setIsLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const {
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: fullName, role }
+            data: {
+              full_name: fullName,
+              role
+            }
           }
         });
         if (error) {
           // Hide implementation details from user, but log for developers
-          if (
-            error.message &&
-            error.message.toLowerCase().includes("duplicate key value") &&
-            error.message.includes("profiles_email_key")
-          ) {
+          if (error.message && error.message.toLowerCase().includes("duplicate key value") && error.message.includes("profiles_email_key")) {
             console.error("Sign up error: Duplicate email", error);
             toast({
               title: "Sign up error",
               description: "Email is already in use.",
-              variant: "destructive",
+              variant: "destructive"
             });
           } else {
             console.error("Sign up error:", error);
             toast({
               title: "Sign up error",
               description: "Something went wrong. Try again.",
-              variant: "destructive",
+              variant: "destructive"
             });
           }
           setIsLoading(false);
@@ -116,22 +120,25 @@ export default function AuthForm({}: Props) {
         // Success
         setCelebrating(true);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email, password,
+        const {
+          error
+        } = await supabase.auth.signInWithPassword({
+          email,
+          password
         });
         if (error) {
           console.error("Login error:", error);
           toast({
             title: "Login error",
             description: "Invalid credentials. Try again.",
-            variant: "destructive",
+            variant: "destructive"
           });
           setIsLoading(false);
           return;
         }
         toast({
           title: "Welcome back!",
-          description: "Signed in successfully",
+          description: "Signed in successfully"
         });
         navigate("/");
       }
@@ -141,7 +148,7 @@ export default function AuthForm({}: Props) {
       toast({
         title: isSignUp ? "Sign up error" : "Login error",
         description: "Unexpected error. Try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -161,8 +168,7 @@ export default function AuthForm({}: Props) {
   // --- DESIGN ENHANCEMENT STYLES ---
   // Tailwind classes are used. See index.css for .glass-card, .card-gradient, .btn-neon, font classes, etc.
 
-  return (
-    <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#262B3A]/80 to-[#161619]">
+  return <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#262B3A]/80 to-[#161619]">
       {isLoading && <LoadingOverlay />}
       {celebrating && <ConfettiCheck />}
       <div className="w-full max-w-md space-y-5">
@@ -171,7 +177,10 @@ export default function AuthForm({}: Props) {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/" onClick={e => { e.preventDefault(); navigate("/"); }} className="text-muted-foreground hover:text-primary font-medium font-space transition-colors">
+                <BreadcrumbLink href="/" onClick={e => {
+                e.preventDefault();
+                navigate("/");
+              }} className="text-muted-foreground hover:text-primary font-medium font-space transition-colors">
                   Home
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -181,7 +190,7 @@ export default function AuthForm({}: Props) {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <Button variant="outline" className="ml-3 px-3 py-1 rounded-lg font-inter border-2 hover:shadow-md hover:border-primary transition" size="sm" onClick={() => navigate("/")}>
+          <Button variant="outline" size="sm" onClick={() => navigate("/")} className="ml-3 px-3 py-1 rounded-lg font-inter border-2 hover:shadow-md hover:border-primary transition text-gray-950">
             Back to Home
           </Button>
         </div>
@@ -192,9 +201,7 @@ export default function AuthForm({}: Props) {
               {isSignUp ? "Create your account" : "Sign in"}
             </CardTitle>
             <CardDescription className="font-manrope text-base text-muted-foreground mt-1">
-              {isSignUp
-                ? "Join Creator Chapter and start collaborating with brands"
-                : "Welcome back — sign in to your account"}
+              {isSignUp ? "Join Creator Chapter and start collaborating with brands" : "Welcome back — sign in to your account"}
             </CardDescription>
           </CardHeader>
           <CardContent className="py-2">
@@ -202,43 +209,17 @@ export default function AuthForm({}: Props) {
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-base font-inter font-medium">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope"
-                  placeholder="your@email.com"
-                />
-                {fieldErrors.email && (
-                  <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.email}</p>
-                )}
+                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope" placeholder="your@email.com" />
+                {fieldErrors.email && <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.email}</p>}
               </div>
               {/* Password */}
-              <PasswordField
-                value={password}
-                onChange={setPassword}
-                error={fieldErrors.password}
-                isSignUp={isSignUp}
-              />
+              <PasswordField value={password} onChange={setPassword} error={fieldErrors.password} isSignUp={isSignUp} />
               {/* Sign up fields */}
-              {isSignUp && (
-                <div className="space-y-2 animate-fade-in">
+              {isSignUp && <div className="space-y-2 animate-fade-in">
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-base font-inter font-medium">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      value={fullName}
-                      onChange={e => setFullName(e.target.value)}
-                      required
-                      className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope"
-                      placeholder="Your full name"
-                    />
-                    {fieldErrors.fullName && (
-                      <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.fullName}</p>
-                    )}
+                    <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} required className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope" placeholder="Your full name" />
+                    {fieldErrors.fullName && <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.fullName}</p>}
                   </div>
                   {/* Role */}
                   <div className="space-y-2">
@@ -254,37 +235,24 @@ export default function AuthForm({}: Props) {
                       </div>
                     </RadioGroup>
                   </div>
-                </div>
-              )}
+                </div>}
               {/* Submit */}
-              <Button
-                type="submit"
-                className="w-full btn-neon text-lg font-bold mt-4 shadow-lg transition hover:scale-105 duration-300"
-                disabled={isLoading || (isSignUp && !passwordValid)}
-              >
-                {isLoading
-                  ? (
-                    <span className="flex items-center gap-2">
+              <Button type="submit" className="w-full btn-neon text-lg font-bold mt-4 shadow-lg transition hover:scale-105 duration-300" disabled={isLoading || isSignUp && !passwordValid}>
+                {isLoading ? <span className="flex items-center gap-2">
                       <svg className="animate-spin h-5 w-5 text-darkbg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                       </svg>
                       Please wait...
-                    </span>
-                  )
-                  : isSignUp ? "Create account" : "Sign in"}
+                    </span> : isSignUp ? "Create account" : "Sign in"}
               </Button>
               {/* Switch sign in/up */}
               <p className="text-sm text-center font-manrope mt-6">
                 {isSignUp ? "Already have an account? " : "Don't have an account? "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setFieldErrors({});
-                  }}
-                  className="text-primary underline underline-offset-2 hover:text-neon font-medium transition"
-                >
+                <button type="button" onClick={() => {
+                setIsSignUp(!isSignUp);
+                setFieldErrors({});
+              }} className="text-primary underline underline-offset-2 hover:text-neon font-medium transition">
                   {isSignUp ? "Sign in" : "Create one"}
                 </button>
               </p>
@@ -294,8 +262,7 @@ export default function AuthForm({}: Props) {
         {/* Divider to visually improve, optional */}
         {/* <div className="flex items-center justify-center mt-3">
           <span className="h-0.5 w-20 bg-gradient-to-r from-neon/60 to-primary block rounded-full" />
-        </div> */}
+         </div> */}
       </div>
-    </div>
-  );
+    </div>;
 }
