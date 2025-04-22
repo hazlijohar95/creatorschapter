@@ -158,43 +158,50 @@ export default function AuthForm({}: Props) {
     return () => clearTimeout(timeout);
   }, [celebrating, navigate]);
 
+  // --- DESIGN ENHANCEMENT STYLES ---
+  // Tailwind classes are used. See index.css for .glass-card, .card-gradient, .btn-neon, font classes, etc.
+
   return (
-    <div className="container flex items-center justify-center min-h-screen py-10">
+    <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#262B3A]/80 to-[#161619]">
       {isLoading && <LoadingOverlay />}
       {celebrating && <ConfettiCheck />}
       <div className="w-full max-w-md space-y-5">
-        {/* Breadcrumbs and Back to Home */}
-        <div className="flex items-center justify-between pb-2">
+        {/* Header with Breadcrumb and Back */}
+        <div className="flex items-center justify-between pb-4">
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/" onClick={e => { e.preventDefault(); navigate("/"); }}>
+                <BreadcrumbLink href="/" onClick={e => { e.preventDefault(); navigate("/"); }} className="text-muted-foreground hover:text-primary font-medium font-space transition-colors">
                   Home
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{isSignUp ? "Sign Up" : "Sign In"}</BreadcrumbPage>
+                <BreadcrumbPage className="text-primary font-bold font-space tracking-wide">{isSignUp ? "Sign Up" : "Sign In"}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <Button variant="outline" className="ml-3" size="sm" onClick={() => navigate("/")}>
+          <Button variant="outline" className="ml-3 px-3 py-1 rounded-lg font-inter border-2 hover:shadow-md hover:border-primary transition" size="sm" onClick={() => navigate("/")}>
             Back to Home
           </Button>
         </div>
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>{isSignUp ? "Create an account" : "Sign in"}</CardTitle>
-            <CardDescription>
+        {/* Card */}
+        <Card className="w-full glass-card card-gradient drop-shadow-2xl transition-all">
+          <CardHeader className="pb-4 pt-7">
+            <CardTitle className="text-3xl md:text-4xl font-space font-bold bg-gradient-to-r from-primary to-neon bg-clip-text text-transparent tracking-tight drop-shadow">
+              {isSignUp ? "Create your account" : "Sign in"}
+            </CardTitle>
+            <CardDescription className="font-manrope text-base text-muted-foreground mt-1">
               {isSignUp
-                ? "Join Creator Chapter to start collaborating with brands"
-                : "Welcome back! Sign in to your account"}
+                ? "Join Creator Chapter and start collaborating with brands"
+                : "Welcome back — sign in to your account"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <CardContent className="py-2">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-base font-inter font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -202,56 +209,73 @@ export default function AuthForm({}: Props) {
                   onChange={e => setEmail(e.target.value)}
                   required
                   autoComplete="email"
+                  className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope"
+                  placeholder="your@email.com"
                 />
                 {fieldErrors.email && (
-                  <p className="text-xs text-red-500">{fieldErrors.email}</p>
+                  <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.email}</p>
                 )}
               </div>
+              {/* Password */}
               <PasswordField
                 value={password}
                 onChange={setPassword}
                 error={fieldErrors.password}
                 isSignUp={isSignUp}
               />
+              {/* Sign up fields */}
               {isSignUp && (
-                <>
+                <div className="space-y-2 animate-fade-in">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
+                    <Label htmlFor="fullName" className="text-base font-inter font-medium">Full Name</Label>
                     <Input
                       id="fullName"
                       value={fullName}
                       onChange={e => setFullName(e.target.value)}
                       required
+                      className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope"
+                      placeholder="Your full name"
                     />
                     {fieldErrors.fullName && (
-                      <p className="text-xs text-red-500">{fieldErrors.fullName}</p>
+                      <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.fullName}</p>
                     )}
                   </div>
+                  {/* Role */}
                   <div className="space-y-2">
-                    <Label>I am a...</Label>
-                    <RadioGroup value={role} onValueChange={v => setRole(v as "creator" | "brand")}>
+                    <Label className="text-base font-inter font-medium">I am a...</Label>
+                    <RadioGroup value={role} onValueChange={v => setRole(v as "creator" | "brand")} className="flex items-center gap-8 pt-2">
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="creator" id="creator" />
-                        <Label htmlFor="creator">Creator</Label>
+                        <Label htmlFor="creator" className="font-manrope">Creator</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="brand" id="brand" />
-                        <Label htmlFor="brand">Brand</Label>
+                        <Label htmlFor="brand" className="font-manrope">Brand</Label>
                       </div>
                     </RadioGroup>
                   </div>
-                </>
+                </div>
               )}
+              {/* Submit */}
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full btn-neon text-lg font-bold mt-4 shadow-lg transition hover:scale-105 duration-300"
                 disabled={isLoading || (isSignUp && !passwordValid)}
               >
                 {isLoading
-                  ? "Please wait..."
+                  ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5 text-darkbg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                      </svg>
+                      Please wait...
+                    </span>
+                  )
                   : isSignUp ? "Create account" : "Sign in"}
               </Button>
-              <p className="text-sm text-center">
+              {/* Switch sign in/up */}
+              <p className="text-sm text-center font-manrope mt-6">
                 {isSignUp ? "Already have an account? " : "Don't have an account? "}
                 <button
                   type="button"
@@ -259,7 +283,7 @@ export default function AuthForm({}: Props) {
                     setIsSignUp(!isSignUp);
                     setFieldErrors({});
                   }}
-                  className="text-primary hover:underline"
+                  className="text-primary underline underline-offset-2 hover:text-neon font-medium transition"
                 >
                   {isSignUp ? "Sign in" : "Create one"}
                 </button>
@@ -267,6 +291,10 @@ export default function AuthForm({}: Props) {
             </form>
           </CardContent>
         </Card>
+        {/* Divider to visually improve, optional */}
+        {/* <div className="flex items-center justify-center mt-3">
+          <span className="h-0.5 w-20 bg-gradient-to-r from-neon/60 to-primary block rounded-full" />
+        </div> */}
       </div>
     </div>
   );
