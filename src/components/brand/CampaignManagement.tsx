@@ -73,7 +73,7 @@ export function CampaignManagement() {
               <Briefcase className="mr-2 h-4 w-4" />
               List
             </Button>
-            <Button variant={view === "calendar" ? "default" : "outline"} className="rounded-none" onClick={() => setView("calendar")}>
+            <Button variant={view === "calendar" ? "default" : "outline"} onClick={() => setView("calendar")} className="rounded-none bg-slate-950 hover:bg-slate-800">
               <Calendar className="mr-2 h-4 w-4" />
               Calendar
             </Button>
