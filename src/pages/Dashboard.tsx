@@ -1,7 +1,9 @@
+
 import { useAuthStore } from "@/lib/auth";
 import { Navigate } from "react-router-dom";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client"; // Added missing import
 
 export default function Dashboard() {
   const { user } = useAuthStore();
