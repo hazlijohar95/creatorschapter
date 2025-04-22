@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Briefcase, Plus } from "lucide-react";
+import { Briefcase, Plus, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
+import { CampaignCalendarView } from "./calendar/CampaignCalendarView";
 
 type Campaign = {
   id: string;
@@ -22,6 +23,7 @@ type Campaign = {
 
 export function CampaignManagement() {
   const [activeTab, setActiveTab] = useState("all");
+  const [view, setView] = useState<"list" | "calendar">("list");
   const { user } = useAuthStore();
 
   const { data: campaigns, isLoading, error } = useQuery({
@@ -65,11 +67,32 @@ export function CampaignManagement() {
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">Campaign Management</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          New Campaign
-        </Button>
+        <div className="flex gap-2">
+          <div className="flex rounded-md overflow-hidden border">
+            <Button 
+              variant={view === "list" ? "default" : "outline"} 
+              className="rounded-none"
+              onClick={() => setView("list")}
+            >
+              <Briefcase className="mr-2 h-4 w-4" />
+              List
+            </Button>
+            <Button 
+              variant={view === "calendar" ? "default" : "outline"} 
+              className="rounded-none"
+              onClick={() => setView("calendar")}
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              Calendar
+            </Button>
+          </div>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New Campaign
+          </Button>
+        </div>
       </div>
+
       {isLoading && (
         <div className="w-full flex items-center justify-center py-10">
           <span className="animate-spin mr-2">
@@ -84,7 +107,11 @@ export function CampaignManagement() {
         </div>
       )}
 
-      {!isLoading && !error && (
+      {!isLoading && !error && view === "calendar" && (
+        <CampaignCalendarView />
+      )}
+
+      {!isLoading && !error && view === "list" && (
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
