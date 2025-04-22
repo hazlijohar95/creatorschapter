@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './integrations/supabase/client';
@@ -13,6 +14,7 @@ import LoadingOverlay from './components/LoadingOverlay';
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import CreatorOnboarding from "./pages/CreatorOnboarding";
+import CreatorDashboard from "./pages/CreatorDashboard";
 
 function App() {
   const { setUser, setSession } = useAuthStore();
@@ -64,6 +66,7 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/creator-dashboard" element={<CreatorDashboard />} />
             <Route path="/onboarding" element={<CreatorOnboarding />} />
           </Route>
           <Route path="/terms" element={<TermsAndConditions />} />
