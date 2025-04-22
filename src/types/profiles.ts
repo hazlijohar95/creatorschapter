@@ -3,9 +3,6 @@
 export interface TargetAudience {
   age_ranges?: string[];
   interests?: string[];
-  age_group?: string;
-  gender?: string;
-  [key: string]: string | string[] | undefined;  // Add index signature for compatibility with Json type
 }
 
 export interface PricingInfo {
@@ -16,7 +13,6 @@ export interface PricingInfo {
     description: string;
     price: number;
   }[];
-  [key: string]: number | { name: string; description: string; price: number; }[] | undefined;  // Add index signature
 }
 
 export interface CreatorProfile {
