@@ -19,7 +19,7 @@ export function useProfileCompletion() {
     enabled: !!user,
     retry: 1, // Reduce retries to avoid excessive calls
     staleTime: 30000, // Cache data for 30 seconds to prevent frequent refetches
-    cacheTime: 60000, // Keep data in cache for 1 minute
+    gcTime: 60000, // Keep data in cache for 1 minute (formerly cacheTime in older versions)
     queryFn: async (): Promise<ProfileCheck> => {
       if (!user) return { step1Complete: false, step2Complete: false };
       
