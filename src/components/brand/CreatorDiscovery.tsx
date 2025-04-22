@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import { Search, Filter, ArrowUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
   PaginationNext, 
   PaginationPrevious
 } from "@/components/ui/pagination";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const CATEGORY_OPTIONS = ["Fashion", "Beauty", "Travel", "Food", "Fitness", "Tech", "Lifestyle", "Gaming", "Music", "Art"];
 const FOLLOWER_RANGES = ["Any", "10K+", "50K+", "100K+", "500K+", "1M+"];
@@ -36,6 +37,8 @@ export function CreatorDiscovery() {
     page,
     pageSize: 5
   });
+
+  const [selectedCreator, setSelectedCreator] = useState<DiscoverableCreator | null>(null);
   
   return (
     <div className="p-6 space-y-6">
@@ -118,7 +121,6 @@ export function CreatorDiscovery() {
               <Button 
                 className="w-full"
                 onClick={() => {
-                  // This will reset to only applied filters as the hooks already handle filter changes
                   setPage(1);
                 }}
               >
@@ -151,7 +153,11 @@ export function CreatorDiscovery() {
           ) : (
             <>
               {creators.map((creator) => (
-                <CreatorCard key={creator.id} creator={creator} />
+                <CreatorCard 
+                  key={creator.id} 
+                  creator={creator} 
+                  onViewProfile={() => setSelectedCreator(creator)}
+                />
               ))}
               
               {pageCount > 1 && (
@@ -190,15 +196,70 @@ export function CreatorDiscovery() {
           )}
         </div>
       </div>
+      
+      <Dialog open={!!selectedCreator} onOpenChange={() => setSelectedCreator(null)}>
+        <DialogContent className="max-w-lg">
+          {selectedCreator && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedCreator.name}</DialogTitle>
+                <DialogDescription>
+                  {selectedCreator.handle}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center gap-4 mt-2">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={selectedCreator.avatar} alt={selectedCreator.name} />
+                  <AvatarFallback>{selectedCreator.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="text-muted-foreground">{selectedCreator.location}</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedCreator.categories.map(category => (
+                      <Badge key={category} variant="secondary">{category}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <div className="font-medium text-sm mb-1">Followers</div>
+                  <div className="text-lg">{selectedCreator.followers}</div>
+                </div>
+                <div>
+                  <div className="font-medium text-sm mb-1">Engagement</div>
+                  <div className="text-lg">{selectedCreator.engagementRate}</div>
+                </div>
+              </div>
+              {selectedCreator.socialLinks && selectedCreator.socialLinks.length > 0 && (
+                <div className="mt-4">
+                  <div className="font-medium mb-1 text-sm">Social Links</div>
+                  <ul className="list-disc list-inside space-y-1">
+                    {selectedCreator.socialLinks.map(link => (
+                      <li key={link.platform}>
+                        <a className="text-primary underline" href={link.url} target="_blank" rel="noopener noreferrer">{link.platform}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setSelectedCreator(null)}>Close</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 interface CreatorCardProps {
   creator: DiscoverableCreator;
+  onViewProfile: () => void;
 }
 
-function CreatorCard({ creator }: CreatorCardProps) {
+function CreatorCard({ creator, onViewProfile }: CreatorCardProps) {
   return (
     <Card key={creator.id} className="overflow-hidden">
       <CardContent className="p-4">
@@ -207,16 +268,14 @@ function CreatorCard({ creator }: CreatorCardProps) {
             <AvatarImage src={creator.avatar} alt={creator.name} />
             <AvatarFallback>{creator.name.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between">
               <div>
                 <h3 className="font-semibold text-lg">{creator.name}</h3>
                 <p className="text-muted-foreground">{creator.handle}</p>
               </div>
-              <Button size="sm" className="mt-2 sm:mt-0">View Profile</Button>
+              <Button size="sm" className="mt-2 sm:mt-0" onClick={onViewProfile}>View Profile</Button>
             </div>
-            
             <div className="mt-2 flex flex-wrap gap-2">
               {creator.categories.slice(0, 3).map((category) => (
                 <Badge key={category} variant="secondary">{category}</Badge>
@@ -225,7 +284,6 @@ function CreatorCard({ creator }: CreatorCardProps) {
                 <Badge variant="outline">+{creator.categories.length - 3}</Badge>
               )}
             </div>
-            
             <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm">
               <span>{creator.followers} followers</span>
               <span>{creator.engagementRate} engagement</span>

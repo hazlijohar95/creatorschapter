@@ -1,166 +1,58 @@
-
-import React, { useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Users } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuthStore } from "@/lib/auth";
-
-interface Campaign {
-  id: string;
-  name: string;
-  status: string;
-  start_date: string | null;
-  end_date: string | null;
-  budget: number | null;
-}
-
-interface CampaignEvent {
-  date: Date;
-  campaign: Campaign;
-  type: "start" | "end" | "milestone";
-}
+import { useState } from "react";
+import { Calendar } from "lucide-react";
+import { DayPicker } from "react-day-picker";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function CampaignCalendarView() {
-  const { user } = useAuthStore();
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [view, setView] = useState<"month" | "week" | "day">("month");
-  
-  const { data: campaigns, isLoading } = useQuery({
-    queryKey: ["calendar-campaigns", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("campaigns")
-        .select("*")
-        .eq("brand_id", user?.id)
-        .order("start_date", { ascending: true });
-        
-      if (error) throw error;
-      return data as Campaign[];
-    },
-  });
-
-  // Generate events from campaign data
-  const events: CampaignEvent[] = React.useMemo(() => {
-    if (!campaigns) return [];
-    
-    const allEvents: CampaignEvent[] = [];
-    
-    campaigns.forEach(campaign => {
-      if (campaign.start_date) {
-        allEvents.push({
-          date: new Date(campaign.start_date),
-          campaign,
-          type: "start"
-        });
-      }
-      
-      if (campaign.end_date) {
-        allEvents.push({
-          date: new Date(campaign.end_date),
-          campaign,
-          type: "end"
-        });
-      }
-    });
-    
-    return allEvents;
-  }, [campaigns]);
-  
-  // Function to check if a date has events
-  const hasEventsOnDay = (day: Date) => {
-    return events.some(event => 
-      format(event.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-    );
-  };
-  
-  // Get events for the selected date
-  const eventsForSelectedDate = date 
-    ? events.filter(event => format(event.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))
-    : [];
+  const [date, setDate] = useState<Date>();
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-6">
+      <h2 className="text-xl font-bold">Campaign Calendar</h2>
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex justify-between">
-            <CardTitle className="text-xl font-semibold">Campaign Calendar</CardTitle>
-            <Tabs value={view} onValueChange={(v) => setView(v as "month" | "week" | "day")}>
-              <TabsList>
-                <TabsTrigger value="month">Month</TabsTrigger>
-                <TabsTrigger value="week">Week</TabsTrigger>
-                <TabsTrigger value="day">Day</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-[300px_1fr] gap-6">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="border rounded-md p-2"
-              modifiersClassNames={{
-                selected: "bg-primary text-primary-foreground",
-              }}
-              classNames={{
-                day_today: "bg-accent text-accent-foreground",
-                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              }}
-              components={{
-                DayContent: ({ date: dayDate }) => {
-                  const hasEvent = hasEventsOnDay(dayDate);
-                  return (
-                    <div className={`relative ${hasEvent ? "font-semibold" : ""}`}>
-                      {format(dayDate, 'd')}
-                      {hasEvent && <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 h-1 w-1 bg-primary rounded-full"></span>}
-                    </div>
-                  );
-                },
-              }}
-            />
-            
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-lg font-medium">
-                  {date ? format(date, 'MMMM d, yyyy') : "No date selected"}
-                </h3>
-              </div>
-              
-              {isLoading ? (
-                <div className="text-muted-foreground">Loading events...</div>
-              ) : eventsForSelectedDate.length > 0 ? (
-                <div className="space-y-3">
-                  {eventsForSelectedDate.map((event, i) => (
-                    <div key={`${event.campaign.id}-${event.type}-${i}`} className="border rounded-md p-3 flex justify-between">
-                      <div>
-                        <h4 className="font-medium">{event.campaign.name}</h4>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <Badge variant={event.type === "start" ? "outline" : "default"}>
-                            {event.type === "start" ? "Campaign Start" : "Campaign End"}
-                          </Badge>
-                          <span>{format(event.date, 'h:mm a')}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-2" />
-                        <span className="text-sm text-muted-foreground">No creators assigned</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-muted-foreground italic">No events for this date</div>
-              )}
-            </div>
-          </div>
+        <CardContent className="p-4">
+          <DayPicker
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className={cn("border-0 shadow-none")}
+            classNames={{
+              months: "flex flex-col sm:flex-row flex-wrap",
+              month: "space-y-4",
+              caption: "flex justify-center pt-1 relative items-center",
+              caption_label: "text-base font-semibold",
+              nav: "space-x-1",
+              nav_button: "h-7 w-7 bg-muted hover:bg-accent rounded-md",
+              nav_button_previous: "absolute left-1",
+              nav_button_next: "absolute right-1",
+              table: "w-full border-collapse space-y-1",
+              head_row: "flex",
+              head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+              row: "flex w-full mt-2",
+              cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+              day: cn(
+                "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+                "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground rounded-md"
+              ),
+              today: "text-sm font-medium border border-primary",
+              outside: "text-muted-foreground opacity-50",
+              selected:
+                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-md",
+              disabled: "opacity-50 pointer-events-none",
+            }}
+          />
+          <p>
+            {date ? (
+              <span>
+                You selected{" "}
+                {date.toLocaleDateString()}
+              </span>
+            ) : (
+              <span>Please pick a date.</span>
+            )}
+          </p>
         </CardContent>
       </Card>
     </div>

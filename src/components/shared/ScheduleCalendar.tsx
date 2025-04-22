@@ -1,116 +1,167 @@
+import {
+  add,
+  eachDayOfInterval,
+  endOfMonth,
+  format,
+  getDay,
+  isEqual,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  parse,
+  parseISO,
+  startOfToday,
+} from "date-fns"
+import { useState } from "react"
 
-import React from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils"
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  date: Date;
-  type: string;
-  status?: string;
+export interface Event {
+  id: string
+  name: string
+  date: Date
 }
 
-interface ScheduleCalendarProps {
-  events: CalendarEvent[];
-  title?: string;
-  onDateSelect?: (date: Date | undefined) => void;
-  onEventClick?: (event: CalendarEvent) => void;
+interface ScheduleCalendarProps extends React.HTMLAttributes<HTMLDivElement> {
+  events?: Event[]
+  getDayClassName?: (date: {
+    displayMonth: Date
+    activeModifiers: any
+  }) => string
 }
 
 export function ScheduleCalendar({
-  events,
-  title = "Campaign Schedule",
-  onDateSelect,
-  onEventClick
+  className,
+  events: initialEvents = [],
+  getDayClassName,
+  ...props
 }: ScheduleCalendarProps) {
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-  
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-    if (onDateSelect) onDateSelect(date);
-  };
-  
-  const handleEventClick = (event: CalendarEvent) => {
-    if (onEventClick) onEventClick(event);
-  };
-  
-  // Helper to check if a date has events
-  const hasEventsOnDay = (day: Date) => {
-    return events.some(event => 
-      format(event.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-    );
-  };
-  
-  // Get events for selected date
-  const selectedDateEvents = selectedDate 
-    ? events.filter(event => format(event.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'))
-    : [];
-  
+  const [currentMonth, setCurrentMonth] = useState(startOfToday())
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
+  const [events, setEvents] = useState(initialEvents)
+
+  const days = eachDayOfInterval({
+    start: startOfMonth(currentMonth),
+    end: endOfMonth(currentMonth),
+  })
+
+  function startOfMonth(date: Date) {
+    return new Date(date.getFullYear(), date.getMonth(), 1)
+  }
+
+  function goToPreviousMonth() {
+    setCurrentMonth(add(currentMonth, { months: -1 }))
+  }
+
+  function goToNextMonth() {
+    setCurrentMonth(add(currentMonth, { months: 1 }))
+  }
+
+  function goToToday() {
+    setCurrentMonth(startOfToday())
+  }
+
+  const handleDayClick = (day: Date) => {
+    setSelectedDay(day)
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid md:grid-cols-[1fr_300px] gap-6">
-          <div className="order-2 md:order-1 space-y-4">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg font-medium">
-                {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : "Select a date"}
-              </h3>
-            </div>
-            
-            {selectedDateEvents.length > 0 ? (
-              <div className="space-y-3">
-                {selectedDateEvents.map((event) => (
-                  <div 
-                    key={event.id}
-                    onClick={() => handleEventClick(event)}
-                    className="border rounded-md p-3 cursor-pointer hover:bg-accent"
-                  >
-                    <div className="flex justify-between">
-                      <h4 className="font-medium">{event.title}</h4>
-                      {event.status && (
-                        <Badge variant="outline">{event.status}</Badge>
-                      )}
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      <Badge variant="secondary">{event.type}</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-muted-foreground italic py-8 text-center">
-                No events scheduled for this date
-              </div>
-            )}
-          </div>
-          
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            className="border rounded-md p-3 order-1 md:order-2"
-            components={{
-              DayContent: ({ date }) => {
-                const hasEvent = hasEventsOnDay(date);
-                return (
-                  <div className={`relative ${hasEvent ? "font-semibold" : ""}`}>
-                    {format(date, 'd')}
-                    {hasEvent && <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 h-1 w-1 bg-primary rounded-full"></span>}
-                  </div>
-                );
-              },
-            }}
-          />
+    <div className={cn("md:w-[350px]", className)} {...props}>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">
+          {format(currentMonth, "MMMM yyyy")}
+        </h2>
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            className="rounded-md p-1 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => goToPreviousMonth()}
+          >
+            <span className="sr-only">Go to previous month</span>
+            <ChevronLeftIcon className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            className="rounded-md p-1 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => goToNextMonth()}
+          >
+            <span className="sr-only">Go to next month</span>
+            <ChevronRightIcon className="h-5 w-5" />
+          </button>
         </div>
-      </CardContent>
-    </Card>
-  );
+      </div>
+      <div className="mt-6 grid grid-cols-7 gap-2">
+        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+          <div key={day} className="text-center text-xs font-medium uppercase">
+            {day}
+          </div>
+        ))}
+        {days.map((day, dayIdx) => {
+          const dayIsToday = isToday(day)
+          const dayIsSelected = selectedDay
+            ? isSameDay(day, selectedDay)
+            : false
+          const monthIsCurrent = isSameMonth(day, currentMonth)
+
+          const eventForDay = events.find((event) =>
+            isSameDay(parseISO(event.date.toISOString()), day)
+          )
+
+          return (
+            <div key={dayIdx} className="relative">
+              <button
+                type="button"
+                onClick={() => handleDayClick(day)}
+                className={cn(
+                  "mx-auto flex h-9 w-9 items-center justify-center rounded-full border p-0 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50",
+                  monthIsCurrent ? "text-foreground" : "text-muted-foreground",
+                  dayIsToday && "font-semibold",
+                  dayIsSelected && "bg-secondary text-secondary-foreground",
+                  !monthIsCurrent && "opacity-50",
+                  typeof getDayClassName === 'function' ? getDayClassName({ displayMonth: currentMonth, activeModifiers: {} }) : undefined
+                )}
+              >
+                <time dateTime={format(day, "yyyy-MM-dd")}>
+                  {format(day, "d")}
+                </time>
+              </button>
+              {eventForDay ? (
+                <div className="absolute top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary" />
+              ) : null}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ChevronLeftIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      {...props}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+    </svg>
+  )
 }
