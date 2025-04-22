@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import { validateSocialUrl, ensureHttps } from "@/lib/socialMediaValidation";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, CheckCircle, Save } from "lucide-react";
 
-// Form schema with validation
 const formSchema = z.object({
   instagram: z.string().optional()
     .refine(url => !url || validateSocialUrl(url, 'instagram').valid, {
@@ -47,7 +45,6 @@ export default function SocialMediaProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
-  // Form setup
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -63,39 +60,56 @@ export default function SocialMediaProfile() {
     },
   });
 
-  // Load existing data
   useEffect(() => {
     async function loadSocialData() {
       if (!user) return;
       
       setIsLoading(true);
       try {
-        // Get creator profile data
         const { data: creatorData, error: creatorError } = await supabase
           .from("creator_profiles")
-          .select("social_links, target_audience, location")
+          .select("target_audience")
           .eq("id", user.id)
           .maybeSingle();
           
         if (creatorError) throw creatorError;
-        if (creatorData) {
-          // Update form with existing data
-          const socialLinks = creatorData.social_links || {};
-          const location = creatorData.location || {};
-          const audience = creatorData.target_audience || {};
+        
+        const { data: socialLinksData, error: socialLinksError } = await supabase
+          .from("social_links")
+          .select("platform, url")
+          .eq("profile_id", user.id);
           
-          form.reset({
-            instagram: socialLinks.instagram || "",
-            twitter: socialLinks.twitter || "",
-            youtube: socialLinks.youtube || "",
-            tiktok: socialLinks.tiktok || "",
-            country: location.country || "",
-            city: location.city || "",
-            ageGroup: audience.age_group || "",
-            gender: audience.gender || "",
-            interests: (audience.interests || []).join(", ")
-          });
-        }
+        if (socialLinksError) throw socialLinksError;
+        
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("location")
+          .eq("id", user.id)
+          .maybeSingle();
+          
+        if (profileError) throw profileError;
+        
+        const socialLinks: Record<string, string> = {};
+        socialLinksData?.forEach((link) => {
+          socialLinks[link.platform] = link.url;
+        });
+        
+        const targetAudience = creatorData?.target_audience || {};
+        const location = profileData?.location ? 
+          (typeof profileData.location === 'string' ? JSON.parse(profileData.location) : profileData.location) : 
+          {};
+        
+        form.reset({
+          instagram: socialLinks.instagram || "",
+          twitter: socialLinks.twitter || "",
+          youtube: socialLinks.youtube || "",
+          tiktok: socialLinks.tiktok || "",
+          country: location.country || "",
+          city: location.city || "",
+          ageGroup: targetAudience.age_group || "",
+          gender: targetAudience.gender || "",
+          interests: (targetAudience.interests || []).join(", ")
+        });
       } catch (error) {
         console.error("Error loading social data:", error);
         toast({
@@ -112,20 +126,11 @@ export default function SocialMediaProfile() {
     loadSocialData();
   }, [user, form, toast]);
   
-  // Handle form submission
   const onSubmit = async (values: FormValues) => {
     if (!user) return;
     
     setIsLoading(true);
     try {
-      // Format the data for Supabase
-      const socialLinks = {
-        instagram: ensureHttps(values.instagram || ""),
-        twitter: ensureHttps(values.twitter || ""),
-        youtube: ensureHttps(values.youtube || ""),
-        tiktok: ensureHttps(values.tiktok || ""),
-      };
-      
       const location = {
         country: values.country,
         city: values.city,
@@ -137,17 +142,45 @@ export default function SocialMediaProfile() {
         interests: values.interests ? values.interests.split(",").map(item => item.trim()) : [],
       };
       
-      // Update the creator profile
-      const { error } = await supabase
+      const { error: creatorError } = await supabase
         .from("creator_profiles")
         .update({
-          social_links: socialLinks,
-          location: location,
           target_audience: targetAudience,
         })
         .eq("id", user.id);
       
-      if (error) throw error;
+      if (creatorError) throw creatorError;
+      
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          location: JSON.stringify(location),
+        })
+        .eq("id", user.id);
+        
+      if (profileError) throw profileError;
+      
+      const { error: deleteError } = await supabase
+        .from("social_links")
+        .delete()
+        .eq("profile_id", user.id);
+        
+      if (deleteError) throw deleteError;
+      
+      const socialLinksToInsert = [
+        { platform: 'instagram', url: ensureHttps(values.instagram || ""), profile_id: user.id },
+        { platform: 'twitter', url: ensureHttps(values.twitter || ""), profile_id: user.id },
+        { platform: 'youtube', url: ensureHttps(values.youtube || ""), profile_id: user.id },
+        { platform: 'tiktok', url: ensureHttps(values.tiktok || ""), profile_id: user.id },
+      ].filter(link => link.url);
+      
+      if (socialLinksToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from("social_links")
+          .insert(socialLinksToInsert);
+          
+        if (insertError) throw insertError;
+      }
       
       toast({
         title: "Profile updated",
@@ -210,7 +243,6 @@ export default function SocialMediaProfile() {
                         {...field} 
                         onChange={(e) => {
                           field.onChange(e);
-                          // Real-time validation feedback
                           const result = validateSocialUrl(e.target.value, 'instagram');
                           if (e.target.value && !result.valid) {
                             form.setError("instagram", { 
@@ -452,7 +484,6 @@ export default function SocialMediaProfile() {
           </Card>
         </div>
         
-        {/* Form status indicators */}
         <div className="flex justify-end">
           {form.formState.isDirty && !isLoading && (
             <div className="flex items-center text-amber-600 text-sm">
