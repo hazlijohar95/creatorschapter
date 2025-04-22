@@ -2,6 +2,10 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { CheckCircle } from "lucide-react";
 
 interface Step1Props {
   user: any;
@@ -54,6 +58,7 @@ export default function Step1Identity({ user, onNext }: Step1Props) {
 
     setLoading(false);
     if (!err1 && !err2) {
+      toast({ title: "Profile updated", description: "Basic info saved successfully" });
       onNext();
     } else {
       toast({ title: "Save error", description: err1?.message || err2?.message, variant: "destructive" });
@@ -62,26 +67,75 @@ export default function Step1Identity({ user, onNext }: Step1Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <label className="font-semibold">Username / Handle<span className="text-red-500">*</span></label>
-      <input className="input border" required value={username} onChange={e => setUsername(e.target.value.replace(/\s+/g, ""))} maxLength={32} />
-      <label className="font-semibold">Profile Photo</label>
-      <input type="file" accept="image/*" onChange={e => setPhoto(e.target.files?.[0] || null)} />
-      <label className="font-semibold">Short Bio<span className="text-red-500">*</span></label>
-      <textarea className="input border" required maxLength={160} value={bio} onChange={e => setBio(e.target.value)} />
-      <label className="font-semibold">Main Categories<span className="text-red-500">*</span> <span className="text-xs font-normal">(1-3)</span></label>
-      <div className="flex flex-wrap gap-2">
-        {catList.map(cat => (
-          <button
-            type="button"
-            key={cat}
-            className={`px-3 py-1 rounded-full border ${categories.includes(cat) ? "bg-blue-500 text-white" : ""}`}
-            onClick={() => setCategories(c =>
-              c.includes(cat) ? c.filter(x => x !== cat) : c.length < 3 ? [...c, cat] : c
-            )}
-          >{cat}</button>
-        ))}
+      <div className="space-y-2">
+        <label className="text-sm font-medium leading-none">
+          Username / Handle<span className="text-red-500">*</span>
+        </label>
+        <Input 
+          required 
+          className="w-full" 
+          value={username} 
+          onChange={e => setUsername(e.target.value.replace(/\s+/g, ""))} 
+          maxLength={32} 
+          placeholder="yourhandle"
+        />
       </div>
-      <button type="submit" className="btn-primary py-2 mt-2" disabled={loading}>Next</button>
+      
+      <div className="space-y-2">
+        <label className="text-sm font-medium leading-none">Profile Photo</label>
+        <Input 
+          type="file" 
+          accept="image/*" 
+          onChange={e => setPhoto(e.target.files?.[0] || null)}
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <label className="text-sm font-medium leading-none">
+          Short Bio<span className="text-red-500">*</span>
+        </label>
+        <Textarea 
+          required 
+          className="w-full min-h-[100px]" 
+          maxLength={160} 
+          value={bio} 
+          onChange={e => setBio(e.target.value)}
+          placeholder="Tell us a bit about yourself (max 160 chars)"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <label className="text-sm font-medium leading-none">
+          Main Categories<span className="text-red-500">*</span> <span className="text-xs text-gray-500">(1-3)</span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {catList.map(cat => (
+            <button
+              type="button"
+              key={cat}
+              className={`px-3 py-1 rounded-full border transition-colors ${
+                categories.includes(cat) 
+                  ? "bg-primary text-primary-foreground border-transparent" 
+                  : "bg-background border-input hover:bg-accent hover:text-accent-foreground"
+              }`}
+              onClick={() => setCategories(c =>
+                c.includes(cat) ? c.filter(x => x !== cat) : c.length < 3 ? [...c, cat] : c
+              )}
+            >
+              {categories.includes(cat) && <CheckCircle className="h-3 w-3 inline mr-1" />}
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Button 
+        type="submit" 
+        className="w-full mt-4" 
+        disabled={loading}
+      >
+        {loading ? "Saving..." : "Continue"}
+      </Button>
     </form>
   );
 }
