@@ -101,7 +101,7 @@ export function ScheduleCalendar({
               DayContent: ({ date, ...props }) => {
                 const hasEvent = hasEventsOnDay(date);
                 return (
-                  <div {...props} className={`${props.className} ${hasEvent ? "font-semibold relative" : ""}`}>
+                  <div {...props} className={`${props.className || ''} ${hasEvent ? "font-semibold relative" : ""}`}>
                     {format(date, 'd')}
                     {hasEvent && <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 h-1 w-1 bg-primary rounded-full"></span>}
                   </div>
