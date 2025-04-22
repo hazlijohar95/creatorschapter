@@ -14,7 +14,11 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import PasswordField from "./PasswordField";
 import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
+import RoleSelector from "./RoleSelector";
+import AuthHeader from "./AuthHeader";
+
 type Props = {};
+
 export default function AuthForm({}: Props) {
   const navigate = useNavigate();
   const lastIsSignUp = (() => {
@@ -32,16 +36,17 @@ export default function AuthForm({}: Props) {
   const [role, setRole] = useState<"creator" | "brand">("creator");
   const [celebrating, setCelebrating] = useState(false);
 
-  // Validation state
   const [fieldErrors, setFieldErrors] = useState<{
     [key: string]: string;
   }>({});
   const [passwordValid, setPasswordValid] = useState(true);
+
   useEffect(() => {
     try {
       sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false");
     } catch {}
   }, [isSignUp]);
+
   useEffect(() => {
     if (isSignUp && password) {
       const {
@@ -53,7 +58,6 @@ export default function AuthForm({}: Props) {
     }
   }, [password, isSignUp]);
 
-  // Validation helpers
   const validateAll = () => {
     const newErrors: {
       [key: string]: string;
@@ -69,9 +73,10 @@ export default function AuthForm({}: Props) {
     }
     return newErrors;
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFieldErrors({}); // clear
+    setFieldErrors({});
     const errors = validateAll();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -98,7 +103,6 @@ export default function AuthForm({}: Props) {
           }
         });
         if (error) {
-          // Hide implementation details from user, but log for developers
           if (error.message && error.message.toLowerCase().includes("duplicate key value") && error.message.includes("profiles_email_key")) {
             console.error("Sign up error: Duplicate email", error);
             toast({
@@ -117,7 +121,6 @@ export default function AuthForm({}: Props) {
           setIsLoading(false);
           return;
         }
-        // Success
         setCelebrating(true);
       } else {
         const {
@@ -155,7 +158,6 @@ export default function AuthForm({}: Props) {
     }
   };
 
-  // After celebration, redirect to home
   useEffect(() => {
     if (!celebrating) return;
     const timeout = setTimeout(() => {
@@ -165,104 +167,148 @@ export default function AuthForm({}: Props) {
     return () => clearTimeout(timeout);
   }, [celebrating, navigate]);
 
-  // --- DESIGN ENHANCEMENT STYLES ---
-  // Tailwind classes are used. See index.css for .glass-card, .card-gradient, .btn-neon, font classes, etc.
-
-  return <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#262B3A]/80 to-[#161619]">
+  return (
+    <div className="container flex items-center justify-center min-h-screen py-10 bg-gradient-to-br from-[#191826] via-[#252838]/85 to-[#161619] relative">
       {isLoading && <LoadingOverlay />}
       {celebrating && <ConfettiCheck />}
-      <div className="w-full max-w-md space-y-5">
-        {/* Header with Breadcrumb and Back */}
-        <div className="flex items-center justify-between pb-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/" onClick={e => {
-                e.preventDefault();
-                navigate("/");
-              }} className="text-muted-foreground hover:text-primary font-medium font-space transition-colors">
-                  Home
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-primary font-bold font-space tracking-wide">{isSignUp ? "Sign Up" : "Sign In"}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <Button variant="outline" size="sm" onClick={() => navigate("/")} className="ml-3 px-3 py-1 rounded-lg font-inter border-2 hover:shadow-md hover:border-primary transition text-gray-950">
-            Back to Home
-          </Button>
-        </div>
-        {/* Card */}
-        <Card className="w-full glass-card card-gradient drop-shadow-2xl transition-all">
-          <CardHeader className="pb-4 pt-7">
-            <CardTitle className="text-3xl md:text-4xl font-space font-bold bg-gradient-to-r from-primary to-neon bg-clip-text text-transparent tracking-tight drop-shadow">
-              {isSignUp ? "Create your account" : "Sign in"}
+      
+      <div className="w-full max-w-md space-y-6">
+        <AuthHeader isSignUp={isSignUp} />
+
+        <Card className="glass-card card-gradient drop-shadow-2xl transition-all border border-glassBorder bg-glassBg/90 backdrop-blur-lg">
+          <CardHeader className="pb-2 pt-8">
+            <CardTitle className="text-3xl md:text-4xl font-space font-bold bg-gradient-to-tr from-primary to-neon bg-clip-text text-transparent tracking-tight drop-shadow">
+              {isSignUp ? (
+                <>
+                  <span className="inline-block text-neon">Sign Up</span>{" "}
+                  <span className="inline-block text-primary">for Dealflow</span>
+                </>
+              ) : (
+                <>
+                  <span className="inline-block text-primary">Sign In</span> 
+                </>
+              )}
             </CardTitle>
-            <CardDescription className="font-manrope text-base text-muted-foreground mt-1">
-              {isSignUp ? "Join Creator Chapter and start collaborating with brands" : "Welcome back — sign in to your account"}
+            <CardDescription className="font-manrope text-base text-muted-foreground mt-2">
+              {isSignUp
+                ? "Join Creator Chapter and start collaborating with top brands."
+                : "Welcome back — sign in to your account."}
             </CardDescription>
           </CardHeader>
+
           <CardContent className="py-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-7"
+              autoComplete="on"
+            >
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-inter font-medium">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope" placeholder="your@email.com" />
-                {fieldErrors.email && <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.email}</p>}
+                <Label htmlFor="email" className="text-base font-inter font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  className="focus:ring-2 focus:ring-neon ring-offset-2 bg-background/75 border border-border placeholder:text-muted-foreground font-manrope"
+                  placeholder="your@email.com"
+                  aria-label="Email"
+                />
+                {fieldErrors.email && (
+                  <p className="text-xs text-red-500 font-inter pl-1 pt-1">
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
-              {/* Password */}
-              <PasswordField value={password} onChange={setPassword} error={fieldErrors.password} isSignUp={isSignUp} />
-              {/* Sign up fields */}
-              {isSignUp && <div className="space-y-2 animate-fade-in">
+
+              <PasswordField
+                value={password}
+                onChange={setPassword}
+                error={fieldErrors.password}
+                isSignUp={isSignUp}
+              />
+
+              {isSignUp && (
+                <div className="space-y-3 animate-fade-in">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-base font-inter font-medium">Full Name</Label>
-                    <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} required className="focus:ring-2 focus:ring-neon transition ring-offset-2 bg-background/80 border border-border placeholder:text-muted-foreground font-manrope" placeholder="Your full name" />
-                    {fieldErrors.fullName && <p className="text-xs text-red-500 font-inter pl-1 pt-1">{fieldErrors.fullName}</p>}
+                    <Label htmlFor="fullName" className="text-base font-inter font-medium">
+                      Full Name
+                    </Label>
+                    <Input
+                      id="fullName"
+                      value={fullName}
+                      onChange={e => setFullName(e.target.value)}
+                      required
+                      className="focus:ring-2 focus:ring-neon ring-offset-2 bg-background/75 border border-border placeholder:text-muted-foreground font-manrope"
+                      placeholder="Your full name"
+                      aria-label="Full name"
+                    />
+                    {fieldErrors.fullName && (
+                      <p className="text-xs text-red-500 font-inter pl-1 pt-1">
+                        {fieldErrors.fullName}
+                      </p>
+                    )}
                   </div>
-                  {/* Role */}
-                  <div className="space-y-2">
-                    <Label className="text-base font-inter font-medium">I am a...</Label>
-                    <RadioGroup value={role} onValueChange={v => setRole(v as "creator" | "brand")} className="flex items-center gap-8 pt-2">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="creator" id="creator" />
-                        <Label htmlFor="creator" className="font-manrope">Creator</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="brand" id="brand" />
-                        <Label htmlFor="brand" className="font-manrope">Brand</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>}
-              {/* Submit */}
-              <Button type="submit" className="w-full btn-neon text-lg font-bold mt-4 shadow-lg transition hover:scale-105 duration-300" disabled={isLoading || isSignUp && !passwordValid}>
-                {isLoading ? <span className="flex items-center gap-2">
-                      <svg className="animate-spin h-5 w-5 text-darkbg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                      </svg>
-                      Please wait...
-                    </span> : isSignUp ? "Create account" : "Sign in"}
+                  <RoleSelector value={role} onChange={setRole} />
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full btn-neon text-lg font-bold shadow-lg transition hover:scale-[1.03] duration-300 mt-2 px-6 py-3 rounded-xl"
+                disabled={isLoading || (isSignUp && !passwordValid)}
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-darkbg"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-30"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-80"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      ></path>
+                    </svg>
+                    Please wait...
+                  </span>
+                ) : isSignUp ? (
+                  "Create Account"
+                ) : (
+                  "Sign In"
+                )}
               </Button>
-              {/* Switch sign in/up */}
-              <p className="text-sm text-center font-manrope mt-6">
+
+              <p className="text-sm text-center font-manrope mt-7">
                 {isSignUp ? "Already have an account? " : "Don't have an account? "}
-                <button type="button" onClick={() => {
-                setIsSignUp(!isSignUp);
-                setFieldErrors({});
-              }} className="text-primary underline underline-offset-2 hover:text-neon font-medium transition">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setFieldErrors({});
+                  }}
+                  className="text-primary underline underline-offset-2 hover:text-neon font-medium transition"
+                >
                   {isSignUp ? "Sign in" : "Create one"}
                 </button>
               </p>
             </form>
           </CardContent>
         </Card>
-        {/* Divider to visually improve, optional */}
-        {/* <div className="flex items-center justify-center mt-3">
-          <span className="h-0.5 w-20 bg-gradient-to-r from-neon/60 to-primary block rounded-full" />
-         </div> */}
       </div>
-    </div>;
+    </div>
+  );
 }
