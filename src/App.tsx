@@ -15,6 +15,12 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import CreatorOnboarding from "./pages/CreatorOnboarding";
 import CreatorDashboard from "./pages/CreatorDashboard";
+import BrandDashboard from "./pages/BrandDashboard";
+import { BrandOverview } from "./components/brand/BrandOverview";
+import { CreatorDiscovery } from "./components/brand/CreatorDiscovery";
+import { CampaignManagement } from "./components/brand/CampaignManagement";
+import { ApplicationReview } from "./components/brand/ApplicationReview";
+import { BrandMessaging } from "./components/brand/BrandMessaging";
 
 function App() {
   const { setUser, setSession } = useAuthStore();
@@ -68,6 +74,15 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/creator-dashboard" element={<CreatorDashboard />} />
             <Route path="/onboarding" element={<CreatorOnboarding />} />
+            
+            {/* Brand Dashboard Routes */}
+            <Route path="/brand-dashboard" element={<BrandDashboard />}>
+              <Route index element={<BrandOverview />} />
+              <Route path="discover" element={<CreatorDiscovery />} />
+              <Route path="campaigns" element={<CampaignManagement />} />
+              <Route path="applications" element={<ApplicationReview />} />
+              <Route path="messages" element={<BrandMessaging />} />
+            </Route>
           </Route>
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
