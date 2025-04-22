@@ -11,7 +11,7 @@ interface Step2Props {
 export default function Step2Portfolio({ user, onDone }: Step2Props) {
   const { toast } = useToast();
   
-  const [formats, setFormats] = useState<Enums['content_format'][]>([]);
+  const [formats, setFormats] = useState<Enums<'public'>['content_format'][]>([]);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [media, setMedia] = useState<File | null>(null);
@@ -19,7 +19,7 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
   const [externalLink, setExternalLink] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const formatOptions: Enums['content_format'][] = [
+  const formatOptions: Enums<'public'>['content_format'][] = [
     "video", 
     "photo", 
     "blog", 
@@ -28,7 +28,7 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
     "story"
   ];
 
-  const toggleFormat = (fmt: Enums['content_format']) =>
+  const toggleFormat = (fmt: Enums<'public'>['content_format']) =>
     setFormats(f =>
       f.includes(fmt) ? f.filter(v => v !== fmt) : [...f, fmt]
     );
