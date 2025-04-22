@@ -12,6 +12,9 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbS
 import ConfettiCheck from "@/components/ConfettiCheck";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import PasswordField from "./PasswordField";
+import AuthEmailField from "./AuthEmailField";
+import AuthFullNameField from "./AuthFullNameField";
+import AuthSwitchFooter from "./AuthSwitchFooter";
 import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
 import RoleSelector from "./RoleSelector";
@@ -202,60 +205,23 @@ export default function AuthForm({}: Props) {
               className="space-y-7"
               autoComplete="on"
             >
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-base font-inter font-medium">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  className="focus:ring-2 focus:ring-neon ring-offset-2 bg-background/75 border border-border placeholder:text-muted-foreground font-manrope"
-                  placeholder="your@email.com"
-                  aria-label="Email"
-                />
-                {fieldErrors.email && (
-                  <p className="text-xs text-red-500 font-inter pl-1 pt-1">
-                    {fieldErrors.email}
-                  </p>
-                )}
-              </div>
-
+              <AuthEmailField email={email} setEmail={setEmail} error={fieldErrors.email} />
               <PasswordField
                 value={password}
                 onChange={setPassword}
                 error={fieldErrors.password}
                 isSignUp={isSignUp}
               />
-
               {isSignUp && (
                 <div className="space-y-3 animate-fade-in">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-base font-inter font-medium">
-                      Full Name
-                    </Label>
-                    <Input
-                      id="fullName"
-                      value={fullName}
-                      onChange={e => setFullName(e.target.value)}
-                      required
-                      className="focus:ring-2 focus:ring-neon ring-offset-2 bg-background/75 border border-border placeholder:text-muted-foreground font-manrope"
-                      placeholder="Your full name"
-                      aria-label="Full name"
-                    />
-                    {fieldErrors.fullName && (
-                      <p className="text-xs text-red-500 font-inter pl-1 pt-1">
-                        {fieldErrors.fullName}
-                      </p>
-                    )}
-                  </div>
+                  <AuthFullNameField
+                    fullName={fullName}
+                    setFullName={setFullName}
+                    error={fieldErrors.fullName}
+                  />
                   <RoleSelector value={role} onChange={setRole} />
                 </div>
               )}
-
               <Button
                 type="submit"
                 className="w-full btn-neon text-lg font-bold shadow-lg transition hover:scale-[1.03] duration-300 mt-2 px-6 py-3 rounded-xl"
@@ -291,20 +257,13 @@ export default function AuthForm({}: Props) {
                   "Sign In"
                 )}
               </Button>
-
-              <p className="text-sm text-center font-manrope mt-7">
-                {isSignUp ? "Already have an account? " : "Don't have an account? "}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignUp(!isSignUp);
-                    setFieldErrors({});
-                  }}
-                  className="text-primary underline underline-offset-2 hover:text-neon font-medium transition"
-                >
-                  {isSignUp ? "Sign in" : "Create one"}
-                </button>
-              </p>
+              <AuthSwitchFooter
+                isSignUp={isSignUp}
+                onToggle={() => {
+                  setIsSignUp(!isSignUp);
+                  setFieldErrors({});
+                }}
+              />
             </form>
           </CardContent>
         </Card>
