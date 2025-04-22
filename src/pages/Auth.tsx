@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { handleError } from "@/lib/auth";
@@ -15,16 +14,38 @@ import {
 } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbLink,
+} from "@/components/ui/breadcrumb";
 
 export default function Auth() {
   const navigate = useNavigate();
+
+  // Remember last state: sign in vs sign up
+  const lastIsSignUp = (() => {
+    try {
+      return sessionStorage.getItem("isSignUp") === "true";
+    } catch { return true; }
+  })();
+
+  const [isSignUp, setIsSignUp] = useState(lastIsSignUp);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [role, setRole] = useState<"creator" | "brand">("creator");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false");
+    } catch { /* Ignore */ }
+  }, [isSignUp]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +65,6 @@ export default function Auth() {
           },
         });
         if (error) {
-          // Check for unique email violation
           if (
             error.message &&
             error.message.toLowerCase().includes("duplicate key value") &&
@@ -108,88 +128,112 @@ export default function Auth() {
 
   return (
     <div className="container flex items-center justify-center min-h-screen py-10">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{isSignUp ? "Create an account" : "Sign in"}</CardTitle>
-          <CardDescription>
-            {isSignUp
-              ? "Join Creator Chapter to start collaborating with brands"
-              : "Welcome back! Sign in to your account"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </div>
+      <div className="w-full max-w-md space-y-5">
+        {/* Breadcrumbs and Back to Home */}
+        <div className="flex items-center justify-between pb-2">
+          {/* Breadcrumb */}
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/" onClick={e => { e.preventDefault(); navigate("/"); }}>
+                  Home
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{isSignUp ? "Sign Up" : "Sign In"}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          {/* Back to home button */}
+          <Button variant="outline" className="ml-3" size="sm" onClick={() => navigate("/")}>
+            Back to Home
+          </Button>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete={isSignUp ? "new-password" : "current-password"}
-              />
-            </div>
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>{isSignUp ? "Create an account" : "Sign in"}</CardTitle>
+            <CardDescription>
+              {isSignUp
+                ? "Join Creator Chapter to start collaborating with brands"
+                : "Welcome back! Sign in to your account"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
 
-            {isSignUp && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete={isSignUp ? "new-password" : "current-password"}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label>I am a...</Label>
-                  <RadioGroup value={role} onValueChange={(v: "creator" | "brand") => setRole(v)}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="creator" id="creator" />
-                      <Label htmlFor="creator">Creator</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="brand" id="brand" />
-                      <Label htmlFor="brand">Brand</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </>
-            )}
+              {isSignUp && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                    />
+                  </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+                  <div className="space-y-2">
+                    <Label>I am a...</Label>
+                    <RadioGroup value={role} onValueChange={(v: "creator" | "brand") => setRole(v)}>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="creator" id="creator" />
+                        <Label htmlFor="creator">Creator</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="brand" id="brand" />
+                        <Label htmlFor="brand">Brand</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </>
+              )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Please wait..." : isSignUp ? "Create account" : "Sign in"}
-            </Button>
+              {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <p className="text-sm text-center">
-              {isSignUp ? "Already have an account? " : "Don't have an account? "}
-              <button
-                type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-primary hover:underline"
-              >
-                {isSignUp ? "Sign in" : "Create one"}
-              </button>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Please wait..." : isSignUp ? "Create account" : "Sign in"}
+              </Button>
+
+              <p className="text-sm text-center">
+                {isSignUp ? "Already have an account? " : "Don't have an account? "}
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-primary hover:underline"
+                >
+                  {isSignUp ? "Sign in" : "Create one"}
+                </button>
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
