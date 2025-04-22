@@ -1,7 +1,10 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Enums } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
+
+type ContentFormat = Database['public']['Enums']['content_format'];
 
 interface Step2Props {
   user: any;
@@ -11,7 +14,7 @@ interface Step2Props {
 export default function Step2Portfolio({ user, onDone }: Step2Props) {
   const { toast } = useToast();
   
-  const [formats, setFormats] = useState<Enums<'public'>['content_format'][]>([]);
+  const [formats, setFormats] = useState<ContentFormat[]>([]);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [media, setMedia] = useState<File | null>(null);
@@ -19,7 +22,7 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
   const [externalLink, setExternalLink] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const formatOptions: Enums<'public'>['content_format'][] = [
+  const formatOptions: ContentFormat[] = [
     "video", 
     "photo", 
     "blog", 
@@ -28,7 +31,7 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
     "story"
   ];
 
-  const toggleFormat = (fmt: Enums<'public'>['content_format']) =>
+  const toggleFormat = (fmt: ContentFormat) =>
     setFormats(f =>
       f.includes(fmt) ? f.filter(v => v !== fmt) : [...f, fmt]
     );
