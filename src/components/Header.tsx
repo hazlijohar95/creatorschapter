@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -19,15 +18,9 @@ const Header: React.FC = () => {
       <div className="container mx-auto flex justify-between items-center py-4 px-5 md:px-8">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <img 
-              src="/lovable-uploads/15469034-65cd-4df5-83a4-140a47eee54f.png" 
-              alt="DEALFLOW Logo" 
-              className="h-8"
-              width="120"
-              height="32"
-              loading="eager" 
-              decoding="async"
-            />
+            <h1 className="font-space text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent hover:from-neon hover:to-neon/80 transition-all duration-300">
+              creator chapter
+            </h1>
           </Link>
         </div>
         
