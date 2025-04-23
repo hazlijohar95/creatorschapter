@@ -1,106 +1,177 @@
-import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, Search, FolderOpen, MessageSquare, Users, Settings, Globe } from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/lib/auth";
-import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import {
+  FileText,
+  Grid3X3,
+  Home,
+  Image,
+  Inbox,
+  LayoutDashboard,
+  Lightbulb,
+  LogOut,
+  Settings,
+  Star,
+  UserIcon,
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuItem, SidebarProvider, SidebarRail, SidebarTrigger } from "@/components/ui/sidebar";
+
 export function CreatorSidebar() {
+  const { user, signout } = useAuthStore();
   const location = useLocation();
-  const {
-    user
-  } = useAuthStore();
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-  return <Sidebar style={{
-    "--sidebar-width": "16rem"
-  } as React.CSSProperties} className="border-r">
-      <SidebarHeader className="border-b">
-        <div className="p-4">
-          <h2 className="font-space text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-gray-50">
-            Creator Dashboard
-          </h2>
+
+  return (
+    <>
+      <SidebarRail>
+        <div className="flex h-14 items-center px-4">
+          <Link to="/">
+            <span className="text-xl font-semibold">CC</span>
+          </Link>
         </div>
-      </SidebarHeader>
-      
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
+        <div className="flex flex-1 items-center justify-center">
+          <SidebarTrigger asChild>
+            <UserIcon />
+          </SidebarTrigger>
+        </div>
+      </SidebarRail>
+      <SidebarContent className="w-[240px] lg:w-[280px]">
+        <SidebarHeader className="flex h-14 items-center border-b px-6">
+          <Link to="/" className="flex items-center gap-2">
+            <h3 className="font-semibold">Creator Chapter</h3>
+          </Link>
+        </SidebarHeader>
+        <div className="flex-1 overflow-auto py-6">
+          <div className="px-6">
+            <div className="mb-4 flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src="/placeholder.svg" />
+                <AvatarFallback>CR</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <div className="flex items-center gap-1">
+                  <div className="truncate font-medium">
+                    {user?.user_metadata?.full_name || "Creator"}
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className="ml-auto flex h-6 w-6 items-center justify-center rounded-md p-0 text-xs font-medium"
+                  >
+                    C
+                  </Badge>
+                </div>
+                <div className="truncate text-xs text-muted-foreground">
+                  {user?.email}
+                </div>
+              </div>
+            </div>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard")} tooltip="Overview">
-                  <Link to="/creator-dashboard">
-                    <LayoutDashboard />
-                    <span>Overview</span>
-                  </Link>
-                </SidebarMenuButton>
+              <SidebarMenuItem asChild>
+                <Link
+                  to="/creator-dashboard"
+                  className={
+                    location.pathname === "/creator-dashboard"
+                      ? "bg-accent text-accent-foreground"
+                      : ""
+                  }
+                >
+                  <Home className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/opportunities")} tooltip="Discover Opportunities">
-                  <Link to="/creator-dashboard/opportunities">
-                    <Search />
-                    <span>Opportunities</span>
-                  </Link>
-                </SidebarMenuButton>
+              <SidebarMenuItem asChild>
+                <Link
+                  to="/creator-dashboard/opportunities"
+                  className={
+                    location.pathname === "/creator-dashboard/opportunities"
+                      ? "bg-accent text-accent-foreground"
+                      : ""
+                  }
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  <span>Opportunities</span>
+                </Link>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/portfolio")} tooltip="Portfolio Management">
-                  <Link to="/creator-dashboard/portfolio">
-                    <FolderOpen />
-                    <span>Portfolio</span>
-                  </Link>
-                </SidebarMenuButton>
+              <SidebarMenuItem asChild>
+                <Link
+                  to="/creator-dashboard/applications"
+                  className={
+                    location.pathname === "/creator-dashboard/applications"
+                      ? "bg-accent text-accent-foreground"
+                      : ""
+                  }
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Applications</span>
+                  <SidebarMenuBadge>New</SidebarMenuBadge>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem asChild>
+                <Link
+                  to="/creator-dashboard/collaborations"
+                  className={
+                    location.pathname === "/creator-dashboard/collaborations"
+                      ? "bg-accent text-accent-foreground"
+                      : ""
+                  }
+                >
+                  <Star className="h-4 w-4" />
+                  <span>Collaborations</span>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem asChild>
+                <Link
+                  to="/creator-dashboard/portfolio"
+                  className={
+                    location.pathname === "/creator-dashboard/portfolio"
+                      ? "bg-accent text-accent-foreground"
+                      : ""
+                  }
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                  <span>Portfolio</span>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem asChild>
+                <Link
+                  to="/creator-dashboard/social"
+                  className={
+                    location.pathname === "/creator-dashboard/social"
+                      ? "bg-accent text-accent-foreground"
+                      : ""
+                  }
+                >
+                  <Image className="h-4 w-4" />
+                  <span>Social Media</span>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem asChild>
+                <Link
+                  to="/creator-dashboard/settings"
+                  className={
+                    location.pathname === "/creator-dashboard/settings"
+                      ? "bg-accent text-accent-foreground"
+                      : ""
+                  }
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
               </SidebarMenuItem>
             </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel>Connect</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/collaborations")} tooltip="Manage Collaborations">
-                  <Link to="/creator-dashboard/collaborations">
-                    <Users />
-                    <span>Collaborations</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/social")} tooltip="Social Media Profile">
-                  <Link to="/creator-dashboard/social">
-                    <Globe />
-                    <span>Platform & Reach</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/settings")} tooltip="Settings">
-                  <Link to="/creator-dashboard/settings">
-                    <Settings />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      
-      <SidebarFooter className="border-t p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm">
-            <p className="font-medium">{user?.email}</p>
-            <p className="text-xs text-muted-foreground">Creator Account</p>
           </div>
         </div>
-      </SidebarFooter>
-    </Sidebar>;
+        <SidebarFooter className="border-t p-6">
+          <button
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-muted"
+            onClick={() => signout()}
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="text-xs">Log out</span>
+          </button>
+        </SidebarFooter>
+      </SidebarContent>
+    </>
+  );
 }
