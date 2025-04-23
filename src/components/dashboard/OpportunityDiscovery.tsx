@@ -1,10 +1,6 @@
-
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Search, Filter, BookOpen, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
@@ -15,21 +11,9 @@ import {
   hasAppliedToCampaign 
 } from "@/services/campaignService";
 import { getCreatorProfile } from "@/services/profileService";
-
-interface Campaign {
-  id: string;
-  name: string;
-  description: string;
-  budget: number;
-  start_date: string | null;
-  end_date: string | null;
-  categories?: string[] | null;
-  status: string;
-  profiles: {
-    full_name: string;
-    username: string;
-  }
-}
+import { CampaignCard } from "./OpportunityDiscovery/CampaignCard";
+import { ApplicationDialog } from "./OpportunityDiscovery/ApplicationDialog";
+import { Campaign } from "./OpportunityDiscovery/types";
 
 // Type guard to ensure a campaign is properly structured
 function isValidCampaign(campaign: any): campaign is Campaign {
@@ -184,184 +168,15 @@ export default function OpportunityDiscovery() {
       )}
 
       {/* Application Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Apply to Campaign</DialogTitle>
-            <DialogDescription>
-              Tell the brand why you're a great fit for this campaign.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedCampaign && (
-            <>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium">{selectedCampaign.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedCampaign.profiles.full_name}
-                  </p>
-                </div>
-                
-                <Textarea
-                  placeholder="Write your application message here..."
-                  value={applicationMessage}
-                  onChange={(e) => setApplicationMessage(e.target.value)}
-                  rows={6}
-                  className="resize-none"
-                />
-              </div>
-              
-              <DialogFooter>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={submitApplication}
-                  disabled={!applicationMessage.trim() || applyMutation.isPending}
-                >
-                  {applyMutation.isPending ? (
-                    <><span className="animate-spin">●</span> Submitting...</>
-                  ) : (
-                    <>Submit Application</>
-                  )}
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <ApplicationDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        selectedCampaign={selectedCampaign}
+        applicationMessage={applicationMessage}
+        setApplicationMessage={setApplicationMessage}
+        onSubmit={submitApplication}
+        isSubmitting={applyMutation.isPending}
+      />
     </div>
-  );
-}
-
-interface CampaignCardProps {
-  campaign: Campaign;
-  matchScore: number;
-  onViewDetails: () => void;
-  onApply: () => void;
-}
-
-function CampaignCard({ campaign, matchScore, onViewDetails, onApply }: CampaignCardProps) {
-  const { user } = useAuthStore();
-  const [applicationStatus, setApplicationStatus] = useState<{
-    hasApplied: boolean;
-    status: string | null;
-  }>({ hasApplied: false, status: null });
-  const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    const fetchApplicationStatus = async () => {
-      if (!user) return;
-      setChecking(true);
-      try {
-        const status = await checkApplicationStatus(campaign.id);
-        setApplicationStatus(status);
-      } finally {
-        setChecking(false);
-      }
-    };
-    
-    fetchApplicationStatus();
-  }, [campaign.id, user]);
-
-  const getStatusBadge = () => {
-    if (checking) return null;
-    
-    if (applicationStatus.hasApplied) {
-      switch (applicationStatus.status) {
-        case "pending":
-          return (
-            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-              Pending
-            </span>
-          );
-        case "approved":
-          return (
-            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-              Approved
-            </span>
-          );
-        case "rejected":
-          return (
-            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-              Rejected
-            </span>
-          );
-        default:
-          return null;
-      }
-    }
-    
-    return campaign.end_date && new Date(campaign.end_date) < new Date() ? (
-      <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-        Expired
-      </span>
-    ) : (
-      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-        New
-      </span>
-    );
-  };
-  
-  return (
-    <Card key={campaign.id} className="overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>{campaign.name}</CardTitle>
-            <CardDescription className="pt-1">{campaign.profiles.full_name} • ${campaign.budget}</CardDescription>
-          </div>
-          {getStatusBadge()}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {campaign.categories?.map(tag => (
-            <span key={tag} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-              {tag}
-            </span>
-          ))}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-600 line-clamp-3">{campaign.description}</p>
-        <div className="mt-4">
-          <div className="flex justify-between text-sm mb-1">
-            <span>Match score</span>
-            <span className="font-medium">{matchScore}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className={`h-1.5 rounded-full ${
-                matchScore >= 90 ? "bg-green-500" : 
-                matchScore >= 80 ? "bg-blue-500" : 
-                matchScore >= 70 ? "bg-yellow-500" : "bg-orange-500"
-              }`}
-              style={{ width: `${matchScore}%` }}
-            ></div>
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="border-t bg-gray-50 pt-3 flex justify-between">
-        <Button variant="outline" size="sm" onClick={onViewDetails}>
-          <BookOpen className="mr-2 h-4 w-4" />
-          View Details
-        </Button>
-        {checking ? (
-          <Button size="sm" disabled>
-            Loading...
-          </Button>
-        ) : applicationStatus.hasApplied ? (
-          <Button size="sm" variant="secondary" disabled>
-            <Check className="mr-2 h-4 w-4" />
-            Applied
-          </Button>
-        ) : (
-          <Button size="sm" onClick={onApply}>Apply Now</Button>
-        )}
-      </CardFooter>
-    </Card>
   );
 }
