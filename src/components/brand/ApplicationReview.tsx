@@ -3,11 +3,26 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationCard } from "./ApplicationCard";
 
-// Using the correct status literal types to match the Application interface
+// Explicit Status type and Application interface for strong typing
 type Status = "pending" | "approved" | "rejected";
 
-// Mock data (would be replaced by API)
-const APPLICATIONS = [
+interface Application {
+  id: number;
+  creatorName: string;
+  creatorHandle: string;
+  avatar: string;
+  campaign: string;
+  date: string;
+  status: Status;
+  message: string;
+  categories: string[];
+  match: number;
+  isNew: boolean;
+  budget: string;
+}
+
+// Mock data with explicit typing for status
+const APPLICATIONS: Application[] = [
   {
     id: 1,
     creatorName: "Alex Johnson",
@@ -15,7 +30,7 @@ const APPLICATIONS = [
     avatar: "",
     campaign: "Summer Collection Launch",
     date: "May 25, 2025",
-    status: "pending" as Status,
+    status: "pending",
     message: "I love your brand and would be excited to collaborate on the summer collection. My audience loves fashion content.",
     categories: ["Fashion", "Summer", "Instagram"],
     match: 95,
@@ -29,7 +44,7 @@ const APPLICATIONS = [
     avatar: "",
     campaign: "Fall Product Line",
     date: "May 23, 2025",
-    status: "approved" as Status,
+    status: "approved",
     message: "I've been a fan of your products for years and would love to showcase them to my followers.",
     categories: ["Fashion", "Review"],
     match: 88,
@@ -43,7 +58,7 @@ const APPLICATIONS = [
     avatar: "",
     campaign: "Summer Collection Launch",
     date: "May 20, 2025",
-    status: "rejected" as Status,
+    status: "rejected",
     message: "Your summer collection would be a perfect fit for my content calendar. I have some great ideas to showcase these pieces.",
     categories: ["Lifestyle", "Instagram", "Stories"],
     match: 75,
@@ -53,22 +68,22 @@ const APPLICATIONS = [
 ];
 
 export function ApplicationReview() {
-  const [activeTab, setActiveTab] = useState("all");
-  const [applications, setApplications] = useState(APPLICATIONS);
+  const [activeTab, setActiveTab] = useState<Status | "all">("all");
+  const [applications, setApplications] = useState<Application[]>(APPLICATIONS);
 
-  // Example handlers (API integration can be added)
+  // Update application status with correct type
   const handleApprove = (id: number) => {
     setApplications(apps => apps.map(app =>
-      app.id === id ? { ...app, status: "approved" as Status, isNew: false } : app
+      app.id === id ? { ...app, status: "approved", isNew: false } : app
     ));
   };
   const handleReject = (id: number) => {
     setApplications(apps => apps.map(app =>
-      app.id === id ? { ...app, status: "rejected" as Status, isNew: false } : app
+      app.id === id ? { ...app, status: "rejected", isNew: false } : app
     ));
   };
 
-  const tabFiltered = (tab: string) =>
+  const tabFiltered = (tab: Status | "all") =>
     tab === "all" ? applications : applications.filter(a => a.status === tab);
 
   return (
@@ -81,12 +96,11 @@ export function ApplicationReview() {
           <TabsTrigger value="approved">Approved</TabsTrigger>
           <TabsTrigger value="rejected">Rejected</TabsTrigger>
         </TabsList>
-
         {["all", "pending", "approved", "rejected"].map(tab => (
           <TabsContent key={tab} value={tab} className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tabFiltered(tab).length > 0 ? (
-                tabFiltered(tab).map(application => (
+              {tabFiltered(tab as Status | "all").length > 0 ? (
+                tabFiltered(tab as Status | "all").map(application => (
                   <ApplicationCard
                     key={application.id}
                     application={application}
