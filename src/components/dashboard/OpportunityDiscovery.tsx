@@ -6,13 +6,8 @@ import { Search, Filter, BookOpen, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  getPublicCampaigns, 
-} from "@/services/campaignService";
-import { 
-  applyToCampaign, 
-  hasAppliedToCampaign 
-} from "@/services/applicationService";
+import { getPublicCampaigns } from "@/services/campaignService";
+import { applyToCampaign, hasAppliedToCampaign } from "@/services/applicationService";
 import { getCreatorProfile } from "@/services/profileService";
 import { CampaignCard } from "./OpportunityDiscovery/CampaignCard";
 import { ApplicationDialog } from "./OpportunityDiscovery/ApplicationDialog";
@@ -28,6 +23,16 @@ function isValidCampaign(campaign: any): campaign is Campaign {
     'description' in campaign &&
     'profiles' in campaign &&
     typeof campaign.profiles === 'object'
+  );
+}
+
+// Type guard for error objects
+function isQueryError(data: any): boolean {
+  return (
+    data && 
+    typeof data === 'object' && 
+    'error' in data &&
+    data.error === true
   );
 }
 
@@ -53,8 +58,10 @@ export default function OpportunityDiscovery() {
     enabled: !!user,
   });
   
-  // Filter out invalid campaign data
-  const campaigns = campaignsResponse.filter(isValidCampaign);
+  // Filter out invalid campaign data or error responses
+  const campaigns = Array.isArray(campaignsResponse) 
+    ? campaignsResponse.filter(item => !isQueryError(item) && isValidCampaign(item))
+    : [];
   
   // Apply to a campaign mutation
   const applyMutation = useMutation({
