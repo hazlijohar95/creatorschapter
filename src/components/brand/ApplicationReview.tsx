@@ -1,92 +1,111 @@
 
 import { useState } from "react";
-import { Check, X, MessageSquare, Loader2 } from "lucide-react";
+import { Check, X, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
-import { useAuthStore } from "@/lib/auth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getBrandApplications, updateApplicationStatus } from "@/services/applicationService";
 
-interface Application {
-  id: string;
-  status: string;
-  application_message: string | null;
-  brand_response: string | null;
-  created_at: string;
-  campaigns: {
-    id: string;
-    name: string;
-  };
-  profiles: {
-    id: string;
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
+// Mock data
+const APPLICATIONS = [
+  {
+    id: 1,
+    creatorName: "Alex Johnson",
+    creatorHandle: "@alexcreates",
+    avatar: "",
+    campaign: "Summer Collection Launch",
+    date: "May 25, 2025",
+    status: "pending",
+    message: "I love your brand and would be excited to collaborate on the summer collection. My audience loves fashion content."
+  },
+  {
+    id: 2,
+    creatorName: "Jamie Smith",
+    creatorHandle: "@jamiesmith",
+    avatar: "",
+    campaign: "Fall Product Line",
+    date: "May 23, 2025",
+    status: "approved",
+    message: "I've been a fan of your products for years and would love to showcase them to my followers."
+  },
+  {
+    id: 3,
+    creatorName: "Taylor Wilson",
+    creatorHandle: "@taylorwilson",
+    avatar: "",
+    campaign: "Summer Collection Launch",
+    date: "May 20, 2025",
+    status: "rejected",
+    message: "Your summer collection would be a perfect fit for my content calendar. I have some great ideas to showcase these pieces."
+  }
+];
+
+export function ApplicationReview() {
+  const [activeTab, setActiveTab] = useState("all");
+  
+  return (
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Creator Applications</h1>
+      
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="approved">Approved</TabsTrigger>
+          <TabsTrigger value="rejected">Rejected</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all" className="mt-4">
+          <div className="space-y-4">
+            {APPLICATIONS.map((application) => (
+              <ApplicationCard key={application.id} application={application} />
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="pending" className="mt-4">
+          <div className="space-y-4">
+            {APPLICATIONS.filter(a => a.status === 'pending').map((application) => (
+              <ApplicationCard key={application.id} application={application} />
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="approved" className="mt-4">
+          <div className="space-y-4">
+            {APPLICATIONS.filter(a => a.status === 'approved').map((application) => (
+              <ApplicationCard key={application.id} application={application} />
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="rejected" className="mt-4">
+          <div className="space-y-4">
+            {APPLICATIONS.filter(a => a.status === 'rejected').map((application) => (
+              <ApplicationCard key={application.id} application={application} />
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+interface ApplicationCardProps {
+  application: {
+    id: number;
+    creatorName: string;
+    creatorHandle: string;
+    avatar: string;
+    campaign: string;
+    date: string;
+    status: string;
+    message: string;
   };
 }
 
-export function ApplicationReview() {
-  const { user } = useAuthStore();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("all");
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [responseMessage, setResponseMessage] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [responseType, setResponseType] = useState<"approve" | "reject" | null>(null);
-  
-  // Fetch applications for this brand
-  const { data: applications = [], isLoading } = useQuery({
-    queryKey: ["brand-applications", user?.id, activeTab],
-    queryFn: () => getBrandApplications(user!.id, activeTab !== "all" ? activeTab : undefined),
-    enabled: !!user
-  });
-  
-  // Update application status mutation
-  const updateMutation = useMutation({
-    mutationFn: ({ id, status, response }: { id: string, status: string, response?: string }) => 
-      updateApplicationStatus(id, status, response),
-    onSuccess: () => {
-      toast({
-        title: "Application updated",
-        description: responseType === "approve" ? "The creator has been approved." : "The creator has not been selected for this campaign.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["brand-applications"] });
-      setDialogOpen(false);
-      setResponseMessage("");
-      setSelectedApp(null);
-    },
-    onError: (error) => {
-      toast({
-        title: "Update failed",
-        description: "There was an error updating the application. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Application update error:", error);
-    }
-  });
-  
-  const handleResponseClick = (app: Application, type: "approve" | "reject") => {
-    setSelectedApp(app);
-    setResponseType(type);
-    setDialogOpen(true);
-  };
-  
-  const submitResponse = () => {
-    if (!selectedApp) return;
-    
-    updateMutation.mutate({
-      id: selectedApp.id,
-      status: responseType === "approve" ? "approved" : "rejected",
-      response: responseMessage.trim() || undefined
-    });
-  };
-  
+function ApplicationCard({ application }: ApplicationCardProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -101,155 +120,56 @@ export function ApplicationReview() {
   };
   
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Creator Applications</h1>
-      
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value={activeTab} className="mt-4">
-          {isLoading ? (
-            <div className="flex justify-center items-center p-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Loading applications...</span>
-            </div>
-          ) : applications.length === 0 ? (
-            <div className="text-center p-12">
-              <p className="text-lg font-medium">No applications found</p>
-              <p className="text-muted-foreground mt-2">
-                You don't have any {activeTab !== "all" ? activeTab : ""} applications to review.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {applications.map((app) => (
-                <Card key={app.id} className="overflow-hidden">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-lg">{app.campaigns.name}</CardTitle>
-                      {getStatusBadge(app.status)}
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <div className="flex items-start gap-4">
-                      <Avatar>
-                        <AvatarImage src={app.profiles.avatar_url || undefined} />
-                        <AvatarFallback>
-                          {app.profiles.full_name?.substring(0, 2) || app.profiles.username?.substring(0, 2) || "CR"}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1">
-                        <p className="font-medium">{app.profiles.full_name || app.profiles.username || "Creator"}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Applied {new Date(app.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                        </p>
-                        
-                        <div className="mt-3 bg-muted p-3 rounded-md">
-                          <p className="text-sm">{app.application_message}</p>
-                        </div>
-                        
-                        {app.brand_response && (
-                          <div className="mt-3 bg-muted-foreground/10 p-3 rounded-md">
-                            <p className="text-sm font-medium mb-1">Your response:</p>
-                            <p className="text-sm">{app.brand_response}</p>
-                          </div>
-                        )}
-                        
-                        {app.status === "pending" && (
-                          <div className="mt-4 flex gap-2 justify-end">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleResponseClick(app, "reject")}
-                            >
-                              <X className="mr-1 h-4 w-4" />
-                              Reject
-                            </Button>
-                            <Button 
-                              size="sm"
-                              onClick={() => handleResponseClick(app, "approve")}
-                            >
-                              <Check className="mr-1 h-4 w-4" />
-                              Approve
-                            </Button>
-                          </div>
-                        )}
-                        
-                        {app.status === "approved" && (
-                          <div className="mt-4 flex justify-end">
-                            <Button variant="outline" size="sm">
-                              <MessageSquare className="mr-1 h-4 w-4" />
-                              Message Creator
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-      
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {responseType === "approve" ? "Approve Application" : "Reject Application"}
-            </DialogTitle>
-            <DialogDescription>
-              {responseType === "approve" 
-                ? "Approve this creator for your campaign. You can include additional information below."
-                : "Let the creator know why they weren't selected for this campaign."}
-            </DialogDescription>
-          </DialogHeader>
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={application.avatar} />
+            <AvatarFallback>{application.creatorName.substring(0, 2)}</AvatarFallback>
+          </Avatar>
           
-          <div className="space-y-4 py-4">
-            <div>
-              <p className="text-sm font-medium">Creator: {selectedApp?.profiles.full_name || selectedApp?.profiles.username}</p>
-              <p className="text-sm text-muted-foreground">Campaign: {selectedApp?.campaigns.name}</p>
+          <div className="flex-1">
+            <div className="flex flex-col md:flex-row md:items-center justify-between">
+              <div>
+                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                  <h3 className="font-semibold">{application.creatorName}</h3>
+                  <span className="text-sm text-muted-foreground">{application.creatorHandle}</span>
+                </div>
+                <p className="text-sm">
+                  Applied for <span className="font-medium">{application.campaign}</span> on {application.date}
+                </p>
+              </div>
+              <div className="mt-2 md:mt-0">
+                {getStatusBadge(application.status)}
+              </div>
             </div>
             
-            <Textarea 
-              placeholder={responseType === "approve" 
-                ? "Add any additional details or next steps..."
-                : "Provide feedback on why they weren't selected..."
-              }
-              value={responseMessage}
-              onChange={(e) => setResponseMessage(e.target.value)}
-              rows={5}
-            />
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={updateMutation.isPending}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={submitResponse} 
-              disabled={updateMutation.isPending}
-              variant={responseType === "approve" ? "default" : "destructive"}
-            >
-              {updateMutation.isPending ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-              ) : responseType === "approve" ? (
-                <>Approve Creator</>
-              ) : (
-                <>Reject Application</>
+            <div className="mt-2 text-sm">
+              <p className="text-muted-foreground">{application.message}</p>
+            </div>
+            
+            <div className="mt-3 flex flex-wrap gap-2">
+              {application.status === "pending" && (
+                <>
+                  <Button size="sm" variant="outline" className="text-green-600">
+                    <Check className="mr-1 h-4 w-4" />
+                    Approve
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-red-600">
+                    <X className="mr-1 h-4 w-4" />
+                    Reject
+                  </Button>
+                </>
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+              <Button size="sm" variant="outline">
+                <MessageSquare className="mr-1 h-4 w-4" />
+                Message
+              </Button>
+              <Button size="sm">View Profile</Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

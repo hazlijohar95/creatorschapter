@@ -28,7 +28,6 @@ import { Toaster } from "./components/ui/toaster";
 import OpportunityDiscovery from "./components/dashboard/OpportunityDiscovery";
 import PortfolioManagement from "./components/dashboard/PortfolioManagement";
 import CollaborationManagement from "./components/dashboard/CollaborationManagement";
-import ApplicationStatus from "./components/dashboard/ApplicationStatus";
 import SocialMediaProfile from "./components/dashboard/SocialMediaProfile";
 import SettingsPanel from "./components/dashboard/SettingsPanel";
 
@@ -92,7 +91,6 @@ function App() {
             <Route path="/creator-dashboard" element={<CreatorDashboard />}>
               <Route index element={<CreatorOverview />} />
               <Route path="opportunities" element={<OpportunityDiscovery />} />
-              <Route path="applications" element={<ApplicationStatus />} />
               <Route path="portfolio" element={<PortfolioManagement />} />
               <Route path="collaborations" element={<CollaborationManagement />} />
               <Route path="social" element={<SocialMediaProfile />} />
