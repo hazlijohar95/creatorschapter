@@ -170,6 +170,39 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          brand_archived_at: string | null
+          brand_id: string
+          created_at: string | null
+          creator_archived_at: string | null
+          creator_id: string
+          id: string
+          last_message_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          brand_archived_at?: string | null
+          brand_id: string
+          created_at?: string | null
+          creator_archived_at?: string | null
+          creator_id: string
+          id?: string
+          last_message_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          brand_archived_at?: string | null
+          brand_id?: string
+          created_at?: string | null
+          creator_archived_at?: string | null
+          creator_id?: string
+          id?: string
+          last_message_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       creator_profiles: {
         Row: {
           categories: string[] | null
@@ -223,8 +256,42 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          read_at: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          read_at?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          read_at?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       portfolio_items: {
         Row: {
+          avg_view_duration: number | null
           created_at: string | null
           creator_id: string | null
           description: string | null
@@ -233,8 +300,11 @@ export type Database = {
           is_featured: boolean | null
           media_url: string | null
           title: string
+          unique_views: number | null
+          view_count: number | null
         }
         Insert: {
+          avg_view_duration?: number | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
@@ -243,8 +313,11 @@ export type Database = {
           is_featured?: boolean | null
           media_url?: string | null
           title: string
+          unique_views?: number | null
+          view_count?: number | null
         }
         Update: {
+          avg_view_duration?: number | null
           created_at?: string | null
           creator_id?: string | null
           description?: string | null
@@ -253,6 +326,8 @@ export type Database = {
           is_featured?: boolean | null
           media_url?: string | null
           title?: string
+          unique_views?: number | null
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -260,6 +335,38 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolio_views: {
+        Row: {
+          created_at: string | null
+          id: string
+          portfolio_item_id: string | null
+          view_duration: number | null
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          portfolio_item_id?: string | null
+          view_duration?: number | null
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          portfolio_item_id?: string | null
+          view_duration?: number | null
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_views_portfolio_item_id_fkey"
+            columns: ["portfolio_item_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_items"
             referencedColumns: ["id"]
           },
         ]
