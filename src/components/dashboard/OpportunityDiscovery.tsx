@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,9 @@ function isValidCampaign(campaign: any): campaign is Campaign {
     typeof campaign === 'object' && 
     'id' in campaign &&
     'name' in campaign &&
-    'description' in campaign
+    'description' in campaign &&
+    'profiles' in campaign &&
+    typeof campaign.profiles === 'object'
   );
 }
 
@@ -96,18 +99,6 @@ export default function OpportunityDiscovery() {
     
     // Cap at 100
     return Math.min(score, 100);
-  };
-  
-  // Function to check if creator has already applied
-  const checkApplicationStatus = async (campaignId: string) => {
-    if (!user) return { hasApplied: false, status: null };
-    
-    try {
-      return await hasAppliedToCampaign(campaignId, user.id);
-    } catch (error) {
-      console.error("Error checking application status:", error);
-      return { hasApplied: false, status: null };
-    }
   };
   
   // Apply to campaign

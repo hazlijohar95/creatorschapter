@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { BookOpen, Check } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
-import { hasAppliedToCampaign } from "@/services/campaignService";
+import { hasAppliedToCampaign } from "@/services/applicationService";
 import { Campaign, ApplicationStatus } from "./types";
 
 interface CampaignCardProps {
