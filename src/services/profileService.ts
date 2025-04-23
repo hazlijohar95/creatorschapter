@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Enums } from "@/integrations/supabase/types";
 
 // Fetch a creator or user profile by user ID
 export async function getProfile(userId: string) {
@@ -32,8 +33,12 @@ export async function getCreatorProfile(userId: string) {
   return data;
 }
 
-// Update creator profile extras
-export async function updateCreatorProfile(userId: string, update: Partial<{ categories: string[], content_formats: string[], payment_preferences: string[] }>) {
+// Update creator profile extras with proper typing for content_formats
+export async function updateCreatorProfile(userId: string, update: Partial<{ 
+  categories: string[]; 
+  content_formats: Enums<"content_format">[]; 
+  payment_preferences: string[]; 
+}>) {
   const { error } = await supabase
     .from("creator_profiles")
     .update(update)
@@ -72,4 +77,3 @@ export async function deleteSocialLink(id: string) {
   const { error } = await supabase.from("social_links").delete().eq("id", id);
   if (error) throw error;
 }
-

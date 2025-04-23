@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, LogOut, UserCog, Layout, CreditCard, Instagram, Target, Link, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Enums } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client"; // Added missing import
 
 // Import centralized service functions
 import {
