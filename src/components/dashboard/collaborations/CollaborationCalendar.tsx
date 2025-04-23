@@ -28,26 +28,28 @@ export function CollaborationCalendar({ collaborations }: CollaborationCalendarP
   const selectedDateCollaborations = collaborationsByDate[selectedDateStr] || [];
   
   // Generate calendar day content to show dots for dates with collaborations
-  const getDayContent = (day: Date) => {
-    const dateStr = day.toDateString();
-    const hasCollaborations = !!collaborationsByDate[dateStr]?.length;
-    
-    if (hasCollaborations) {
-      const count = collaborationsByDate[dateStr].length;
-      return (
-        <div className="relative w-full h-full flex items-center justify-center">
-          <span>{day.getDate()}</span>
-          <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary"></span>
-          {count > 1 && (
-            <span className="absolute top-1 right-1 text-[8px] font-bold bg-primary text-white rounded-full w-3 h-3 flex items-center justify-center">
-              {count}
-            </span>
-          )}
-        </div>
-      );
+  const customComponents = {
+    DayContent: (props: { date: Date; activeModifiers: any }) => {
+      const dateStr = props.date.toDateString();
+      const hasCollaborations = !!collaborationsByDate[dateStr]?.length;
+      
+      if (hasCollaborations) {
+        const count = collaborationsByDate[dateStr].length;
+        return (
+          <div className="relative w-full h-full flex items-center justify-center">
+            <span>{props.date.getDate()}</span>
+            <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-primary"></span>
+            {count > 1 && (
+              <span className="absolute top-1 right-1 text-[8px] font-bold bg-primary text-white rounded-full w-3 h-3 flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </div>
+        );
+      }
+      
+      return <span>{props.date.getDate()}</span>;
     }
-    
-    return <span>{day.getDate()}</span>;
   };
   
   // Get the status color for a collaboration
@@ -77,9 +79,7 @@ export function CollaborationCalendar({ collaborations }: CollaborationCalendarP
             onSelect={setSelectedDate}
             disabled={{ before: new Date(new Date().setDate(new Date().getDate() - 90)) }}
             className="rounded-md border"
-            components={{
-              DayContent: ({ day }) => getDayContent(day),
-            }}
+            components={customComponents}
           />
         </CardContent>
       </Card>
