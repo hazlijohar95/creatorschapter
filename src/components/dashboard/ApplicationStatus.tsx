@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,12 @@ import { AlertCircle, Check, Clock, X, MessageSquare, Loader2 } from "lucide-rea
 import { useQuery } from "@tanstack/react-query";
 import { getCreatorApplications } from "@/services/campaignService";
 import { useAuthStore } from "@/lib/auth";
+
+interface ApplicationProfile {
+  id: string;
+  full_name: string;
+  username: string;
+}
 
 interface Application {
   id: string;
@@ -23,22 +29,34 @@ interface Application {
     budget: number | null;
     end_date: string | null;
   };
-  profiles: {
-    id: string;
-    full_name: string;
-    username: string;
-  };
+  profiles: ApplicationProfile;
+}
+
+// Type guard to check if the response is valid and not an error
+function isValidApplication(application: any): application is Application {
+  return (
+    application &&
+    typeof application === 'object' &&
+    'id' in application &&
+    'profiles' in application &&
+    application.profiles &&
+    typeof application.profiles === 'object' &&
+    'id' in application.profiles
+  );
 }
 
 export default function ApplicationStatus() {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState("all");
   
-  const { data: applications = [], isLoading } = useQuery({
+  const { data: applicationsResponse = [], isLoading } = useQuery({
     queryKey: ["creator-applications", user?.id, activeTab],
     queryFn: () => getCreatorApplications(user!.id, activeTab !== "all" ? activeTab : undefined),
     enabled: !!user
   });
+  
+  // Filter out any invalid application data
+  const applications = applicationsResponse.filter(isValidApplication);
   
   const getStatusIcon = (status: string) => {
     switch (status) {

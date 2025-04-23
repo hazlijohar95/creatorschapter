@@ -23,12 +23,23 @@ interface Campaign {
   budget: number;
   start_date: string | null;
   end_date: string | null;
-  categories: string[] | null;
+  categories?: string[] | null;
   status: string;
   profiles: {
     full_name: string;
     username: string;
   }
+}
+
+// Type guard to ensure a campaign is properly structured
+function isValidCampaign(campaign: any): campaign is Campaign {
+  return (
+    campaign && 
+    typeof campaign === 'object' && 
+    'id' in campaign &&
+    'name' in campaign &&
+    'description' in campaign
+  );
 }
 
 export default function OpportunityDiscovery() {
@@ -47,11 +58,14 @@ export default function OpportunityDiscovery() {
   });
   
   // Fetch available campaigns
-  const { data: campaigns = [], isLoading: loadingCampaigns } = useQuery({
+  const { data: campaignsResponse = [], isLoading: loadingCampaigns } = useQuery({
     queryKey: ["public-campaigns", searchQuery],
     queryFn: () => getPublicCampaigns({ search: searchQuery }),
     enabled: !!user,
   });
+  
+  // Filter out invalid campaign data
+  const campaigns = campaignsResponse.filter(isValidCampaign);
   
   // Apply to a campaign mutation
   const applyMutation = useMutation({
@@ -83,7 +97,7 @@ export default function OpportunityDiscovery() {
     
     let score = 70; // Base score
     
-    // Match based on categories
+    // Match based on categories if available
     if (campaign.categories && creatorProfile.categories) {
       const matchingCategories = campaign.categories.filter(cat => 
         creatorProfile.categories?.includes(cat)
@@ -240,7 +254,7 @@ function CampaignCard({ campaign, matchScore, onViewDetails, onApply }: Campaign
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const checkStatus = async () => {
+    const fetchApplicationStatus = async () => {
       if (!user) return;
       setChecking(true);
       try {
@@ -251,7 +265,7 @@ function CampaignCard({ campaign, matchScore, onViewDetails, onApply }: Campaign
       }
     };
     
-    checkStatus();
+    fetchApplicationStatus();
   }, [campaign.id, user]);
 
   const getStatusBadge = () => {

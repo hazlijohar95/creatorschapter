@@ -78,7 +78,6 @@ export async function getPublicCampaigns({ search = '' }: { search?: string } = 
       budget,
       start_date,
       end_date,
-      categories,
       status,
       profiles!inner(
         full_name,
