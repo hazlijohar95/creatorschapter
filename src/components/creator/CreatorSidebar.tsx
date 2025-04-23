@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/lib/auth";
@@ -67,98 +66,30 @@ export function CreatorSidebar() {
               </div>
             </div>
             <SidebarMenu>
-              <SidebarMenuItem asChild>
-                <Link
-                  to="/creator-dashboard"
-                  className={
-                    location.pathname === "/creator-dashboard"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
-                >
-                  <Home className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem asChild>
-                <Link
-                  to="/creator-dashboard/opportunities"
-                  className={
-                    location.pathname === "/creator-dashboard/opportunities"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
-                >
-                  <Lightbulb className="h-4 w-4" />
-                  <span>Opportunities</span>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem asChild>
-                <Link
-                  to="/creator-dashboard/applications"
-                  className={
-                    location.pathname === "/creator-dashboard/applications"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>Applications</span>
-                  <SidebarMenuBadge>New</SidebarMenuBadge>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem asChild>
-                <Link
-                  to="/creator-dashboard/collaborations"
-                  className={
-                    location.pathname === "/creator-dashboard/collaborations"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
-                >
-                  <Star className="h-4 w-4" />
-                  <span>Collaborations</span>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem asChild>
-                <Link
-                  to="/creator-dashboard/portfolio"
-                  className={
-                    location.pathname === "/creator-dashboard/portfolio"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                  <span>Portfolio</span>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem asChild>
-                <Link
-                  to="/creator-dashboard/social"
-                  className={
-                    location.pathname === "/creator-dashboard/social"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
-                >
-                  <Image className="h-4 w-4" />
-                  <span>Social Media</span>
-                </Link>
-              </SidebarMenuItem>
-              <SidebarMenuItem asChild>
-                <Link
-                  to="/creator-dashboard/settings"
-                  className={
-                    location.pathname === "/creator-dashboard/settings"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </Link>
-              </SidebarMenuItem>
+              {[
+                { icon: Home, label: "Dashboard", path: "/creator-dashboard" },
+                { icon: Lightbulb, label: "Opportunities", path: "/creator-dashboard/opportunities" },
+                { icon: FileText, label: "Applications", path: "/creator-dashboard/applications" },
+                { icon: Star, label: "Collaborations", path: "/creator-dashboard/collaborations" },
+                { icon: Grid3X3, label: "Portfolio", path: "/creator-dashboard/portfolio" },
+                { icon: Image, label: "Social Media", path: "/creator-dashboard/social" },
+                { icon: Settings, label: "Settings", path: "/creator-dashboard/settings" }
+              ].map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <Link
+                    to={item.path}
+                    className={
+                      location.pathname === item.path
+                        ? "bg-accent text-accent-foreground flex items-center gap-2 p-2 rounded"
+                        : "flex items-center gap-2 p-2"
+                    }
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                    {item.label === "Applications" && <SidebarMenuBadge>New</SidebarMenuBadge>}
+                  </Link>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </div>
         </div>

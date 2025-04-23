@@ -47,6 +47,8 @@ export type Database = {
       }
       campaign_creators: {
         Row: {
+          application_message: string | null
+          brand_response: string | null
           campaign_id: string
           created_at: string | null
           creator_id: string
@@ -54,6 +56,8 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          application_message?: string | null
+          brand_response?: string | null
           campaign_id: string
           created_at?: string | null
           creator_id: string
@@ -61,6 +65,8 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          application_message?: string | null
+          brand_response?: string | null
           campaign_id?: string
           created_at?: string | null
           creator_id?: string
