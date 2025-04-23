@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationCard } from "./ApplicationCard";
 
+// Using the correct status literal types to match the Application interface
+type Status = "pending" | "approved" | "rejected";
+
 // Mock data (would be replaced by API)
 const APPLICATIONS = [
   {
@@ -12,7 +15,7 @@ const APPLICATIONS = [
     avatar: "",
     campaign: "Summer Collection Launch",
     date: "May 25, 2025",
-    status: "pending",
+    status: "pending" as Status,
     message: "I love your brand and would be excited to collaborate on the summer collection. My audience loves fashion content.",
     categories: ["Fashion", "Summer", "Instagram"],
     match: 95,
@@ -26,7 +29,7 @@ const APPLICATIONS = [
     avatar: "",
     campaign: "Fall Product Line",
     date: "May 23, 2025",
-    status: "approved",
+    status: "approved" as Status,
     message: "I've been a fan of your products for years and would love to showcase them to my followers.",
     categories: ["Fashion", "Review"],
     match: 88,
@@ -40,7 +43,7 @@ const APPLICATIONS = [
     avatar: "",
     campaign: "Summer Collection Launch",
     date: "May 20, 2025",
-    status: "rejected",
+    status: "rejected" as Status,
     message: "Your summer collection would be a perfect fit for my content calendar. I have some great ideas to showcase these pieces.",
     categories: ["Lifestyle", "Instagram", "Stories"],
     match: 75,
@@ -56,12 +59,12 @@ export function ApplicationReview() {
   // Example handlers (API integration can be added)
   const handleApprove = (id: number) => {
     setApplications(apps => apps.map(app =>
-      app.id === id ? { ...app, status: "approved", isNew: false } : app
+      app.id === id ? { ...app, status: "approved" as Status, isNew: false } : app
     ));
   };
   const handleReject = (id: number) => {
     setApplications(apps => apps.map(app =>
-      app.id === id ? { ...app, status: "rejected", isNew: false } : app
+      app.id === id ? { ...app, status: "rejected" as Status, isNew: false } : app
     ));
   };
 
