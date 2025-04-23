@@ -1,18 +1,21 @@
+
 import { useLocation, Link } from "react-router-dom";
-import { Users, Briefcase, MessageSquare, Bell } from "lucide-react";
+import { Users, Briefcase, MessageSquare, Bell, Settings } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+
 export function BrandSidebar() {
   const location = useLocation();
-  const {
-    user
-  } = useAuthStore();
+  const { user } = useAuthStore();
+  
   const isActive = (path: string) => {
     return location.pathname === path;
   };
-  return <Sidebar style={{
-    "--sidebar-width": "16rem"
-  } as React.CSSProperties} className="border-r">
+  
+  return (
+    <Sidebar style={{
+      "--sidebar-width": "16rem"
+    } as React.CSSProperties} className="border-r">
       <SidebarHeader className="border-b">
         <div className="p-4">
           <h2 className="font-space text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-gray-50">
@@ -77,6 +80,15 @@ export function BrandSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/brand-dashboard/settings")} tooltip="Settings">
+                  <Link to="/brand-dashboard/settings">
+                    <Settings />
+                    <span>Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -90,5 +102,6 @@ export function BrandSidebar() {
           </div>
         </div>
       </SidebarFooter>
-    </Sidebar>;
+    </Sidebar>
+  );
 }

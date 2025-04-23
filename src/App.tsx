@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './integrations/supabase/client';
@@ -22,6 +23,7 @@ import { CreatorDiscovery } from "./components/brand/CreatorDiscovery";
 import { CampaignManagement } from "./components/brand/CampaignManagement";
 import { ApplicationReview } from "./components/brand/ApplicationReview";
 import { BrandMessaging } from "./components/brand/BrandMessaging";
+import { BrandSettings } from "./components/brand/BrandSettings";
 import { Toaster } from "./components/ui/toaster";
 import OpportunityDiscovery from "./components/dashboard/OpportunityDiscovery";
 import PortfolioManagement from "./components/dashboard/PortfolioManagement";
@@ -104,6 +106,7 @@ function App() {
               <Route path="campaigns" element={<CampaignManagement />} />
               <Route path="applications" element={<ApplicationReview />} />
               <Route path="messages" element={<BrandMessaging />} />
+              <Route path="settings" element={<BrandSettings />} />
             </Route>
           </Route>
           <Route path="/terms" element={<TermsAndConditions />} />
