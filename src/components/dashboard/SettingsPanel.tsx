@@ -8,8 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, LogOut, UserCog, Categories, ContentFormats, PaymentPreferences, SocialLinks, TargetAudience, Save } from "lucide-react";
+import { Loader2, LogOut, UserCog, Layout, CreditCard, Instagram, Target, Link, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Enums } from "@/integrations/supabase/types";
 
 // Creator-specific categories/niche. You can extend as needed or fetch from a DB table.
 const CATEGORY_OPTIONS = [
@@ -18,7 +19,7 @@ const CATEGORY_OPTIONS = [
 
 const CONTENT_FORMATS_OPTIONS = [
   "video", "photo", "blog", "podcast", "livestream", "story"
-];
+] as const;
 
 const PAYMENT_PREFERENCES_OPTIONS = [
   "Bank Transfer", "PayPal", "Crypto", "Other"
@@ -36,7 +37,7 @@ export default function SettingsPanel() {
   const [email, setEmail] = useState("");
   // Creator profile field states
   const [categories, setCategories] = useState<string[]>([]);
-  const [contentFormats, setContentFormats] = useState<string[]>([]);
+  const [contentFormats, setContentFormats] = useState<Enums<"content_format">[]>([]);
   const [paymentPreferences, setPaymentPreferences] = useState<string[]>([]);
   // Social Links
   const [socialLinks, setSocialLinks] = useState<{ id?: string; platform: string; url: string }[]>([]);
@@ -72,7 +73,9 @@ export default function SettingsPanel() {
 
       if (creatorProfile) {
         setCategories(Array.isArray(creatorProfile.categories) ? creatorProfile.categories : []);
-        setContentFormats(Array.isArray(creatorProfile.content_formats) ? creatorProfile.content_formats : []);
+        setContentFormats(Array.isArray(creatorProfile.content_formats) 
+          ? creatorProfile.content_formats as Enums<"content_format">[]
+          : []);
         setPaymentPreferences(Array.isArray(creatorProfile.payment_preferences) ? creatorProfile.payment_preferences : []);
       }
 
@@ -194,6 +197,15 @@ export default function SettingsPanel() {
     }
   };
 
+  // Handle content format toggle (with type safety)
+  const handleContentFormatToggle = (value: Enums<"content_format">) => {
+    if (contentFormats.includes(value)) {
+      setContentFormats(contentFormats.filter((x) => x !== value));
+    } else {
+      setContentFormats([...contentFormats, value]);
+    }
+  };
+
   // Handle logout
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -265,7 +277,7 @@ export default function SettingsPanel() {
               </div>
               <div className="space-y-4">
                 <label className="flex gap-2 items-center text-sm font-medium">
-                  <Categories className="w-4 h-4" /> Categories/Niche
+                  <Target className="w-4 h-4" /> Categories/Niche
                   <span className="text-xs text-muted-foreground ml-1">(choose up to 3)</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -282,7 +294,7 @@ export default function SettingsPanel() {
                   ))}
                 </div>
                 <label className="flex gap-2 items-center text-sm font-medium mt-2">
-                  <ContentFormats className="w-4 h-4" /> Content Formats
+                  <Layout className="w-4 h-4" /> Content Formats
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {CONTENT_FORMATS_OPTIONS.map((fmt) => (
@@ -291,14 +303,14 @@ export default function SettingsPanel() {
                       type="button"
                       size="sm"
                       variant={contentFormats.includes(fmt) ? "secondary" : "outline"}
-                      onClick={() => handleArrayToggle(fmt, contentFormats, setContentFormats)}
+                      onClick={() => handleContentFormatToggle(fmt)}
                     >
                       {fmt.charAt(0).toUpperCase() + fmt.slice(1)}
                     </Button>
                   ))}
                 </div>
                 <label className="flex gap-2 items-center text-sm font-medium mt-2">
-                  <PaymentPreferences className="w-4 h-4" /> Payment Preferences
+                  <CreditCard className="w-4 h-4" /> Payment Preferences
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {PAYMENT_PREFERENCES_OPTIONS.map((pref) => (
@@ -328,7 +340,7 @@ export default function SettingsPanel() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
-            <SocialLinks className="w-5 h-5 text-primary" />
+            <Link className="w-5 h-5 text-primary" />
             <CardTitle>Social Links</CardTitle>
           </div>
           <CardDescription>
