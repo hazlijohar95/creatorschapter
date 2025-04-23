@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge"; // Added missing import
+import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { OpportunitySummary } from "./OpportunitySummary";
 import { OpportunityFilters } from "./opportunity/OpportunityFilters";
@@ -11,22 +10,19 @@ import { ApplicationsManagement } from "./opportunity/ApplicationsManagement";
 import { RecommendedOpportunities } from "./opportunity/RecommendedOpportunities";
 import { Application, FilterOptions, Opportunity, OpportunityTab } from "./types/opportunity";
 import { toast } from "sonner";
+import { OpportunityCard } from "./opportunity/OpportunityCard";
 
 export default function OpportunityDiscovery() {
-  // States for opportunities and applications
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [recommendedOpportunities, setRecommendedOpportunities] = useState<Opportunity[]>([]);
-  
-  // States for UI management
   const [activeTab, setActiveTab] = useState<OpportunityTab>("discover");
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isApplicationDialogOpen, setIsApplicationDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // States for filtering
+
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
     categories: [],
@@ -35,13 +31,10 @@ export default function OpportunityDiscovery() {
     sortBy: "relevance",
   });
 
-  // Fetch opportunities
   useEffect(() => {
     const fetchOpportunities = async () => {
       setIsLoading(true);
       try {
-        // This would normally be an API call
-        // For now, we'll use mock data
         const mockData: Opportunity[] = [
           {
             id: "1",
@@ -119,13 +112,11 @@ export default function OpportunityDiscovery() {
         
         setOpportunities(mockData);
         
-        // Set recommended opportunities (highest match scores)
         const recommended = [...mockData]
           .sort((a, b) => b.match - a.match)
           .slice(0, 3);
         setRecommendedOpportunities(recommended);
         
-        // Mock applications data
         const mockApplications: Application[] = [
           {
             id: "app1",
@@ -168,9 +159,7 @@ export default function OpportunityDiscovery() {
     fetchOpportunities();
   }, []);
 
-  // Apply filters to the opportunities
   const filteredOpportunities = opportunities.filter((opp) => {
-    // Search filter
     const searchMatch =
       filters.search === "" ||
       opp.title.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -180,12 +169,10 @@ export default function OpportunityDiscovery() {
         tag.toLowerCase().includes(filters.search.toLowerCase())
       );
 
-    // Category filter
     const categoryMatch =
       filters.categories.length === 0 ||
       filters.categories.some((cat) => opp.tags.includes(cat));
     
-    // Budget filter (extract numeric value from budget string for comparison)
     const budgetLower = opp.budget.match(/\$(\d+)/);
     const budgetUpper = opp.budget.match(/\-\$?(\d+)/);
     
@@ -199,30 +186,24 @@ export default function OpportunityDiscovery() {
     return searchMatch && categoryMatch && budgetMatch;
   });
 
-  // Sort the filtered opportunities
   const sortedOpportunities = [...filteredOpportunities].sort((a, b) => {
     if (filters.sortBy === "newest") {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     } else if (filters.sortBy === "budget") {
-      // Extract and compare budget values
       const aBudgetMatch = a.budget.match(/\$(\d+)/);
       const bBudgetMatch = b.budget.match(/\$(\d+)/);
       const aBudget = aBudgetMatch ? parseInt(aBudgetMatch[1]) : 0;
       const bBudget = bBudgetMatch ? parseInt(bBudgetMatch[1]) : 0;
       return bBudget - aBudget;
     } else {
-      // Default: sort by relevance (match score)
       return b.match - a.match;
     }
   });
 
-  // Handle applying to an opportunity
   const handleApply = async (opportunityId: string, message: string) => {
     try {
-      // This would normally be an API call
       console.log("Submitting application:", { opportunityId, message });
       
-      // Mock successful application
       const opportunity = opportunities.find((o) => o.id === opportunityId);
       if (!opportunity) throw new Error("Opportunity not found");
       
@@ -256,7 +237,6 @@ export default function OpportunityDiscovery() {
     }
   };
 
-  // Handle viewing opportunity details
   const handleViewOpportunity = (opportunityId: string) => {
     const opportunity = opportunities.find((o) => o.id === opportunityId);
     if (opportunity) {
@@ -265,14 +245,12 @@ export default function OpportunityDiscovery() {
     }
   };
 
-  // Handle viewing application details
   const handleViewApplication = (applicationId: string) => {
     const application = applications.find((a) => a.id === applicationId);
     if (application) {
       setSelectedApplication(application);
       setIsApplicationDialogOpen(true);
       
-      // Find the full opportunity details
       const opportunityId = application.opportunity.id;
       const fullOpportunity = opportunities.find((o) => o.id === opportunityId);
       if (fullOpportunity) {
@@ -281,10 +259,8 @@ export default function OpportunityDiscovery() {
     }
   };
 
-  // Handle messaging a brand
   const handleMessageBrand = (applicationId: string) => {
     toast.info("Messaging feature will be implemented in a future update.");
-    // This would normally navigate to or open a messaging interface
     console.log("Opening messages for application:", applicationId);
   };
 
@@ -315,7 +291,6 @@ export default function OpportunityDiscovery() {
         </TabsList>
         
         <TabsContent value="discover" className="space-y-8">
-          {/* Filters Section */}
           <OpportunityFilters
             filters={filters}
             onFilterChange={setFilters}
@@ -323,7 +298,6 @@ export default function OpportunityDiscovery() {
             filteredCount={filteredOpportunities.length}
           />
 
-          {/* Recommended Section - shown at the top */}
           {filters.search === "" && filters.categories.length === 0 && (
             <RecommendedOpportunities
               opportunities={recommendedOpportunities}
@@ -331,7 +305,6 @@ export default function OpportunityDiscovery() {
             />
           )}
 
-          {/* Main Opportunities Grid */}
           <div>
             <h2 className="text-lg font-semibold font-space mb-4">
               {filters.search || filters.categories.length > 0
@@ -340,7 +313,6 @@ export default function OpportunityDiscovery() {
             </h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pt-2">
               {isLoading ? (
-                // Loading state - skeleton cards
                 Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
@@ -400,7 +372,6 @@ export default function OpportunityDiscovery() {
         </TabsContent>
       </Tabs>
 
-      {/* Opportunity Detail Modal */}
       <OpportunityDetailModal
         opportunity={selectedOpportunity}
         isOpen={isDetailModalOpen}
@@ -408,7 +379,6 @@ export default function OpportunityDiscovery() {
         onApply={handleApply}
       />
 
-      {/* Application Detail Dialog */}
       <AlertDialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
         <AlertDialogContent className="max-w-xl">
           {selectedApplication && (
@@ -478,85 +448,6 @@ export default function OpportunityDiscovery() {
           )}
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
-}
-
-// The OpportunityCard component
-function OpportunityCard({
-  opportunity,
-  onViewOpportunity,
-}: {
-  opportunity: Opportunity;
-  onViewOpportunity: (id: string) => void;
-}) {
-  // Color-coding for match progress
-  let matchColor = "bg-orange-500";
-  if (opportunity.match >= 90) matchColor = "bg-green-500";
-  else if (opportunity.match >= 80) matchColor = "bg-blue-500";
-  else if (opportunity.match >= 70) matchColor = "bg-yellow-500";
-
-  return (
-    <div className="flex flex-col h-full overflow-hidden shadow-md border-[1.5px] transition-transform duration-150 hover:scale-[1.03] hover:shadow-xl animate-fade-in bg-card rounded-lg">
-      <div className="pb-3 bg-gradient-to-br from-background/70 via-background/90 to-white/0 p-4">
-        <div className="flex justify-between items-center w-full mb-1">
-          <div className="flex flex-col">
-            <h3 className="text-lg font-space font-semibold">{opportunity.title}</h3>
-            <p className="pt-0 text-[15px] text-muted-foreground">
-              {opportunity.company} &bull; <span className="font-semibold">{opportunity.budget}</span>
-            </p>
-          </div>
-          {opportunity.isNew ? (
-            <span className="text-xs px-2 py-1 rounded-full font-bold border bg-green-100 text-green-800 border-green-200">
-              New
-            </span>
-          ) : (
-            <span className="text-xs px-2 py-1 rounded-full font-bold border bg-blue-50 text-blue-700 border-blue-100">
-              Due in {new Date(opportunity.deadline).getDate() - new Date().getDate()}d
-            </span>
-          )}
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {opportunity.tags.map((tag) => (
-            <Badge
-              key={tag}
-              variant="secondary"
-              className="bg-secondary/60 border-0 text-sm px-3 py-0.5 text-muted-foreground"
-            >
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      </div>
-      <div className="p-4 flex-1">
-        <p className="text-[15px] text-gray-600 mb-3 min-h-[60px] line-clamp-3">
-          {opportunity.description}
-        </p>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Match score:</span>
-            <span className="font-semibold text-sm">{opportunity.match}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div
-              className={`h-1.5 rounded-full transition-all duration-300 ${matchColor}`}
-              style={{ width: `${opportunity.match}%` }}
-            />
-          </div>
-        </div>
-      </div>
-      <div className="mt-auto border-t bg-muted/40 p-4 flex justify-between items-center">
-        <div className="text-xs text-muted-foreground font-medium">
-          <span className="font-semibold">Deadline:</span> {opportunity.deadline}
-        </div>
-        <Button
-          size="sm"
-          className="shadow-sm font-semibold"
-          onClick={() => onViewOpportunity(opportunity.id)}
-        >
-          View Details
-        </Button>
-      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { Application } from "../types/opportunity";
+import { StatusBadge } from "./StatusBadge";
 
 interface ApplicationsManagementProps {
   applications: Application[];
@@ -26,41 +26,6 @@ export function ApplicationsManagement({
   onMessageBrand,
 }: ApplicationsManagementProps) {
   const [activeTab, setActiveTab] = useState<string>("all");
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-            Pending Review
-          </Badge>
-        );
-      case "approved":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-green-200">
-            Approved
-          </Badge>
-        );
-      case "rejected":
-        return (
-          <Badge className="bg-red-100 text-red-800 border-red-200">
-            Not Selected
-          </Badge>
-        );
-      case "in_discussion":
-        return (
-          <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-            In Discussion
-          </Badge>
-        );
-      default:
-        return (
-          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
-            {status}
-          </Badge>
-        );
-    }
-  };
 
   const filteredApplications = (tab: string) =>
     tab === "all"
@@ -135,7 +100,7 @@ function ApplicationCard({
               {application.opportunity.company}
             </CardDescription>
           </div>
-          {getStatusBadge(application.status)}
+          <StatusBadge status={application.status} />
         </div>
       </CardHeader>
       <CardContent className="pb-3">
