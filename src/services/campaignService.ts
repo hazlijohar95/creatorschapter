@@ -40,9 +40,20 @@ export async function getPublicCampaigns(params: CampaignQueryParams = {}) {
 
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching public campaigns:", error);
+      return [];
+    }
     
-    return data || [];
+    // Filter out campaigns with invalid profiles data
+    const validCampaigns = data?.filter(campaign => {
+      return campaign.profiles && 
+        typeof campaign.profiles === 'object' &&
+        'full_name' in campaign.profiles && 
+        'username' in campaign.profiles;
+    }) || [];
+    
+    return validCampaigns;
   } catch (error) {
     console.error("Error fetching public campaigns:", error);
     return [];

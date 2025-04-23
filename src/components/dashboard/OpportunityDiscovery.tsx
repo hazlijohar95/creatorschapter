@@ -22,7 +22,9 @@ function isValidCampaign(campaign: any): campaign is Campaign {
     "name" in campaign &&
     "description" in campaign &&
     "profiles" in campaign &&
-    typeof campaign.profiles === "object"
+    typeof campaign.profiles === "object" &&
+    "full_name" in campaign.profiles &&
+    "username" in campaign.profiles
   );
 }
 
