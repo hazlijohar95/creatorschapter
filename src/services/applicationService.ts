@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Update the getBrandApplications function to include the new columns
+// Fetch applications for a brand (by brandId & optional status)
 export async function getBrandApplications(brandId: string, statusFilter?: string) {
   let query = supabase
     .from("campaign_creators")
@@ -24,7 +24,7 @@ export async function getBrandApplications(brandId: string, statusFilter?: strin
       )
     `)
     .eq("campaigns.brand_id", brandId);
-  
+
   if (statusFilter && statusFilter !== "all") {
     query = query.eq("status", statusFilter);
   }
@@ -34,6 +34,7 @@ export async function getBrandApplications(brandId: string, statusFilter?: strin
   return data;
 }
 
+// Fetch applications for a creator
 export async function getCreatorApplications(creatorId: string, statusFilter?: string) {
   let query = supabase
     .from("campaign_creators")
@@ -57,7 +58,7 @@ export async function getCreatorApplications(creatorId: string, statusFilter?: s
       )
     `)
     .eq("creator_id", creatorId);
-  
+
   if (statusFilter && statusFilter !== "all") {
     query = query.eq("status", statusFilter);
   }
@@ -67,34 +68,7 @@ export async function getCreatorApplications(creatorId: string, statusFilter?: s
   return data;
 }
 
-// Add missing functions for OpportunityDiscovery component
-export async function getPublicCampaigns({ search = '' }: { search?: string } = {}) {
-  let query = supabase
-    .from("campaigns")
-    .select(`
-      id,
-      name, 
-      description,
-      budget,
-      start_date,
-      end_date,
-      status,
-      profiles!inner(
-        full_name,
-        username
-      )
-    `)
-    .eq("status", "active");
-  
-  if (search) {
-    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return data;
-}
-
+// Apply to a campaign
 export async function applyToCampaign(campaignId: string, creatorId: string, applicationMessage: string) {
   const { data, error } = await supabase
     .from("campaign_creators")
@@ -105,19 +79,19 @@ export async function applyToCampaign(campaignId: string, creatorId: string, app
       status: 'pending'
     })
     .select();
-  
   if (error) throw error;
   return data;
 }
 
+// Check if a creator has already applied to a campaign
 export async function hasAppliedToCampaign(campaignId: string, creatorId: string) {
   const { data, error } = await supabase
     .from("campaign_creators")
     .select("*")
     .eq("campaign_id", campaignId)
     .eq("creator_id", creatorId)
-    .single();
-  
+    .maybeSingle();
+
   if (error) {
     // If no record found, return that the creator hasn't applied
     if (error.code === 'PGRST116') {
@@ -125,10 +99,13 @@ export async function hasAppliedToCampaign(campaignId: string, creatorId: string
     }
     throw error;
   }
-  
+  if (!data) {
+    return { hasApplied: false, status: null };
+  }
   return { hasApplied: true, status: data.status };
 }
 
+// Update application status (brand-side)
 export async function updateApplicationStatus(applicationId: string, status: string, brandResponse?: string) {
   const { data, error } = await supabase
     .from("campaign_creators")
@@ -138,7 +115,6 @@ export async function updateApplicationStatus(applicationId: string, status: str
     })
     .eq("id", applicationId)
     .select();
-  
   if (error) throw error;
   return data;
 }

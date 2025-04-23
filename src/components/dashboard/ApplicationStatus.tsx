@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AlertCircle, Check, Clock, X, MessageSquare, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { getCreatorApplications } from "@/services/campaignService";
+import { getCreatorApplications } from "@/services/applicationService";
 import { useAuthStore } from "@/lib/auth";
 
 interface ApplicationProfile {

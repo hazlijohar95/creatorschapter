@@ -7,9 +7,11 @@ import { useAuthStore } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   getPublicCampaigns, 
+} from "@/services/campaignService";
+import { 
   applyToCampaign, 
   hasAppliedToCampaign 
-} from "@/services/campaignService";
+} from "@/services/applicationService";
 import { getCreatorProfile } from "@/services/profileService";
 import { CampaignCard } from "./OpportunityDiscovery/CampaignCard";
 import { ApplicationDialog } from "./OpportunityDiscovery/ApplicationDialog";
