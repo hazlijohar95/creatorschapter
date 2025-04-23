@@ -47,6 +47,8 @@ export type Database = {
       }
       campaign_creators: {
         Row: {
+          application_message: string | null
+          brand_response: string | null
           campaign_id: string
           created_at: string | null
           creator_id: string
@@ -54,6 +56,8 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          application_message?: string | null
+          brand_response?: string | null
           campaign_id: string
           created_at?: string | null
           creator_id: string
@@ -61,6 +65,8 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          application_message?: string | null
+          brand_response?: string | null
           campaign_id?: string
           created_at?: string | null
           creator_id?: string
@@ -135,6 +141,7 @@ export type Database = {
         Row: {
           brand_id: string
           budget: number | null
+          categories: string[] | null
           created_at: string | null
           description: string | null
           end_date: string | null
@@ -147,6 +154,7 @@ export type Database = {
         Insert: {
           brand_id: string
           budget?: number | null
+          categories?: string[] | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
@@ -159,6 +167,7 @@ export type Database = {
         Update: {
           brand_id?: string
           budget?: number | null
+          categories?: string[] | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
@@ -373,6 +382,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           created_at: string | null
           email: string | null
@@ -385,6 +395,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
@@ -397,6 +408,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           email?: string | null
