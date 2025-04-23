@@ -68,7 +68,8 @@ const APPLICATIONS: Application[] = [
 ];
 
 export function ApplicationReview() {
-  const [activeTab, setActiveTab] = useState<Status | "all">("all");
+  // Fixed: Use string as the base type to be compatible with Tabs component
+  const [activeTab, setActiveTab] = useState<string>("all");
   const [applications, setApplications] = useState<Application[]>(APPLICATIONS);
 
   // Update application status with correct type
@@ -83,8 +84,9 @@ export function ApplicationReview() {
     ));
   };
 
-  const tabFiltered = (tab: Status | "all") =>
-    tab === "all" ? applications : applications.filter(a => a.status === tab);
+  // Fixed: Update tabFiltered function to work with string
+  const tabFiltered = (tab: string) =>
+    tab === "all" ? applications : applications.filter(a => a.status === tab as Status);
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto animate-fade-in">
@@ -99,8 +101,8 @@ export function ApplicationReview() {
         {["all", "pending", "approved", "rejected"].map(tab => (
           <TabsContent key={tab} value={tab} className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tabFiltered(tab as Status | "all").length > 0 ? (
-                tabFiltered(tab as Status | "all").map(application => (
+              {tabFiltered(tab).length > 0 ? (
+                tabFiltered(tab).map(application => (
                   <ApplicationCard
                     key={application.id}
                     application={application}
