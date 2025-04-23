@@ -1,13 +1,9 @@
 
 import { useState } from "react";
-import { Check, X, MessageSquare } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { ApplicationCard } from "./ApplicationCard";
 
-// Mock data
+// Mock data (would be replaced by API)
 const APPLICATIONS = [
   {
     id: 1,
@@ -55,10 +51,26 @@ const APPLICATIONS = [
 
 export function ApplicationReview() {
   const [activeTab, setActiveTab] = useState("all");
+  const [applications, setApplications] = useState(APPLICATIONS);
+
+  // Example handlers (API integration can be added)
+  const handleApprove = (id: number) => {
+    setApplications(apps => apps.map(app =>
+      app.id === id ? { ...app, status: "approved", isNew: false } : app
+    ));
+  };
+  const handleReject = (id: number) => {
+    setApplications(apps => apps.map(app =>
+      app.id === id ? { ...app, status: "rejected", isNew: false } : app
+    ));
+  };
+
+  const tabFiltered = (tab: string) =>
+    tab === "all" ? applications : applications.filter(a => a.status === tab);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Creator Applications</h1>
+    <div className="p-6 space-y-6 max-w-7xl mx-auto animate-fade-in">
+      <h1 className="text-2xl font-bold font-space">Creator Applications</h1>
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
@@ -67,153 +79,29 @@ export function ApplicationReview() {
           <TabsTrigger value="rejected">Rejected</TabsTrigger>
         </TabsList>
 
-        {/* Show tabs with visually consistent cards */}
-        <TabsContent value="all" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {APPLICATIONS.map(application => (
-              <ApplicationCard key={application.id} application={application} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="pending" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {APPLICATIONS.filter(a => a.status === 'pending').map(application => (
-              <ApplicationCard key={application.id} application={application} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="approved" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {APPLICATIONS.filter(a => a.status === 'approved').map(application => (
-              <ApplicationCard key={application.id} application={application} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="rejected" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {APPLICATIONS.filter(a => a.status === 'rejected').map(application => (
-              <ApplicationCard key={application.id} application={application} />
-            ))}
-          </div>
-        </TabsContent>
+        {["all", "pending", "approved", "rejected"].map(tab => (
+          <TabsContent key={tab} value={tab} className="mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tabFiltered(tab).length > 0 ? (
+                tabFiltered(tab).map(application => (
+                  <ApplicationCard
+                    key={application.id}
+                    application={application}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full flex flex-col items-center py-16 animate-fade-in">
+                  <span className="text-5xl mb-2">🕵️‍♂️</span>
+                  <h2 className="text-lg font-semibold mb-1">No applications found</h2>
+                  <p className="text-muted-foreground mb-2">Try another tab or check back later.</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
-  );
-}
-
-interface ApplicationCardProps {
-  application: {
-    id: number;
-    creatorName: string;
-    creatorHandle: string;
-    avatar: string;
-    campaign: string;
-    date: string;
-    status: string;
-    message: string;
-    categories: string[];
-    match: number;
-    isNew: boolean;
-    budget: string;
-  };
-}
-
-function ApplicationCard({ application }: ApplicationCardProps) {
-  // We align status badge styles with OpportunityDiscovery (e.g. colored backgrounds).
-  const statusColors = {
-    pending: { bg: "bg-yellow-100", text: "text-yellow-800" },
-    approved: { bg: "bg-green-100", text: "text-green-800" },
-    rejected: { bg: "bg-red-100", text: "text-red-800" }
-  };
-
-  return (
-    <Card className="overflow-hidden flex flex-col h-full shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={application.avatar} />
-              <AvatarFallback>{application.creatorName.substring(0, 2)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-lg leading-tight">{application.creatorName}</CardTitle>
-              <CardDescription className="pt-0">{application.creatorHandle}</CardDescription>
-            </div>
-          </div>
-          <div className="flex flex-col items-end space-y-2">
-            {application.isNew && (
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mb-1">New</span>
-            )}
-            <span
-              className={`${statusColors[application.status as keyof typeof statusColors]?.bg} ${statusColors[application.status as keyof typeof statusColors]?.text} text-xs px-2 py-1 rounded-full font-medium`}
-            >
-              {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-            </span>
-          </div>
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {application.categories.map(tag => (
-            <span key={tag} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-              {tag}
-            </span>
-          ))}
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex-1 flex flex-col gap-1">
-        <p className="text-sm text-gray-600 line-clamp-3">{application.message}</p>
-        <div className="mt-4 space-y-1">
-          <div className="flex justify-between text-sm">
-            <span>Match score</span>
-            <span className="font-medium">{application.match}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className={`h-1.5 rounded-full ${
-                application.match >= 90 ? "bg-green-500" : 
-                application.match >= 80 ? "bg-blue-500" : 
-                application.match >= 70 ? "bg-yellow-500" : "bg-orange-500"
-              }`}
-              style={{ width: `${application.match}%` }}
-            />
-          </div>
-        </div>
-      </CardContent>
-
-      <CardFooter className="border-t bg-gray-50 pt-3 flex flex-row gap-2 justify-between">
-        <div className="flex gap-2">
-          {application.status === "pending" && (
-            <>
-              <Button size="sm" variant="outline" className="text-green-600 border-green-200">
-                <Check className="mr-1 h-4 w-4" />
-                Approve
-              </Button>
-              <Button size="sm" variant="outline" className="text-red-600 border-red-200">
-                <X className="mr-1 h-4 w-4" />
-                Reject
-              </Button>
-            </>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline">
-            <MessageSquare className="mr-1 h-4 w-4" />
-            Message
-          </Button>
-          <Button size="sm">View Profile</Button>
-        </div>
-      </CardFooter>
-      <div className="px-6 pb-3 text-xs text-muted-foreground flex justify-between">
-        <div>
-          <span className="font-medium">{application.campaign}</span>
-        </div>
-        <div>
-          <span>{application.budget}</span> • <span>{application.date}</span>
-        </div>
-      </div>
-    </Card>
   );
 }
