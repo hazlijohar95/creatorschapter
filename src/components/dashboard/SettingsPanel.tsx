@@ -1,16 +1,25 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, LogOut, UserCog, Layout, CreditCard, Instagram, Target, Link, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Enums } from "@/integrations/supabase/types";
+
+// Import centralized service functions
+import {
+  getProfile,
+  updateProfile,
+  getCreatorProfile,
+  updateCreatorProfile,
+  getSocialLinks,
+  saveSocialLink,
+  deleteSocialLink,
+} from "@/services/profileService";
 
 // Creator-specific categories/niche. You can extend as needed or fetch from a DB table.
 const CATEGORY_OPTIONS = [
@@ -30,61 +39,40 @@ export default function SettingsPanel() {
   const { user } = useAuthStore();
   const { toast } = useToast();
 
-  // Profile (public) field states
+  // Profile states
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
-  // Creator profile field states
+  // Creator profile state
   const [categories, setCategories] = useState<string[]>([]);
   const [contentFormats, setContentFormats] = useState<Enums<"content_format">[]>([]);
   const [paymentPreferences, setPaymentPreferences] = useState<string[]>([]);
   // Social Links
   const [socialLinks, setSocialLinks] = useState<{ id?: string; platform: string; url: string }[]>([]);
-  // Loading state and step
+  // Loading state
   const [loading, setLoading] = useState(false);
 
-  // Fetch current profile & creator profile data
+  // Centralized query for all profile data
   const { isLoading, refetch } = useQuery({
     queryKey: ['profile-settings', user?.id],
     queryFn: async () => {
       if (!user) return null;
+      // All profile data with centralized service
+      const profile = await getProfile(user.id);
+      setUsername(profile.username || "");
+      setFullName(profile.full_name || "");
+      setBio(profile.bio || "");
+      setEmail(profile.email || "");
 
-      // profiles table
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("username, full_name, bio, email")
-        .eq("id", user.id)
-        .single();
+      const creatorProfile = await getCreatorProfile(user.id);
+      setCategories(Array.isArray(creatorProfile.categories) ? creatorProfile.categories : []);
+      setContentFormats(Array.isArray(creatorProfile.content_formats)
+        ? creatorProfile.content_formats as Enums<"content_format">[]
+        : []);
+      setPaymentPreferences(Array.isArray(creatorProfile.payment_preferences) ? creatorProfile.payment_preferences : []);
 
-      if (profile) {
-        setUsername(profile.username || "");
-        setFullName(profile.full_name || "");
-        setBio(profile.bio || "");
-        setEmail(profile.email || "");
-      }
-
-      // creator_profiles table
-      const { data: creatorProfile } = await supabase
-        .from("creator_profiles")
-        .select("categories, content_formats, payment_preferences")
-        .eq("id", user.id)
-        .single();
-
-      if (creatorProfile) {
-        setCategories(Array.isArray(creatorProfile.categories) ? creatorProfile.categories : []);
-        setContentFormats(Array.isArray(creatorProfile.content_formats) 
-          ? creatorProfile.content_formats as Enums<"content_format">[]
-          : []);
-        setPaymentPreferences(Array.isArray(creatorProfile.payment_preferences) ? creatorProfile.payment_preferences : []);
-      }
-
-      // social_links table
-      const { data: socialLinkRows } = await supabase
-        .from("social_links")
-        .select("id, platform, url")
-        .eq("profile_id", user.id);
-
+      const socialLinkRows = await getSocialLinks(user.id);
       setSocialLinks(Array.isArray(socialLinkRows) ? socialLinkRows : []);
 
       return { profile, creatorProfile, socialLinkRows };
@@ -94,40 +82,28 @@ export default function SettingsPanel() {
 
   // ----------- Handlers -----------
 
-  // Save basic & creator profile to DB
+  // Save profile using services
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-
     setLoading(true);
-
-    // Update public profile
-    const { error: profileErr } = await supabase
-      .from("profiles")
-      .update({
-        username, full_name: fullName, bio, email
-      })
-      .eq("id", user.id);
-
-    // Update creator profile
-    const { error: creatorErr } = await supabase
-      .from("creator_profiles")
-      .update({
-        categories, content_formats: contentFormats, payment_preferences: paymentPreferences
-      })
-      .eq("id", user.id);
-
-    setLoading(false);
-
-    if (!profileErr && !creatorErr) {
+    try {
+      await updateProfile(user.id, { username, full_name: fullName, bio, email });
+      await updateCreatorProfile(user.id, {
+        categories,
+        content_formats: contentFormats,
+        payment_preferences: paymentPreferences,
+      });
       toast({ title: "Profile updated successfully" });
       refetch();
-    } else {
+    } catch (err: any) {
       toast({
         title: "Error updating profile",
-        description: profileErr?.message || creatorErr?.message,
+        description: err.message,
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -139,30 +115,12 @@ export default function SettingsPanel() {
       toast({ title: "Both platform and URL are required.", variant: "destructive" });
       return;
     }
-    if (link.id) {
-      // Update existing
-      const { error } = await supabase
-        .from("social_links")
-        .update({ platform: link.platform, url: link.url })
-        .eq("id", link.id);
-
-      if (error) {
-        toast({ title: "Failed to update link", description: error.message, variant: "destructive" });
-      } else {
-        toast({ title: "Social link updated" });
-        refetch();
-      }
-    } else {
-      // Create new
-      const { error } = await supabase
-        .from("social_links")
-        .insert([{ profile_id: user.id, platform: link.platform, url: link.url }]);
-      if (error) {
-        toast({ title: "Failed to add link", description: error.message, variant: "destructive" });
-      } else {
-        toast({ title: "Social link added" });
-        refetch();
-      }
+    try {
+      await saveSocialLink(user.id, link);
+      toast({ title: link.id ? "Social link updated" : "Social link added" });
+      refetch();
+    } catch (error: any) {
+      toast({ title: "Failed to save link", description: error.message, variant: "destructive" });
     }
   };
 
@@ -173,14 +131,14 @@ export default function SettingsPanel() {
       setSocialLinks((prev) => prev.filter((_, i) => i !== idx));
       return;
     }
-    const { error } = await supabase.from("social_links").delete().eq("id", link.id);
-    if (error) {
-      toast({ title: "Failed to delete link", description: error.message, variant: "destructive" });
-    } else {
+    try {
+      await deleteSocialLink(link.id);
       setSocialLinks((prev) => prev.filter((_, i) => i !== idx));
       toast({ title: "Social link removed" });
+      refetch();
+    } catch (error: any) {
+      toast({ title: "Failed to delete link", description: error.message, variant: "destructive" });
     }
-    refetch();
   };
 
   // Manage checkbox lists (category, format, payment)
