@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -6,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Conversation {
-  id: number;
+  id: string;
   creatorName: string;
   creatorHandle: string;
   avatar: string;
@@ -17,8 +16,8 @@ interface Conversation {
 
 interface ConversationListProps {
   conversations: Conversation[];
-  activeConversation: number;
-  onConversationSelect: (id: number) => void;
+  activeConversation: string;
+  onConversationSelect: (id: string) => void;
 }
 
 export function ConversationList({
@@ -28,7 +27,6 @@ export function ConversationList({
 }: ConversationListProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Optionally filter conversations by creatorName or handle
   const filtered = searchTerm
     ? conversations.filter(
         (c) =>
