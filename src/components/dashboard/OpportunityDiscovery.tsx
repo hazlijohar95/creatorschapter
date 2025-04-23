@@ -1,13 +1,13 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, BookOpen, Check } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPublicCampaigns } from "@/services/campaignService";
-import { applyToCampaign, hasAppliedToCampaign } from "@/services/applicationService";
+import { applyToCampaign } from "@/services/applicationService";
 import { getCreatorProfile } from "@/services/profileService";
 import { CampaignCard } from "./OpportunityDiscovery/CampaignCard";
 import { ApplicationDialog } from "./OpportunityDiscovery/ApplicationDialog";
@@ -16,23 +16,13 @@ import { Campaign } from "./OpportunityDiscovery/types";
 // Type guard to ensure a campaign is properly structured
 function isValidCampaign(campaign: any): campaign is Campaign {
   return (
-    campaign && 
-    typeof campaign === 'object' && 
-    'id' in campaign &&
-    'name' in campaign &&
-    'description' in campaign &&
-    'profiles' in campaign &&
-    typeof campaign.profiles === 'object'
-  );
-}
-
-// Type guard for error objects
-function isQueryError(data: any): boolean {
-  return (
-    data && 
-    typeof data === 'object' && 
-    'error' in data &&
-    data.error === true
+    campaign &&
+    typeof campaign === "object" &&
+    "id" in campaign &&
+    "name" in campaign &&
+    "description" in campaign &&
+    "profiles" in campaign &&
+    typeof campaign.profiles === "object"
   );
 }
 
@@ -50,23 +40,22 @@ export default function OpportunityDiscovery() {
     queryFn: () => getCreatorProfile(user!.id),
     enabled: !!user,
   });
-  
+
   // Fetch available campaigns
   const { data: campaignsResponse = [], isLoading: loadingCampaigns } = useQuery({
     queryKey: ["public-campaigns", searchQuery],
     queryFn: () => getPublicCampaigns({ search: searchQuery }),
     enabled: !!user,
   });
-  
-  // Filter out invalid campaign data or error responses
-  const campaigns = Array.isArray(campaignsResponse) 
-    ? campaignsResponse.filter(item => !isQueryError(item) && isValidCampaign(item))
+
+  // Filter out invalid campaign data
+  const campaigns: Campaign[] = Array.isArray(campaignsResponse)
+    ? campaignsResponse.filter(isValidCampaign)
     : [];
-  
+
   // Apply to a campaign mutation
   const applyMutation = useMutation({
-    mutationFn: (campaignId: string) => 
-      applyToCampaign(campaignId, user!.id, applicationMessage),
+    mutationFn: (campaignId: string) => applyToCampaign(campaignId, user!.id, applicationMessage),
     onSuccess: () => {
       toast({
         title: "Application submitted",
@@ -84,36 +73,36 @@ export default function OpportunityDiscovery() {
         variant: "destructive",
       });
       console.error("Application error:", error);
-    }
+    },
   });
-  
+
   // Calculate match score based on creator profile and campaign
   const calculateMatchScore = (campaign: Campaign) => {
     if (!creatorProfile) return 70; // Default score
-    
+
     let score = 70; // Base score
-    
+
     // Match based on categories if available
     if (campaign.categories && creatorProfile.categories) {
-      const matchingCategories = campaign.categories.filter(cat => 
+      const matchingCategories = campaign.categories.filter((cat) =>
         creatorProfile.categories?.includes(cat)
       );
-      
+
       if (matchingCategories.length > 0) {
         score += matchingCategories.length * 5;
       }
     }
-    
+
     // Cap at 100
     return Math.min(score, 100);
   };
-  
+
   // Apply to campaign
   const handleApply = (campaign: Campaign) => {
     setSelectedCampaign(campaign);
     setDialogOpen(true);
   };
-  
+
   // Submit application
   const submitApplication = () => {
     if (!selectedCampaign || !applicationMessage.trim()) return;
@@ -121,8 +110,9 @@ export default function OpportunityDiscovery() {
   };
 
   const filteredCampaigns = campaigns.filter(
-    campaign => campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           campaign.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    (campaign) =>
+      campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      campaign.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -143,7 +133,7 @@ export default function OpportunityDiscovery() {
           Filters
         </Button>
       </div>
-      
+
       {loadingCampaigns ? (
         <div className="flex justify-center items-center p-12">
           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -155,9 +145,9 @@ export default function OpportunityDiscovery() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCampaigns.map(campaign => (
-            <CampaignCard 
-              key={campaign.id} 
+          {filteredCampaigns.map((campaign) => (
+            <CampaignCard
+              key={campaign.id}
               campaign={campaign}
               matchScore={calculateMatchScore(campaign)}
               onViewDetails={() => setSelectedCampaign(campaign)}

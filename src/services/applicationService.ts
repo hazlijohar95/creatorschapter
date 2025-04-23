@@ -66,26 +66,31 @@ export async function getCreatorApplications(creatorId: string, statusFilter?: s
   try {
     const { data, error } = await query.order("created_at", { ascending: false });
     if (error) throw error;
-    
+
     // Ensure that profiles is properly structured for each application
     return data.map(application => {
       // Make sure profiles has valid data
-      if (application.profiles && typeof application.profiles === 'object' && 'id' in application.profiles) {
+      if (
+        application.profiles &&
+        typeof application.profiles === "object" &&
+        "id" in application.profiles &&
+        application.profiles !== null
+      ) {
         return application;
       } else {
         // Create a default profiles object if it's missing or invalid
         return {
           ...application,
           profiles: {
-            id: 'unknown',
-            full_name: 'Unknown Brand',
-            username: 'unknown'
-          }
+            id: "unknown",
+            full_name: "Unknown Brand",
+            username: "unknown",
+          },
         };
       }
     });
   } catch (error) {
-    console.error('Error fetching creator applications:', error);
+    console.error("Error fetching creator applications:", error);
     throw error;
   }
 }

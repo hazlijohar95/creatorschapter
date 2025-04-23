@@ -141,6 +141,7 @@ export type Database = {
         Row: {
           brand_id: string
           budget: number | null
+          categories: string[] | null
           created_at: string | null
           description: string | null
           end_date: string | null
@@ -153,6 +154,7 @@ export type Database = {
         Insert: {
           brand_id: string
           budget?: number | null
+          categories?: string[] | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
@@ -165,6 +167,7 @@ export type Database = {
         Update: {
           brand_id?: string
           budget?: number | null
+          categories?: string[] | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
