@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,7 @@ import { BrandMetrics } from "@/types/brandDashboard";
 export function BrandOverview() {
   const { user } = useAuthStore();
 
-  const { data: metrics, isLoading, error } = useQuery({
+  const { data: metrics, isLoading, error } = useQuery<BrandMetrics>({
     queryKey: ['brand-metrics', user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -17,23 +18,35 @@ export function BrandOverview() {
         throw new Error("User not available");
       }
 
-      const { data: campaigns, error: campaignsError } = await supabase
+      // Type annotations to help TypeScript understand the structure
+      type CampaignData = { status: string }[];
+      type ApplicationData = { status: string }[];
+
+      // First query: campaigns
+      const campaignsResult = await supabase
         .from('campaigns')
         .select('status');
 
-      if (campaignsError) {
-        throw campaignsError;
+      if (campaignsResult.error) {
+        throw campaignsResult.error;
       }
 
-      const { data: applications, error: applicationsError } = await supabase
+      const campaigns = campaignsResult.data as CampaignData;
+
+      // Second query with explicit userId type
+      const userId = user.id as string;
+      const applicationsResult = await supabase
         .from('campaign_creators')
         .select('status')
-        .eq('brand_id', user.id);
+        .eq('brand_id', userId);
 
-      if (applicationsError) {
-        throw applicationsError;
+      if (applicationsResult.error) {
+        throw applicationsResult.error;
       }
 
+      const applications = applicationsResult.data as ApplicationData;
+
+      // Calculate metrics with null checks
       return {
         activeCampaigns: campaigns?.filter(c => c.status === 'active').length ?? 0,
         totalApplications: applications?.length ?? 0,
