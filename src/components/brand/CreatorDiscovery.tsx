@@ -1,25 +1,14 @@
-import { useState } from "react";
-import { Search, Filter, ArrowUp } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useCreators, DiscoverableCreator } from "./hooks/useCreators";
-import { useCreatorFilters } from "./hooks/useCreatorFilters";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious
-} from "@/components/ui/pagination";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
-const CATEGORY_OPTIONS = ["Fashion", "Beauty", "Travel", "Food", "Fitness", "Tech", "Lifestyle", "Gaming", "Music", "Art"];
-const FOLLOWER_RANGES = ["Any", "10K+", "50K+", "100K+", "500K+", "1M+"];
+import { Card, CardContent } from "@/components/ui/card";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useCreators } from "./hooks/useCreators";
+import { useCreatorFilters } from "./hooks/useCreatorFilters";
+import { CreatorCard } from "./discovery/CreatorCard";
+import { CreatorFilters } from "./discovery/CreatorFilters";
+import { CreatorSearchBar } from "./discovery/CreatorSearchBar";
+import { CreatorProfileDialog } from "./discovery/CreatorProfileDialog";
+import { useState } from "react";
+import { DiscoverableCreator } from "./hooks/useCreators";
 
 export function CreatorDiscovery() {
   const {
@@ -39,95 +28,36 @@ export function CreatorDiscovery() {
   });
 
   const [selectedCreator, setSelectedCreator] = useState<DiscoverableCreator | null>(null);
+
+  const selectedFollowerRange = (() => {
+    if (filters.minFollowers === 0) return "Any";
+    if (filters.minFollowers === 10000) return "10K+";
+    if (filters.minFollowers === 50000) return "50K+";
+    if (filters.minFollowers === 100000) return "100K+";
+    if (filters.minFollowers === 500000) return "500K+";
+    if (filters.minFollowers === 1000000) return "1M+";
+    return "Any";
+  })();
   
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">Discover Creators</h1>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              type="search" 
-              placeholder="Search creators..." 
-              className="pl-8 w-[200px] sm:w-[300px]"
-              value={filters.searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
+        <CreatorSearchBar 
+          searchQuery={filters.searchQuery}
+          onSearchChange={setSearchQuery}
+        />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-1">
-          <Card>
-            <CardContent className="p-4 space-y-4">
-              <h3 className="font-medium">Filter Creators</h3>
-              <Separator />
-              
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Categories</h4>
-                <div className="flex flex-wrap gap-2">
-                  {CATEGORY_OPTIONS.map((category) => (
-                    <Badge 
-                      key={category} 
-                      variant={filters.categories.includes(category) ? "default" : "outline"}
-                      className="cursor-pointer"
-                      onClick={() => toggleCategory(category)}
-                    >
-                      {category}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Follower Count</h4>
-                <div className="flex flex-wrap gap-2">
-                  {FOLLOWER_RANGES.map((range) => (
-                    <Badge 
-                      key={range} 
-                      variant={
-                        (range === "Any" && filters.minFollowers === 0) ||
-                        (range === "10K+" && filters.minFollowers === 10000) ||
-                        (range === "50K+" && filters.minFollowers === 50000) ||
-                        (range === "100K+" && filters.minFollowers === 100000) ||
-                        (range === "500K+" && filters.minFollowers === 500000) ||
-                        (range === "1M+" && filters.minFollowers === 1000000)
-                          ? "default" 
-                          : "outline"
-                      }
-                      className="cursor-pointer"
-                      onClick={() => setFollowerRange(range)}
-                    >
-                      {range}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Location</h4>
-                <Input 
-                  placeholder="e.g. New York, London..." 
-                  value={filters.location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-              </div>
-              
-              <Button 
-                className="w-full"
-                onClick={() => {
-                  setPage(1);
-                }}
-              >
-                Apply Filters
-              </Button>
-            </CardContent>
-          </Card>
+          <CreatorFilters
+            filters={filters}
+            toggleCategory={toggleCategory}
+            setLocation={setLocation}
+            setFollowerRange={setFollowerRange}
+            selectedFollowerRange={selectedFollowerRange}
+          />
         </div>
         
         <div className="md:col-span-2 space-y-4">
@@ -155,7 +85,7 @@ export function CreatorDiscovery() {
               {creators.map((creator) => (
                 <CreatorCard 
                   key={creator.id} 
-                  creator={creator} 
+                  creator={creator}
                   onViewProfile={() => setSelectedCreator(creator)}
                 />
               ))}
@@ -196,102 +126,11 @@ export function CreatorDiscovery() {
           )}
         </div>
       </div>
-      
-      <Dialog open={!!selectedCreator} onOpenChange={() => setSelectedCreator(null)}>
-        <DialogContent className="max-w-lg">
-          {selectedCreator && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{selectedCreator.name}</DialogTitle>
-                <DialogDescription>
-                  {selectedCreator.handle}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex items-center gap-4 mt-2">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={selectedCreator.avatar} alt={selectedCreator.name} />
-                  <AvatarFallback>{selectedCreator.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="text-muted-foreground">{selectedCreator.location}</div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedCreator.categories.map(category => (
-                      <Badge key={category} variant="secondary">{category}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div>
-                  <div className="font-medium text-sm mb-1">Followers</div>
-                  <div className="text-lg">{selectedCreator.followers}</div>
-                </div>
-                <div>
-                  <div className="font-medium text-sm mb-1">Engagement</div>
-                  <div className="text-lg">{selectedCreator.engagementRate}</div>
-                </div>
-              </div>
-              {selectedCreator.socialLinks && selectedCreator.socialLinks.length > 0 && (
-                <div className="mt-4">
-                  <div className="font-medium mb-1 text-sm">Social Links</div>
-                  <ul className="list-disc list-inside space-y-1">
-                    {selectedCreator.socialLinks.map(link => (
-                      <li key={link.platform}>
-                        <a className="text-primary underline" href={link.url} target="_blank" rel="noopener noreferrer">{link.platform}</a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setSelectedCreator(null)}>Close</Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+
+      <CreatorProfileDialog
+        creator={selectedCreator}
+        onClose={() => setSelectedCreator(null)}
+      />
     </div>
-  );
-}
-
-interface CreatorCardProps {
-  creator: DiscoverableCreator;
-  onViewProfile: () => void;
-}
-
-function CreatorCard({ creator, onViewProfile }: CreatorCardProps) {
-  return (
-    <Card key={creator.id} className="overflow-hidden">
-      <CardContent className="p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={creator.avatar} alt={creator.name} />
-            <AvatarFallback>{creator.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-lg">{creator.name}</h3>
-                <p className="text-muted-foreground">{creator.handle}</p>
-              </div>
-              <Button size="sm" className="mt-2 sm:mt-0" onClick={onViewProfile}>View Profile</Button>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {creator.categories.slice(0, 3).map((category) => (
-                <Badge key={category} variant="secondary">{category}</Badge>
-              ))}
-              {creator.categories.length > 3 && (
-                <Badge variant="outline">+{creator.categories.length - 3}</Badge>
-              )}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm">
-              <span>{creator.followers} followers</span>
-              <span>{creator.engagementRate} engagement</span>
-              <span>{creator.location}</span>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
