@@ -32,7 +32,7 @@ export async function getBrandApplications(brandId: string) {
 
   // Transform data to match Application interface
   return (data || []).map((item): Application => ({
-    id: item.id, // Ensure id is correctly typed as per Application interface
+    id: item.id,
     creatorName: item.profiles.full_name || "Anonymous",
     creatorHandle: item.profiles.username || "",
     avatar: item.profiles.avatar_url || "",
@@ -41,9 +41,9 @@ export async function getBrandApplications(brandId: string) {
     status: item.status as Status,
     message: item.application_message || "",
     categories: [],
-    match: 0, // This is now correctly a number value
+    match: 0,
     isNew: false,
-    budget: item.campaigns.budget?.toString() || "Not specified",
+    budget: item.campaigns.budget ? Number(item.campaigns.budget).toString() : "Not specified", // Convert to number first
     audienceSize: "",
     engagement: "",
     notes: []
