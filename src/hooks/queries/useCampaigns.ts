@@ -221,12 +221,14 @@ export function useCampaignDetails(campaignId: string | undefined) {
       return data;
     },
     enabled: !!campaignId,
-    onError: (error) => {
-      toast({
-        title: "Failed to Load Campaign",
-        description: error.message,
-        variant: "destructive"
-      });
+    meta: {
+      onError: (error: Error) => {
+        toast({
+          title: "Failed to Load Campaign",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
     }
   });
 }
