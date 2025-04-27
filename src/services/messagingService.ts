@@ -45,31 +45,54 @@ export async function markMessagesAsRead(conversationId: string, userId: string)
 // Get messages for a conversation
 export async function getConversationMessages(conversationId: string) {
   try {
-    const { data, error } = await supabase
+    // First get all messages for the conversation
+    const { data: messagesData, error: messagesError } = await supabase
       .from("messages")
       .select(`
         id,
         content,
         sender_id,
         created_at,
-        read_at,
-        profiles:sender_id(
-          full_name,
-          avatar_url
-        )
+        read_at
       `)
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
 
-    if (error) throw error;
+    if (messagesError) throw messagesError;
     
-    // Process the data to ensure it matches the expected format
-    return data.map(message => ({
+    if (!messagesData || messagesData.length === 0) {
+      return [];
+    }
+    
+    // Then get all the profiles for the message senders in a separate query
+    // to avoid the foreign key relation error
+    const senderIds = [...new Set(messagesData.map(message => message.sender_id))];
+    
+    const { data: profilesData, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .in("id", senderIds);
+      
+    if (profilesError) throw profilesError;
+    
+    // Create a lookup map for profiles
+    const profilesMap = (profilesData || []).reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {} as Record<string, { id: string, full_name: string, avatar_url: string }>);
+    
+    // Combine the messages with their sender profiles
+    return messagesData.map(message => ({
       ...message,
-      profiles: {
-        full_name: message.profiles?.full_name || 'Unknown User',
-        avatar_url: message.profiles?.avatar_url || ''
-      }
+      profiles: profilesMap[message.sender_id] 
+        ? {
+            full_name: profilesMap[message.sender_id].full_name || 'Unknown User',
+            avatar_url: profilesMap[message.sender_id].avatar_url || ''
+          }
+        : {
+            full_name: 'Unknown User',
+            avatar_url: ''
+          }
     }));
   } catch (error) {
     console.error("Error in getConversationMessages:", error);

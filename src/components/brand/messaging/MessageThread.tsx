@@ -1,13 +1,14 @@
+
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { Check, CheckCheck, Clock } from "lucide-react";
+import { Check, CheckCheck } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { getConversationMessages } from "@/services/messagingService";
+import { getConversationMessages, markMessagesAsRead } from "@/services/messagingService";
 
 interface Message {
   id: string;
@@ -43,26 +44,10 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
       setLoading(true);
       try {
         const messagesData = await getConversationMessages(conversationId);
-        
-        const processedMessages = messagesData.map(msg => {
-          return {
-            ...msg,
-            profiles: {
-              full_name: msg.profiles?.full_name || 'Unknown User',
-              avatar_url: msg.profiles?.avatar_url || ''
-            }
-          } as Message;
-        });
-        
-        setMessages(processedMessages);
+        setMessages(messagesData as Message[]);
 
         if (user) {
-          await supabase
-            .from("messages")
-            .update({ read_at: new Date().toISOString() })
-            .eq("conversation_id", conversationId)
-            .eq("receiver_id", user.id)
-            .is("read_at", null);
+          await markMessagesAsRead(conversationId, user.id);
         }
       } catch (err) {
         console.error("Error fetching messages:", err);
@@ -84,43 +69,31 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
           table: "messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
-          supabase
-            .from("messages")
-            .select(`
-              id, 
-              content, 
-              sender_id, 
-              created_at, 
-              read_at,
-              profiles!sender_id(
-                full_name,
-                avatar_url
-              )
-            `)
-            .eq("id", payload.new.id)
-            .single()
-            .then(({ data, error }) => {
-              if (data) {
-                const newMessage = {
-                  ...data,
-                  profiles: {
-                    full_name: data.profiles?.full_name || 'Unknown User',
-                    avatar_url: data.profiles?.avatar_url || ''
-                  }
-                } as Message;
-                
-                setMessages((prev) => [...prev, newMessage]);
-              } else if (error) {
-                console.error("Error fetching new message:", error);
+        async (payload) => {
+          try {
+            const { data, error } = await supabase
+              .from("profiles")
+              .select("full_name, avatar_url")
+              .eq("id", payload.new.sender_id)
+              .single();
+              
+            if (error) throw error;
+            
+            const newMessage = {
+              ...payload.new,
+              profiles: {
+                full_name: data?.full_name || 'Unknown User',
+                avatar_url: data?.avatar_url || ''
               }
-            });
-
-          if (user && payload.new.receiver_id === user.id) {
-            supabase
-              .from("messages")
-              .update({ read_at: new Date().toISOString() })
-              .eq("id", payload.new.id);
+            } as Message;
+            
+            setMessages((prev) => [...prev, newMessage]);
+            
+            if (user && payload.new.receiver_id === user.id) {
+              await markMessagesAsRead(conversationId, user.id);
+            }
+          } catch (error) {
+            console.error("Error processing new message:", error);
           }
         }
       )
@@ -206,9 +179,9 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
               }`}
             >
               <Avatar className="h-8 w-8 mt-2 flex-shrink-0">
-                <AvatarImage src={message.profiles?.avatar_url || ""} />
+                <AvatarImage src={message.profiles.avatar_url || ""} />
                 <AvatarFallback className="bg-yellow-900">
-                  {message.profiles?.full_name
+                  {message.profiles.full_name
                     ? message.profiles.full_name
                         .split(" ")
                         .map((n) => n[0])
