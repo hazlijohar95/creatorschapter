@@ -6,52 +6,66 @@ import { useAuthStore } from "@/lib/auth";
 import { CardSkeleton } from "@/components/shared/CardSkeleton";
 import { ErrorFallback } from "@/components/shared/ErrorFallback";
 import { BrandMetrics } from "@/types/brandDashboard";
+import { Tables } from "@/integrations/supabase/types";
 
-// Simple interfaces for query responses without complex type nesting
-interface CampaignResponse {
+// Explicit interface to help TypeScript with type inference
+interface CampaignStatus {
   status: string;
 }
 
-interface ApplicationResponse {
+interface ApplicationStatus {
   status: string;
 }
 
 export function BrandOverview() {
   const { user } = useAuthStore();
 
-  const { data: metrics, isLoading, error } = useQuery({
+  const { data: metrics, isLoading, error } = useQuery<BrandMetrics>({
     queryKey: ['brand-metrics', user?.id],
     enabled: !!user,
     queryFn: async () => {
       if (!user?.id) {
-        throw new Error("User not authenticated");
+        throw new Error("User not available");
       }
 
-      // Fetch campaigns with simple typing
-      const { data: campaignsData, error: campaignsError } = await supabase
+      // Explicitly type the query results
+      const { data: campaigns, error: campaignsError } = await supabase
         .from('campaigns')
-        .select('status');
-      
-      if (campaignsError) throw campaignsError;
+        .select('status') as { 
+          data: CampaignStatus[] | null, 
+          error: any 
+        };
 
-      // Fetch applications with simple typing
-      const { data: applicationsData, error: applicationsError } = await supabase
+      if (campaignsError) {
+        console.error("Error fetching campaigns:", campaignsError);
+        throw campaignsError;
+      }
+
+      const { data: applications, error: applicationsError } = await supabase
         .from('campaign_creators')
         .select('status')
-        .eq('brand_id', user.id);
-      
-      if (applicationsError) throw applicationsError;
+        .eq('brand_id', user.id) as { 
+          data: ApplicationStatus[] | null, 
+          error: any 
+        };
 
-      // Use type assertion only once for each dataset
-      const campaigns = campaignsData as CampaignResponse[] || [];
-      const applications = applicationsData as ApplicationResponse[] || [];
+      if (applicationsError) {
+        console.error("Error fetching applications:", applicationsError);
+        throw applicationsError;
+      }
+
+      // Safe null checks and fallbacks
+      const safeFilteredCampaigns = campaigns?.filter(c => c.status === 'active') || [];
+      const safeFilteredApplications = applications?.filter(a => 
+        a.status === 'active' || a.status === 'completed'
+      ) || [];
 
       return {
-        activeCampaigns: campaigns.filter(c => c.status === 'active').length,
-        totalApplications: applications.length,
-        activeCollaborations: applications.filter(a => a.status === 'active').length,
-        deliveredContent: applications.filter(a => a.status === 'completed').length
-      } as BrandMetrics;
+        activeCampaigns: safeFilteredCampaigns.length,
+        totalApplications: applications?.length || 0,
+        activeCollaborations: safeFilteredApplications.filter(a => a.status === 'active').length,
+        deliveredContent: safeFilteredApplications.filter(a => a.status === 'completed').length
+      };
     }
   });
 
