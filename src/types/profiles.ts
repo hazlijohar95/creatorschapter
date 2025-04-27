@@ -1,4 +1,7 @@
 
+import { Json } from '@/integrations/supabase/types';
+import { Enums } from '@/integrations/supabase/types';
+
 // Define types for creator profile data structures
 export interface TargetAudience {
   age_ranges?: string[];
@@ -18,8 +21,8 @@ export interface PricingInfo {
 export interface CreatorProfile {
   id: string;
   categories?: string[] | null;
-  collaboration_types?: string[] | null;
-  content_formats?: string[] | null;
+  collaboration_types?: Enums<"collaboration_type">[] | null;
+  content_formats?: Enums<"content_format">[] | null;
   engagement_rate?: number | null;
   payment_preferences?: string[] | null;
   pricing_info?: PricingInfo | null;

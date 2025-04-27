@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/services/queryKeys';
 import { CreatorProfile } from '@/types/profiles';
 import { useToast } from '@/hooks/use-toast';
+import { Enums } from '@/integrations/supabase/types';
 
 export function useCreatorProfile(creatorId: string) {
   const queryClient = useQueryClient();
@@ -27,8 +28,18 @@ export function useCreatorProfile(creatorId: string) {
     }
   });
 
+  type CreatorProfileUpdate = {
+    categories?: string[];
+    collaboration_types?: Enums<"collaboration_type">[];
+    content_formats?: Enums<"content_format">[];
+    engagement_rate?: number | null;
+    payment_preferences?: string[];
+    pricing_info?: any | null;
+    target_audience?: any | null;
+  };
+
   const mutation = useMutation({
-    mutationFn: async (updates: Partial<CreatorProfile>) => {
+    mutationFn: async (updates: CreatorProfileUpdate) => {
       const { data, error } = await supabase
         .from('creator_profiles')
         .update(updates)
@@ -64,4 +75,3 @@ export function useCreatorProfile(creatorId: string) {
     isUpdating: mutation.isPending
   };
 }
-
