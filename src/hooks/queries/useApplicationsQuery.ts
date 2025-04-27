@@ -11,33 +11,45 @@ export function useApplicationsQuery(initialApplications: Application[]) {
 
   const { data: applications = initialApplications } = useQuery({
     queryKey: queryKeys.applications(),
-    queryFn: async () => initialApplications, // In the future, this would fetch from API
-    initialData: initialApplications
+    queryFn: async () => initialApplications,
+    initialData: initialApplications,
+    staleTime: 1000 * 60 * 2, // Consider data fresh for 2 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
   });
 
   const statusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: Status }) => {
       return await updateApplicationStatus(id, status);
     },
-    onSuccess: (_, { id, status }) => {
+    onMutate: async ({ id, status }) => {
+      // Cancel outgoing refetches to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: queryKeys.applications() });
+
+      // Snapshot the previous value
+      const previousApplications = queryClient.getQueryData<Application[]>(queryKeys.applications());
+
+      // Optimistically update the cache
       queryClient.setQueryData<Application[]>(
         queryKeys.applications(),
-        (old = []) => old.map(app =>
-          app.id === id ? { ...app, status, isNew: false } : app
-        )
+        old => old?.map(app => app.id === id ? { ...app, status } : app)
       );
-      
-      toast({
-        title: "Status updated",
-        description: `Application status has been updated to ${status}.`
-      });
+
+      return { previousApplications };
     },
-    onError: (error) => {
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousApplications) {
+        queryClient.setQueryData(queryKeys.applications(), context.previousApplications);
+      }
       toast({
         title: "Update failed",
-        description: error.message,
+        description: err.message,
         variant: "destructive"
       });
+    },
+    onSettled: () => {
+      // Invalidate and refetch to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: queryKeys.applications() });
     }
   });
 
@@ -45,25 +57,31 @@ export function useApplicationsQuery(initialApplications: Application[]) {
     mutationFn: async ({ id, note }: { id: string; note: string }) => {
       return await addApplicationNote(id, note);
     },
-    onSuccess: (_, { id, note }) => {
+    onMutate: async ({ id, note }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.applications() });
+      const previousApplications = queryClient.getQueryData<Application[]>(queryKeys.applications());
+
       queryClient.setQueryData<Application[]>(
         queryKeys.applications(),
-        (old = []) => old.map(app =>
+        old => old?.map(app =>
           app.id === id ? { ...app, notes: [...(app.notes || []), note] } : app
         )
       );
-      
-      toast({
-        title: "Note added",
-        description: "Your note has been saved to this application."
-      });
+
+      return { previousApplications };
     },
-    onError: (error) => {
+    onError: (err, variables, context) => {
+      if (context?.previousApplications) {
+        queryClient.setQueryData(queryKeys.applications(), context.previousApplications);
+      }
       toast({
         title: "Failed to add note",
-        description: error.message,
+        description: err.message,
         variant: "destructive"
       });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.applications() });
     }
   });
 

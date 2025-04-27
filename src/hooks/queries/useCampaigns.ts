@@ -43,7 +43,9 @@ export function useCampaigns({ brandId, status }: UseCampaignsOptions) {
       const { data, error } = await query;
       if (error) throw error;
       return data as Campaign[];
-    }
+    },
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
   });
 
   const createMutation = useMutation({
@@ -57,8 +59,13 @@ export function useCampaigns({ brandId, status }: UseCampaignsOptions) {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.campaigns(brandId) });
+    onSuccess: (newCampaign) => {
+      // Update the cache with the new campaign
+      queryClient.setQueryData<Campaign[]>(
+        queryKeys.campaigns(brandId),
+        old => old ? [...old, newCampaign] : [newCampaign]
+      );
+      
       toast({
         title: "Campaign Created",
         description: "Your campaign has been successfully created."
@@ -81,4 +88,3 @@ export function useCampaigns({ brandId, status }: UseCampaignsOptions) {
     isCreating: createMutation.isPending
   };
 }
-
