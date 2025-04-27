@@ -1,9 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, Check, X, User } from "lucide-react";
-import { ApplicationStatusBadge } from "./ApplicationStatusBadge";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -71,7 +71,7 @@ export function ApplicationCard({
           {application.isNew && (
             <Badge className="bg-green-100 text-green-800 rounded-full mb-1 font-bold text-xs border border-green-200">New</Badge>
           )}
-          <ApplicationStatusBadge status={application.status} />
+          <StatusBadge status={application.status} variant="compact" />
         </div>
       </CardHeader>
 

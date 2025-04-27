@@ -9,6 +9,8 @@ import { CreatorFilters } from "./discovery/CreatorFilters";
 import { CreatorSearchBar } from "./discovery/CreatorSearchBar";
 import { CreatorProfileDialog } from "./discovery/CreatorProfileDialog";
 import { useState } from "react";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { DiscoverableCreator } from "./hooks/useCreators";
 
 export function CreatorDiscovery() {
@@ -64,21 +66,29 @@ export function CreatorDiscovery() {
         <div className="md:col-span-2 space-y-4">
           {loading ? (
             <div className="flex justify-center items-center h-40">
-              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              <LoadingSpinner size="lg" />
             </div>
           ) : error ? (
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-red-500 mb-2">Error loading creators</div>
-                <p>{error.message}</p>
-                <Button className="mt-4" onClick={() => window.location.reload()}>Retry</Button>
+              <CardContent className="p-6">
+                <EmptyState
+                  title="Error loading creators"
+                  description={error.message}
+                  action={{
+                    label: "Retry",
+                    onClick: () => window.location.reload()
+                  }}
+                />
               </CardContent>
             </Card>
           ) : creators.length === 0 ? (
             <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-lg font-medium mb-2">No creators found</div>
-                <p className="text-muted-foreground">Try adjusting your filters or search query</p>
+              <CardContent className="p-6">
+                <EmptyState
+                  icon="🔍"
+                  title="No creators found"
+                  description="Try adjusting your filters or search query"
+                />
               </CardContent>
             </Card>
           ) : (
