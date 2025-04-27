@@ -15,6 +15,7 @@ interface FilterOptions {
   budget?: { min: number; max: number };
   categories: string[];
   status: string;
+  searchTerm?: string; // Add searchTerm to the interface
 }
 
 interface CampaignAdvancedFiltersProps {
@@ -34,7 +35,8 @@ export function CampaignAdvancedFilters({ filters, onFilterChange }: CampaignAdv
   const resetFilters = () => {
     const defaultFilters: FilterOptions = {
       categories: [],
-      status: "all"
+      status: "all",
+      searchTerm: "" // Include searchTerm in defaultFilters
     };
     setTempFilters(defaultFilters);
     onFilterChange(defaultFilters);
@@ -48,6 +50,7 @@ export function CampaignAdvancedFilters({ filters, onFilterChange }: CampaignAdv
         <Input
           placeholder="Search campaigns..."
           className="pl-8"
+          value={filters.searchTerm || ""}
           onChange={(e) => onFilterChange({ ...filters, searchTerm: e.target.value })}
         />
       </div>

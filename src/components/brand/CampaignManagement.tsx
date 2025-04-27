@@ -13,7 +13,8 @@ import { CampaignAnalytics } from "./campaigns/CampaignAnalytics";
 
 const defaultFilters = {
   categories: [],
-  status: "all"
+  status: "all",
+  searchTerm: "" // Add searchTerm to defaultFilters
 };
 
 export function CampaignManagement() {
@@ -53,6 +54,10 @@ export function CampaignManagement() {
 
   const handleFilterChange = (newFilters: any) => {
     setFilters(newFilters);
+    // Update searchQuery if searchTerm is provided
+    if (newFilters.searchTerm !== undefined) {
+      setSearchQuery(newFilters.searchTerm);
+    }
   };
 
   if (isLoading) return <CampaignLoadingState />;

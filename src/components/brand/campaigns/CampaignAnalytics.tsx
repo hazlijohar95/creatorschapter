@@ -1,7 +1,7 @@
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 interface CampaignAnalyticsProps {
   data: {
@@ -29,9 +29,11 @@ export function CampaignAnalytics({ data }: CampaignAnalyticsProps) {
             <YAxis />
             <Bar dataKey="impressions" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
             <Bar dataKey="engagements" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-            <ChartTooltip>
-              <ChartTooltipContent />
-            </ChartTooltip>
+            <Tooltip 
+              content={(props) => (
+                <ChartTooltipContent {...props} />
+              )}
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>
