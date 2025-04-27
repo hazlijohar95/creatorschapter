@@ -1,5 +1,7 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { withErrorHandling } from "./serviceUtils";
+import { CreatePortfolioItemDTO, UpdatePortfolioItemDTO } from "@/types/portfolio";
 
 // Fetch portfolio items
 export async function getPortfolioItems(creatorId: string) {
