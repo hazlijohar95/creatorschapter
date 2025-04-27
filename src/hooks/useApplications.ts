@@ -25,18 +25,19 @@ export function useApplications(initialApplications: Application[]) {
     ));
     
     // Call API and handle any errors
-    const success = await executeStatusUpdate(id, "approved");
+    const result = await executeStatusUpdate(id, "approved");
     
-    if (success) {
-      toast({
-        title: "Application approved",
-        description: "The creator has been notified of your decision.",
-      });
-    } else {
+    // If the API call returned null, it failed
+    if (result === null) {
       // Revert UI update if API call failed
       setApplications(apps => apps.map(app =>
         app.id === id ? { ...app, status: applications.find(a => a.id === id)?.status || "pending" } : app
       ));
+    } else {
+      toast({
+        title: "Application approved",
+        description: "The creator has been notified of your decision.",
+      });
     }
   };
 
@@ -47,18 +48,19 @@ export function useApplications(initialApplications: Application[]) {
     ));
     
     // Call API and handle any errors
-    const success = await executeStatusUpdate(id, "rejected");
+    const result = await executeStatusUpdate(id, "rejected");
     
-    if (success) {
-      toast({
-        title: "Application rejected",
-        description: "The creator has been notified of your decision.",
-      });
-    } else {
+    // If the API call returned null, it failed
+    if (result === null) {
       // Revert UI update if API call failed
       setApplications(apps => apps.map(app =>
         app.id === id ? { ...app, status: applications.find(a => a.id === id)?.status || "pending" } : app
       ));
+    } else {
+      toast({
+        title: "Application rejected",
+        description: "The creator has been notified of your decision.",
+      });
     }
   };
 
@@ -69,18 +71,19 @@ export function useApplications(initialApplications: Application[]) {
     ));
     
     // Call API and handle any errors
-    const success = await executeStatusUpdate(id, "in_discussion");
+    const result = await executeStatusUpdate(id, "in_discussion");
     
-    if (success) {
-      toast({
-        title: "Application moved to discussion",
-        description: "You can now message the creator directly.",
-      });
-    } else {
+    // If the API call returned null, it failed
+    if (result === null) {
       // Revert UI update if API call failed
       setApplications(apps => apps.map(app =>
         app.id === id ? { ...app, status: applications.find(a => a.id === id)?.status || "pending" } : app
       ));
+    } else {
+      toast({
+        title: "Application moved to discussion",
+        description: "You can now message the creator directly.",
+      });
     }
   };
 
@@ -112,8 +115,8 @@ export function useApplications(initialApplications: Application[]) {
     
     // Execute each status update individually
     for (const id of selectedApplications) {
-      const success = await executeStatusUpdate(id, newStatus);
-      if (success) {
+      const result = await executeStatusUpdate(id, newStatus);
+      if (result !== null) {
         successCount++;
       } else {
         errorCount++;
@@ -142,9 +145,9 @@ export function useApplications(initialApplications: Application[]) {
   const handleAddNote = async (id: string, note: string) => {
     if (!note.trim()) return;
     
-    const success = await executeAddNote(id, note);
+    const result = await executeAddNote(id, note);
     
-    if (success) {
+    if (result !== null) {
       // Update local state to reflect the new note
       setApplications(apps => apps.map(app => {
         if (app.id === id) {
