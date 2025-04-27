@@ -1,3 +1,4 @@
+
 // Define all query keys in one place for consistency
 export const queryKeys = {
   // User related
@@ -11,7 +12,7 @@ export const queryKeys = {
   
   // Brand related
   campaigns: (brandId: string) => ['campaigns', brandId],
-  applications: (brandId: string) => ['applications', brandId],
+  brandApplications: (brandId: string) => ['brand-applications', brandId],
   brandMetrics: (brandId: string) => ['metrics', brandId],
   
   // Messaging

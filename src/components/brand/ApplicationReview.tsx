@@ -5,7 +5,7 @@ import { ApplicationFilterBar } from "@/domains/applications/components/Applicat
 import { ApplicationDetailPanel } from "./applications/ApplicationDetailPanel";
 import { BulkActions } from "./applications/BulkActions";
 import { ApplicationsGrid } from "./applications/ApplicationsGrid";
-import { useApplications } from "@/hooks/useApplications";
+import { useApplicationsManager } from "@/hooks/useApplicationsManager";
 import { Application } from "@/types/applications";
 import { APPLICATIONS } from "@/data/mock-applications";
 import { useToast } from "@/hooks/use-toast";
@@ -32,10 +32,19 @@ export function ApplicationReview() {
     handleReject,
     handleDiscuss,
     handleBulkAction,
-    handleBulkMessage,
+    addNote,
     toggleApplicationSelection,
-    clearSelection
-  } = useApplications(APPLICATIONS);
+    clearSelection,
+    isUpdating,
+    isAddingNote
+  } = useApplicationsManager(APPLICATIONS);
+
+  const handleBulkMessage = () => {
+    toast({
+      title: "Messaging feature coming soon",
+      description: "This feature will be implemented in a future update."
+    });
+  };
 
   const filteredApplications = (tab: string) => {
     let filtered = tab === "all" 
@@ -68,11 +77,7 @@ export function ApplicationReview() {
   };
 
   const handleAddNote = (id: string, note: string) => {
-    console.log(`Adding note to application ${id}: ${note}`);
-    toast({
-      title: "Note added",
-      description: "Your note has been saved to this application."
-    });
+    addNote({ id, note });
   };
 
   return (
