@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +14,10 @@ import { Calendar, Clock, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { Application } from "@/types/applications";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { Application as DashboardApplication } from "@/components/dashboard/types/opportunity";
 
 interface ApplicationsManagementProps {
-  applications: Application[];
+  applications: DashboardApplication[];
   onViewDetails: (applicationId: string) => void;
   onMessageBrand: (applicationId: string) => void;
 }
@@ -78,7 +80,7 @@ export function ApplicationsManagement({
 }
 
 interface ApplicationCardProps {
-  application: Application;
+  application: DashboardApplication;
   onViewDetails: (applicationId: string) => void;
   onMessageBrand: (applicationId: string) => void;
 }

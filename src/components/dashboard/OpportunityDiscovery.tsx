@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFoo
 import { OpportunitySummary } from "./OpportunitySummary";
 import { OpportunityFilters } from "./opportunity/OpportunityFilters";
 import { OpportunityDetailModal } from "./opportunity/OpportunityDetailModal";
-import { ApplicationsManagement } from "./opportunity/ApplicationsManagement";
+import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
 import { RecommendedOpportunities } from "./opportunity/RecommendedOpportunities";
 import { Application, FilterOptions, Opportunity, OpportunityTab } from "./types/opportunity";
 import { toast } from "sonner";
