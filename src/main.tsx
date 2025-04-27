@@ -1,17 +1,22 @@
 
-import { createRoot } from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import App from './App.tsx'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from "next-themes";
+import { QueryProvider } from "./lib/queryClientProvider";
+import { Toaster } from './components/ui/toaster';
+import App from './App';
+import './index.css';
 
-// Create a client
-const queryClient = new QueryClient()
-
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Root element not found");
-
-createRoot(rootElement).render(
-  <QueryClientProvider client={queryClient}>
-    <App />
-  </QueryClientProvider>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="light" attribute="class">
+        <QueryProvider>
+          <App />
+          <Toaster />
+        </QueryProvider>
+      </ThemeProvider>
+    </BrowserRouter>
+  </React.StrictMode>
 );
