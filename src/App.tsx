@@ -1,4 +1,3 @@
-
 import { Routes, Route } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy } from 'react';
 import { supabase } from './integrations/supabase/client';
@@ -6,6 +5,7 @@ import { useAuthStore } from './lib/auth';
 import LoadingOverlay from './components/LoadingOverlay';
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { Toaster } from "./components/ui/toaster";
+import { initSupabaseServices } from './lib/initSupabaseServices';
 import './App.css';
 
 // Lazy load page components
@@ -44,6 +44,10 @@ function App() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigateEvents = typeof window !== "undefined" && window.addEventListener;
+
+  useEffect(() => {
+    initSupabaseServices();
+  }, []);
 
   useEffect(() => {
     if (!navigateEvents) return;

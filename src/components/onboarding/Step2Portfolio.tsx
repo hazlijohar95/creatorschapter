@@ -1,13 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Upload, ExternalLink } from "lucide-react";
+import { CheckCircle, Upload, ExternalLink, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { ensurePortfolioStorageBucket } from "@/services/portfolioService";
 
 type ContentFormat = Database["public"]["Enums"]["content_format"];
 
@@ -24,10 +25,15 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [media, setMedia] = useState<File | null>(null);
-  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [externalLink, setExternalLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [formatsSaving, setFormatsSaving] = useState(false);
+
+  // Initialize storage bucket when component loads
+  useEffect(() => {
+    ensurePortfolioStorageBucket();
+  }, []);
 
   // Define valid content format options using the union type
   const formatOptions: ContentFormat[] = [
@@ -59,51 +65,102 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
       });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setMedia(file);
+      const fileReader = new FileReader();
+      fileReader.onload = (e) => {
+        setMediaPreview(e.target?.result as string);
+      };
+      fileReader.readAsDataURL(file);
+    }
+  };
+
   const handlePortfolioUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    let uploadedUrl = null;
-    if (media) {
-      const { data, error } = await supabase.storage
-        .from("portfolio-media")
-        .upload(`${user.id}/${media.name}`, media, { upsert: true });
-      if (!error) uploadedUrl = data?.path;
-      else {
-        toast({
-          title: "Portfolio Upload Error",
-          description: error.message,
-          variant: "destructive",
+    
+    try {
+      if (!title.trim()) {
+        toast({ 
+          title: "Title required", 
+          description: "Please enter a title for your portfolio item",
+          variant: "destructive"
         });
         setLoading(false);
         return;
       }
-    }
-    const { error } = await supabase.from("portfolio_items").insert([
-      {
-        creator_id: user.id,
-        title,
-        description: desc,
-        media_url: uploadedUrl,
-        external_link: externalLink,
-        is_featured: false,
-      },
-    ]);
-    setLoading(false);
-    if (!error) {
-      toast({ title: "Portfolio item added", description: "Your work has been saved" });
-      setTitle("");
-      setDesc("");
-      setMedia(null);
-      setMediaUrl("");
-      setExternalLink("");
-      onDone();
-    } else {
+      
+      if (!media && !externalLink) {
+        toast({ 
+          title: "Media or link required", 
+          description: "Please upload media or provide an external link",
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
+      let mediaUrl = null;
+      if (media) {
+        const fileExt = media.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+          .from("portfolio-media")
+          .upload(fileName, media, { upsert: true });
+          
+        if (error) {
+          toast({
+            title: "Portfolio Upload Error",
+            description: error.message,
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+        
+        mediaUrl = `https://xceitaturyhtqzuoibrd.supabase.co/storage/v1/object/public/portfolio-media/${fileName}`;
+      }
+      
+      const { error } = await supabase.from("portfolio_items").insert([
+        {
+          creator_id: user.id,
+          title,
+          description: desc,
+          media_url: mediaUrl,
+          external_link: externalLink || null,
+          is_featured: false,
+        },
+      ]);
+      
+      if (!error) {
+        toast({ 
+          title: "Portfolio item added", 
+          description: "Your work has been saved" 
+        });
+        setTitle("");
+        setDesc("");
+        setMedia(null);
+        setMediaPreview(null);
+        setExternalLink("");
+        onDone();
+      } else {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,7 +197,13 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
           disabled={!formats.length || formatsSaving}
           size="sm"
         >
-          {formatsSaving ? "Saving..." : "Save Formats"}
+          {formatsSaving ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
+            </>
+          ) : (
+            "Save Formats"
+          )}
         </Button>
       </div>
 
@@ -176,9 +239,19 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
             </label>
             <Input
               type="file"
-              onChange={(e) => setMedia(e.target.files?.[0] || null)}
+              onChange={handleFileChange}
               accept="image/*,video/*"
             />
+            
+            {mediaPreview && (
+              <div className="mt-2 relative aspect-video bg-muted rounded-md overflow-hidden">
+                <img 
+                  src={mediaPreview} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
           </div>
           
           <div>
@@ -194,7 +267,13 @@ export default function Step2Portfolio({ user, onDone }: Step2Props) {
           </div>
           
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Adding..." : "Add Portfolio Item"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Adding...
+              </>
+            ) : (
+              "Add Portfolio Item"
+            )}
           </Button>
         </form>
       </div>
