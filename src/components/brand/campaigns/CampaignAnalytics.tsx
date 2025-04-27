@@ -29,11 +29,7 @@ export function CampaignAnalytics({ data }: CampaignAnalyticsProps) {
             <YAxis />
             <Bar dataKey="impressions" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
             <Bar dataKey="engagements" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-            <Tooltip 
-              content={(props) => (
-                <ChartTooltipContent {...props} />
-              )}
-            />
+            <Tooltip content={<ChartTooltipContent />} />
           </BarChart>
         </ChartContainer>
       </CardContent>
