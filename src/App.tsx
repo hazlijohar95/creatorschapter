@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
@@ -81,40 +81,38 @@ function App() {
   return (
     <>
       {isNavigating && <LoadingOverlay />}
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            
-            <Route path="/creator-dashboard" element={<CreatorDashboard />}>
-              <Route index element={<CreatorOverview />} />
-              <Route path="opportunities" element={<OpportunityDiscovery />} />
-              <Route path="portfolio" element={<PortfolioManagement />} />
-              <Route path="collaborations" element={<CollaborationManagement />} />
-              <Route path="social" element={<SocialMediaProfile />} />
-              <Route path="settings" element={<SettingsPanel />} />
-            </Route>
-            
-            <Route path="/onboarding" element={<CreatorOnboarding />} />
-            <Route path="/brand-onboarding" element={<BrandOnboarding />} />
-            
-            <Route path="/brand-dashboard" element={<BrandDashboard />}>
-              <Route index element={<BrandOverview />} />
-              <Route path="discover" element={<CreatorDiscovery />} />
-              <Route path="campaigns" element={<CampaignManagement />} />
-              <Route path="applications" element={<ApplicationReview />} />
-              <Route path="messages" element={<BrandMessaging />} />
-              <Route path="settings" element={<BrandSettings />} />
-            </Route>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          
+          <Route path="/creator-dashboard" element={<CreatorDashboard />}>
+            <Route index element={<CreatorOverview />} />
+            <Route path="opportunities" element={<OpportunityDiscovery />} />
+            <Route path="portfolio" element={<PortfolioManagement />} />
+            <Route path="collaborations" element={<CollaborationManagement />} />
+            <Route path="social" element={<SocialMediaProfile />} />
+            <Route path="settings" element={<SettingsPanel />} />
           </Route>
-          <Route path="/terms" element={<TermsAndConditions />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/cookies" element={<CookiePolicy />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
+          
+          <Route path="/onboarding" element={<CreatorOnboarding />} />
+          <Route path="/brand-onboarding" element={<BrandOnboarding />} />
+          
+          <Route path="/brand-dashboard" element={<BrandDashboard />}>
+            <Route index element={<BrandOverview />} />
+            <Route path="discover" element={<CreatorDiscovery />} />
+            <Route path="campaigns" element={<CampaignManagement />} />
+            <Route path="applications" element={<ApplicationReview />} />
+            <Route path="messages" element={<BrandMessaging />} />
+            <Route path="settings" element={<BrandSettings />} />
+          </Route>
+        </Route>
+        <Route path="/terms" element={<TermsAndConditions />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/cookies" element={<CookiePolicy />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       <Toaster />
     </>
   );
