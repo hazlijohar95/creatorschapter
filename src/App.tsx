@@ -1,35 +1,42 @@
 
 import { Routes, Route } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
-import Index from './pages/Index';
-import Auth from './pages/Auth';
-import NotFound from './pages/NotFound';
-import TermsAndConditions from './pages/TermsAndConditions';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import CookiePolicy from './pages/CookiePolicy';
-import './App.css';
 import LoadingOverlay from './components/LoadingOverlay';
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import CreatorOnboarding from "./pages/CreatorOnboarding";
-import CreatorDashboard from "./pages/CreatorDashboard";
-import BrandDashboard from "./pages/BrandDashboard";
-import BrandOnboarding from "./pages/BrandOnboarding";
-import { CreatorOverview } from "./components/creator/CreatorOverview";
-import { BrandOverview } from "./components/brand/BrandOverview";
-import { CreatorDiscovery } from "./components/brand/CreatorDiscovery";
-import { CampaignManagement } from "./components/brand/CampaignManagement";
-import { ApplicationReview } from "./components/brand/ApplicationReview";
-import { BrandMessaging } from "./components/brand/BrandMessaging";
-import { BrandSettings } from "./components/brand/BrandSettings";
-import { Toaster } from "./components/ui/toaster";
-import OpportunityDiscovery from "./components/dashboard/OpportunityDiscovery";
-import PortfolioManagement from "./components/dashboard/PortfolioManagement";
-import CollaborationManagement from "./components/dashboard/CollaborationManagement";
-import SocialMediaProfile from "./components/dashboard/SocialMediaProfile";
-import SettingsPanel from "./components/dashboard/SettingsPanel";
+import './App.css';
+
+// Lazy load components
+const Index = lazy(() => import('./pages/Index'));
+const Auth = lazy(() => import('./pages/Auth'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const CreatorOnboarding = lazy(() => import('./pages/CreatorOnboarding'));
+const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
+const BrandDashboard = lazy(() => import('./pages/BrandDashboard'));
+const BrandOnboarding = lazy(() => import('./pages/BrandOnboarding'));
+
+// Creator components
+const CreatorOverview = lazy(() => import('./components/creator/CreatorOverview'));
+const OpportunityDiscovery = lazy(() => import('./components/dashboard/OpportunityDiscovery'));
+const PortfolioManagement = lazy(() => import('./components/dashboard/PortfolioManagement'));
+const CollaborationManagement = lazy(() => import('./components/dashboard/CollaborationManagement'));
+const SocialMediaProfile = lazy(() => import('./components/dashboard/SocialMediaProfile'));
+const SettingsPanel = lazy(() => import('./components/dashboard/SettingsPanel'));
+
+// Brand components
+const BrandOverview = lazy(() => import('./components/brand/BrandOverview'));
+const CreatorDiscovery = lazy(() => import('./components/brand/CreatorDiscovery'));
+const CampaignManagement = lazy(() => import('./components/brand/CampaignManagement'));
+const ApplicationReview = lazy(() => import('./components/brand/ApplicationReview'));
+const BrandMessaging = lazy(() => import('./components/brand/BrandMessaging'));
+const BrandSettings = lazy(() => import('./components/brand/BrandSettings'));
+
+// Legal pages
+const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 
 function App() {
   const { setUser, setSession, user } = useAuthStore();
@@ -81,38 +88,40 @@ function App() {
   return (
     <>
       {isNavigating && <LoadingOverlay />}
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          
-          <Route path="/creator-dashboard" element={<CreatorDashboard />}>
-            <Route index element={<CreatorOverview />} />
-            <Route path="opportunities" element={<OpportunityDiscovery />} />
-            <Route path="portfolio" element={<PortfolioManagement />} />
-            <Route path="collaborations" element={<CollaborationManagement />} />
-            <Route path="social" element={<SocialMediaProfile />} />
-            <Route path="settings" element={<SettingsPanel />} />
+      <Suspense fallback={<LoadingOverlay />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            
+            <Route path="/creator-dashboard" element={<CreatorDashboard />}>
+              <Route index element={<CreatorOverview />} />
+              <Route path="opportunities" element={<OpportunityDiscovery />} />
+              <Route path="portfolio" element={<PortfolioManagement />} />
+              <Route path="collaborations" element={<CollaborationManagement />} />
+              <Route path="social" element={<SocialMediaProfile />} />
+              <Route path="settings" element={<SettingsPanel />} />
+            </Route>
+            
+            <Route path="/onboarding" element={<CreatorOnboarding />} />
+            <Route path="/brand-onboarding" element={<BrandOnboarding />} />
+            
+            <Route path="/brand-dashboard" element={<BrandDashboard />}>
+              <Route index element={<BrandOverview />} />
+              <Route path="discover" element={<CreatorDiscovery />} />
+              <Route path="campaigns" element={<CampaignManagement />} />
+              <Route path="applications" element={<ApplicationReview />} />
+              <Route path="messages" element={<BrandMessaging />} />
+              <Route path="settings" element={<BrandSettings />} />
+            </Route>
           </Route>
-          
-          <Route path="/onboarding" element={<CreatorOnboarding />} />
-          <Route path="/brand-onboarding" element={<BrandOnboarding />} />
-          
-          <Route path="/brand-dashboard" element={<BrandDashboard />}>
-            <Route index element={<BrandOverview />} />
-            <Route path="discover" element={<CreatorDiscovery />} />
-            <Route path="campaigns" element={<CampaignManagement />} />
-            <Route path="applications" element={<ApplicationReview />} />
-            <Route path="messages" element={<BrandMessaging />} />
-            <Route path="settings" element={<BrandSettings />} />
-          </Route>
-        </Route>
-        <Route path="/terms" element={<TermsAndConditions />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/cookies" element={<CookiePolicy />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
       <Toaster />
     </>
   );
