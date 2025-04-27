@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
@@ -8,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { getConversationMessages } from "@/services/messagingService";
 
 interface Message {
   id: string;
@@ -42,26 +42,20 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
 
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("messages")
-          .select(`
-            id,
-            content,
-            sender_id,
-            created_at,
-            read_at,
-            profiles!sender_id(
-              full_name,
-              avatar_url
-            )
-          `)
-          .eq("conversation_id", conversationId)
-          .order("created_at", { ascending: true });
+        const messagesData = await getConversationMessages(conversationId);
+        
+        const processedMessages = messagesData.map(msg => {
+          return {
+            ...msg,
+            profiles: {
+              full_name: msg.profiles?.full_name || 'Unknown User',
+              avatar_url: msg.profiles?.avatar_url || ''
+            }
+          } as Message;
+        });
+        
+        setMessages(processedMessages);
 
-        if (error) throw error;
-        setMessages(data || []);
-
-        // Mark messages as read
         if (user) {
           await supabase
             .from("messages")
@@ -80,7 +74,6 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
 
     fetchMessages();
 
-    // Subscribe to new messages
     const channel = supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -92,7 +85,6 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          // Fetch the complete message with profile info
           supabase
             .from("messages")
             .select(`
@@ -108,13 +100,22 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
             `)
             .eq("id", payload.new.id)
             .single()
-            .then(({ data }) => {
+            .then(({ data, error }) => {
               if (data) {
-                setMessages((prev) => [...prev, data as Message]);
+                const newMessage = {
+                  ...data,
+                  profiles: {
+                    full_name: data.profiles?.full_name || 'Unknown User',
+                    avatar_url: data.profiles?.avatar_url || ''
+                  }
+                } as Message;
+                
+                setMessages((prev) => [...prev, newMessage]);
+              } else if (error) {
+                console.error("Error fetching new message:", error);
               }
             });
 
-          // Mark as read if it's for current user
           if (user && payload.new.receiver_id === user.id) {
             supabase
               .from("messages")
@@ -131,7 +132,6 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
   }, [conversationId, user]);
 
   useEffect(() => {
-    // Scroll to the bottom when messages change
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current;
       scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -140,7 +140,7 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
 
   const formatMessageDate = (dateString: string) => {
     const date = new Date(dateString);
-    return format(date, "p"); // 'p' formats time as 12:00 AM/PM
+    return format(date, "p");
   };
 
   const MessageStatus = ({ message }: { message: Message }) => {
@@ -209,9 +209,11 @@ export function MessageThread({ conversationId }: MessageThreadProps) {
                 <AvatarImage src={message.profiles?.avatar_url || ""} />
                 <AvatarFallback className="bg-yellow-900">
                   {message.profiles?.full_name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                    ? message.profiles.full_name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                    : "?"}
                 </AvatarFallback>
               </Avatar>
 

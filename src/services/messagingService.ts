@@ -44,24 +44,37 @@ export async function markMessagesAsRead(conversationId: string, userId: string)
 
 // Get messages for a conversation
 export async function getConversationMessages(conversationId: string) {
-  const { data, error } = await supabase
-    .from("messages")
-    .select(`
-      id,
-      content,
-      sender_id,
-      created_at,
-      read_at,
-      profiles!sender_id(
-        full_name,
-        avatar_url
-      )
-    `)
-    .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("messages")
+      .select(`
+        id,
+        content,
+        sender_id,
+        created_at,
+        read_at,
+        profiles:sender_id(
+          full_name,
+          avatar_url
+        )
+      `)
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    
+    // Process the data to ensure it matches the expected format
+    return data.map(message => ({
+      ...message,
+      profiles: {
+        full_name: message.profiles?.full_name || 'Unknown User',
+        avatar_url: message.profiles?.avatar_url || ''
+      }
+    }));
+  } catch (error) {
+    console.error("Error in getConversationMessages:", error);
+    throw error;
+  }
 }
 
 // Archive conversation
