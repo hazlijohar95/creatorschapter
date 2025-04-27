@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -6,24 +5,7 @@ import { MessageSquare, Check, X, User } from "lucide-react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-
-interface Application {
-  id: number;
-  creatorName: string;
-  creatorHandle: string;
-  avatar: string;
-  campaign: string;
-  date: string;
-  status: "pending" | "approved" | "rejected" | "in_discussion";
-  message: string;
-  categories: string[];
-  match: number;
-  isNew: boolean;
-  budget: string;
-  audienceSize?: string;
-  engagement?: string;
-  notes?: string[];
-}
+import { Application } from "@/types/applications";
 
 export function ApplicationCard({ 
   application, 
@@ -35,9 +17,9 @@ export function ApplicationCard({
   onToggleSelection
 }: {
   application: Application;
-  onApprove?: (id: number) => void;
-  onReject?: (id: number) => void;
-  onDiscuss?: (id: number) => void;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+  onDiscuss?: (id: string) => void;
   onViewProfile?: () => void;
   isSelected?: boolean;
   onToggleSelection?: () => void;

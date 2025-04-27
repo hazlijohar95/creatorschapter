@@ -4,12 +4,12 @@ import { Application } from "../../../types/applications";
 
 interface ApplicationsGridProps {
   applications: Application[];
-  onApprove: (id: number) => void;
-  onReject: (id: number) => void;
-  onDiscuss: (id: number) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+  onDiscuss: (id: string) => void;
   onViewProfile: (application: Application) => void;
-  selectedApplications: number[];
-  onToggleSelection: (id: number) => void;
+  selectedApplications: string[];
+  onToggleSelection: (id: string) => void;
 }
 
 export function ApplicationsGrid({

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface BulkActionsProps {
-  selectedApplications: number[];
+  selectedApplications: string[];
   onBulkAction: (action: "approve" | "reject" | "discuss") => void;
   onBulkMessage: () => void;
   onClearSelection: () => void;

@@ -4,33 +4,16 @@ import { ApplicationDetailHeader } from "@/domains/applications/components/Appli
 import { ApplicationDetailTags } from "./ApplicationDetailTags";
 import { ApplicationDetailTabs } from "./ApplicationDetailTabs";
 import { ApplicationDetailFooter } from "./ApplicationDetailFooter";
-
-interface Application {
-  id: number;
-  creatorName: string;
-  creatorHandle: string;
-  avatar: string;
-  campaign: string;
-  date: string;
-  status: "pending" | "approved" | "rejected" | "in_discussion";
-  message: string;
-  categories: string[];
-  match: number;
-  isNew: boolean;
-  budget: string;
-  audienceSize?: string;
-  engagement?: string;
-  notes?: string[];
-}
+import { Application } from "@/types/applications";
 
 interface ApplicationDetailPanelProps {
   application: Application | null;
   isOpen: boolean;
   onClose: () => void;
-  onApprove: (id: number) => void;
-  onReject: (id: number) => void;
-  onDiscuss: (id: number) => void;
-  onAddNote: (id: number, note: string) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+  onDiscuss: (id: string) => void;
+  onAddNote: (id: string, note: string) => void;
 }
 
 export function ApplicationDetailPanel({

@@ -1,8 +1,9 @@
+
 import { Application } from "../types/applications";
 
 export const APPLICATIONS: Application[] = [
   {
-    id: 1,
+    id: "1",
     creatorName: "Alex Johnson",
     creatorHandle: "@alexcreates",
     avatar: "",
@@ -19,7 +20,7 @@ export const APPLICATIONS: Application[] = [
     notes: ["Good fit for summer collection", "Previous fashion experience noted"]
   },
   {
-    id: 2,
+    id: "2",
     creatorName: "Jamie Smith",
     creatorHandle: "@jamiesmith",
     avatar: "",
@@ -35,7 +36,7 @@ export const APPLICATIONS: Application[] = [
     engagement: "4.2%"
   },
   {
-    id: 3,
+    id: "3",
     creatorName: "Taylor Wilson",
     creatorHandle: "@taylorwilson",
     avatar: "",
@@ -51,7 +52,7 @@ export const APPLICATIONS: Application[] = [
     engagement: "2.9%"
   },
   {
-    id: 4,
+    id: "4",
     creatorName: "Morgan Lee",
     creatorHandle: "@morganlee",
     avatar: "",

@@ -5,10 +5,10 @@ import { useToast } from "./use-toast";
 
 export function useApplications(initialApplications: Application[]) {
   const [applications, setApplications] = useState<Application[]>(initialApplications);
-  const [selectedApplications, setSelectedApplications] = useState<number[]>([]);
+  const [selectedApplications, setSelectedApplications] = useState<string[]>([]);
   const { toast } = useToast();
 
-  const handleApprove = (id: number) => {
+  const handleApprove = (id: string) => {
     setApplications(apps => apps.map(app =>
       app.id === id ? { ...app, status: "approved", isNew: false } : app
     ));
@@ -18,7 +18,7 @@ export function useApplications(initialApplications: Application[]) {
     });
   };
 
-  const handleReject = (id: number) => {
+  const handleReject = (id: string) => {
     setApplications(apps => apps.map(app =>
       app.id === id ? { ...app, status: "rejected", isNew: false } : app
     ));
@@ -28,7 +28,7 @@ export function useApplications(initialApplications: Application[]) {
     });
   };
 
-  const handleDiscuss = (id: number) => {
+  const handleDiscuss = (id: string) => {
     setApplications(apps => apps.map(app =>
       app.id === id ? { ...app, status: "in_discussion", isNew: false } : app
     ));
@@ -83,7 +83,7 @@ export function useApplications(initialApplications: Application[]) {
     setSelectedApplications([]);
   };
 
-  const toggleApplicationSelection = (id: number) => {
+  const toggleApplicationSelection = (id: string) => {
     setSelectedApplications(prev => 
       prev.includes(id) 
         ? prev.filter(appId => appId !== id)

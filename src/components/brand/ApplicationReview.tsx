@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationFilterBar } from "@/domains/applications/components/ApplicationFilterBar";
@@ -66,7 +67,7 @@ export function ApplicationReview() {
     setDetailPanelOpen(true);
   };
 
-  const handleAddNote = (id: number, note: string) => {
+  const handleAddNote = (id: string, note: string) => {
     console.log(`Adding note to application ${id}: ${note}`);
     toast({
       title: "Note added",
