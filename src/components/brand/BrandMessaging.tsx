@@ -23,3 +23,5 @@ export function BrandMessaging() {
     </div>
   );
 }
+
+export default BrandMessaging;

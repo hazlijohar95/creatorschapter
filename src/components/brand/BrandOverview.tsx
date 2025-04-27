@@ -105,3 +105,5 @@ export function BrandOverview() {
     </div>
   );
 }
+
+export default BrandOverview;

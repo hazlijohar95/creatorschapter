@@ -145,3 +145,5 @@ export function CreatorDiscovery() {
     </div>
   );
 }
+
+export default CreatorDiscovery;

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Briefcase, Plus, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { CampaignCalendarView } from "./calendar/CampaignCalendarView";
+
 type Campaign = {
   id: string;
   name: string;
@@ -18,31 +20,28 @@ type Campaign = {
   end_date: string | null;
   budget: number | null;
 };
+
 export function CampaignManagement() {
   const [activeTab, setActiveTab] = useState("all");
   const [view, setView] = useState<"list" | "calendar">("list");
-  const {
-    user
-  } = useAuthStore();
-  const {
-    data: campaigns,
-    isLoading,
-    error
-  } = useQuery({
+  const { user } = useAuthStore();
+
+  const { data: campaigns, isLoading, error } = useQuery({
     queryKey: ["brand-campaigns", user?.id],
     enabled: !!user,
     queryFn: async () => {
       // Fetch campaigns belonging to this brand
-      const {
-        data,
-        error
-      } = await supabase.from("campaigns").select("*").eq("brand_id", user?.id).order("created_at", {
-        ascending: false
-      });
+      const { data, error } = await supabase
+        .from("campaigns")
+        .select("*")
+        .eq("brand_id", user?.id)
+        .order("created_at", { ascending: false });
+      
       if (error) throw error;
       return data as Campaign[];
     }
   });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -64,16 +63,26 @@ export function CampaignManagement() {
     if (status === "all") return campaigns;
     return campaigns.filter(c => c.status === status);
   };
-  return <div className="p-6 space-y-6">
+
+  return (
+    <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold">Campaign Management</h1>
         <div className="flex gap-2">
           <div className="flex rounded-md overflow-hidden border">
-            <Button variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")} className="rounded-none bg-slate-950 hover:bg-slate-800">
+            <Button 
+              variant={view === "list" ? "default" : "outline"} 
+              onClick={() => setView("list")}
+              className="rounded-none bg-slate-950 hover:bg-slate-800"
+            >
               <Briefcase className="mr-2 h-4 w-4" />
               List
             </Button>
-            <Button variant={view === "calendar" ? "default" : "outline"} onClick={() => setView("calendar")} className="rounded-none bg-slate-950 hover:bg-slate-800">
+            <Button 
+              variant={view === "calendar" ? "default" : "outline"}
+              onClick={() => setView("calendar")}
+              className="rounded-none bg-slate-950 hover:bg-slate-800"
+            >
               <Calendar className="mr-2 h-4 w-4" />
               Calendar
             </Button>
@@ -84,20 +93,28 @@ export function CampaignManagement() {
           </Button>
         </div>
       </div>
-
-      {isLoading && <div className="w-full flex items-center justify-center py-10">
+      
+      {isLoading && (
+        <div className="w-full flex items-center justify-center py-10">
           <span className="animate-spin mr-2">
             <Briefcase className="w-5 h-5" />
           </span>
           Loading campaigns...
-        </div>}
-      {error && <div className="w-full flex items-center justify-center py-10 text-destructive">
+        </div>
+      )}
+
+      {error && (
+        <div className="w-full flex items-center justify-center py-10 text-destructive">
           Error loading campaigns: {(error as any).message}
-        </div>}
+        </div>
+      )}
 
-      {!isLoading && !error && view === "calendar" && <CampaignCalendarView />}
+      {!isLoading && !error && view === "calendar" && (
+        <CampaignCalendarView />
+      )}
 
-      {!isLoading && !error && view === "list" && <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+      {!isLoading && !error && view === "list" && (
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="active">Active</TabsTrigger>
@@ -105,23 +122,33 @@ export function CampaignManagement() {
             <TabsTrigger value="draft">Draft</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
           </TabsList>
-
-          {["all", "active", "planning", "draft", "completed"].map(status => <TabsContent key={status} value={status} className="mt-4">
-              {filteredCampaigns(status).length === 0 ? <div className="text-muted-foreground text-center py-8 italic">
+          
+          {["all", "active", "planning", "draft", "completed"].map(status => (
+            <TabsContent key={status} value={status} className="mt-4">
+              {filteredCampaigns(status).length === 0 ? (
+                <div className="text-muted-foreground text-center py-8 italic">
                   No campaigns found{status !== "all" ? ` for "${status}"` : ""}.
-                </div> : <div className="grid gap-4">
-                  {filteredCampaigns(status).map(campaign => <CampaignCard key={campaign.id} campaign={campaign} />)}
-                </div>}
-            </TabsContent>)}
-        </Tabs>}
-    </div>;
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {filteredCampaigns(status).map(campaign => (
+                    <CampaignCard key={campaign.id} campaign={campaign} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      )}
+    </div>
+  );
 }
+
 interface CampaignCardProps {
   campaign: Campaign;
 }
-function CampaignCard({
-  campaign
-}: CampaignCardProps) {
+
+function CampaignCard({ campaign }: CampaignCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -138,13 +165,14 @@ function CampaignCard({
   };
 
   // Dummy values for progress and creators (add real logic later)
-  const progress = campaign.status === "completed" ? 100 : campaign.status === "active" ? 66 : campaign.status === "planning" ? 25 : 10;
-  const creators: {
-    id: number;
-    name: string;
-    avatar?: string;
-  }[] = [];
-  return <Card>
+  const progress = campaign.status === "completed" ? 100 : 
+                   campaign.status === "active" ? 66 : 
+                   campaign.status === "planning" ? 25 : 10;
+  
+  const creators: { id: number; name: string; avatar?: string; }[] = [];
+
+  return (
+    <Card>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">{campaign.name}</CardTitle>
@@ -181,15 +209,19 @@ function CampaignCard({
           <div>
             <div className="text-sm mb-2">
               <span className="text-muted-foreground">Creators:</span>
-              {creators.length === 0 && <p className="italic text-muted-foreground mt-1">No creators assigned yet</p>}
+              {creators.length === 0 && (
+                <p className="italic text-muted-foreground mt-1">No creators assigned yet</p>
+              )}
             </div>
             <div className="flex -space-x-2">
-              {creators.map(creator => <Avatar key={creator.id} className="border-2 border-white">
+              {creators.map(creator => (
+                <Avatar key={creator.id} className="border-2 border-white">
                   <AvatarImage src={creator.avatar} />
                   <AvatarFallback>
                     {creator.name.substring(0, 2)}
                   </AvatarFallback>
-                </Avatar>)}
+                </Avatar>
+              ))}
               <Button size="sm" variant="outline" className="rounded-full h-8 w-8 p-0 ml-2">
                 <Plus className="h-4 w-4" />
               </Button>
@@ -203,5 +235,8 @@ function CampaignCard({
           <Button size="sm">Manage</Button>
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
 }
+
+export default CampaignManagement;

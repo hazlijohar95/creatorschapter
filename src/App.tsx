@@ -5,9 +5,10 @@ import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
 import LoadingOverlay from './components/LoadingOverlay';
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { Toaster } from "./components/ui/toaster";
 import './App.css';
 
-// Lazy load components
+// Lazy load page components
 const Index = lazy(() => import('./pages/Index'));
 const Auth = lazy(() => import('./pages/Auth'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -17,21 +18,21 @@ const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
 const BrandDashboard = lazy(() => import('./pages/BrandDashboard'));
 const BrandOnboarding = lazy(() => import('./pages/BrandOnboarding'));
 
-// Creator components
-const CreatorOverview = lazy(() => import('./components/creator/CreatorOverview'));
+// Lazy load creator components
+const CreatorOverview = lazy(() => import('./components/creator/CreatorOverview').then(module => ({ default: module.CreatorOverview })));
 const OpportunityDiscovery = lazy(() => import('./components/dashboard/OpportunityDiscovery'));
 const PortfolioManagement = lazy(() => import('./components/dashboard/PortfolioManagement'));
 const CollaborationManagement = lazy(() => import('./components/dashboard/CollaborationManagement'));
 const SocialMediaProfile = lazy(() => import('./components/dashboard/SocialMediaProfile'));
 const SettingsPanel = lazy(() => import('./components/dashboard/SettingsPanel'));
 
-// Brand components
-const BrandOverview = lazy(() => import('./components/brand/BrandOverview'));
-const CreatorDiscovery = lazy(() => import('./components/brand/CreatorDiscovery'));
-const CampaignManagement = lazy(() => import('./components/brand/CampaignManagement'));
-const ApplicationReview = lazy(() => import('./components/brand/ApplicationReview'));
-const BrandMessaging = lazy(() => import('./components/brand/BrandMessaging'));
-const BrandSettings = lazy(() => import('./components/brand/BrandSettings'));
+// Lazy load brand components
+const BrandOverview = lazy(() => import('./components/brand/BrandOverview').then(module => ({ default: module.BrandOverview })));
+const CreatorDiscovery = lazy(() => import('./components/brand/CreatorDiscovery').then(module => ({ default: module.CreatorDiscovery })));
+const CampaignManagement = lazy(() => import('./components/brand/CampaignManagement').then(module => ({ default: module.CampaignManagement })));
+const ApplicationReview = lazy(() => import('./components/brand/ApplicationReview').then(module => ({ default: module.ApplicationReview })));
+const BrandMessaging = lazy(() => import('./components/brand/BrandMessaging').then(module => ({ default: module.BrandMessaging })));
+const BrandSettings = lazy(() => import('./components/brand/BrandSettings').then(module => ({ default: module.BrandSettings })));
 
 // Legal pages
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));

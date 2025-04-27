@@ -137,3 +137,5 @@ export function ApplicationReview() {
     </div>
   );
 }
+
+export default ApplicationReview;

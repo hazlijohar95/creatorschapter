@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FolderOpen, MessageSquare, Search, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -111,3 +111,5 @@ export function CreatorOverview() {
     </div>
   );
 }
+
+export default CreatorOverview;
