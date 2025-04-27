@@ -24,24 +24,28 @@ export function BrandOverview() {
         setIsLoading(true);
         setError(null);
 
-        const { data: campaigns, error: campaignsError } = await supabase
+        // Use explicit typing for Supabase queries to avoid deep type instantiation
+        const campaignsResponse = await supabase
           .from('campaigns')
           .select('status');
-
-        if (campaignsError) throw campaignsError;
-
-        const { data: applications, error: applicationsError } = await supabase
+        
+        const applicationsResponse = await supabase
           .from('campaign_creators')
           .select('status')
           .eq('brand_id', user.id);
-
-        if (applicationsError) throw applicationsError;
+        
+        if (campaignsResponse.error) throw campaignsResponse.error;
+        if (applicationsResponse.error) throw applicationsResponse.error;
+        
+        // Safely convert response data to our expected types
+        const campaigns = (campaignsResponse.data || []) as Campaign[];
+        const applications = (applicationsResponse.data || []) as CampaignCreator[];
 
         const calculatedMetrics: BrandMetrics = {
-          activeCampaigns: (campaigns as Campaign[] || []).filter(c => c.status === 'active').length,
-          totalApplications: (applications as CampaignCreator[] || []).length,
-          activeCollaborations: (applications as CampaignCreator[] || []).filter(a => a.status === 'active').length,
-          deliveredContent: (applications as CampaignCreator[] || []).filter(a => a.status === 'completed').length
+          activeCampaigns: campaigns.filter(c => c.status === 'active').length,
+          totalApplications: applications.length,
+          activeCollaborations: applications.filter(a => a.status === 'active').length,
+          deliveredContent: applications.filter(a => a.status === 'completed').length
         };
         
         setMetrics(calculatedMetrics);
