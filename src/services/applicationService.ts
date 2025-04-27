@@ -41,9 +41,9 @@ export async function getBrandApplications(brandId: string) {
     status: item.status as Status,
     message: item.application_message || "",
     categories: [],
-    match: 0,
+    match: 0, // Default to 0 if no match score is available
     isNew: false,
-    budget: item.campaigns.budget ? Number(item.campaigns.budget).toString() : "Not specified", // Convert to number first
+    budget: item.campaigns.budget ? Number(item.campaigns.budget).toString() : "Not specified",
     audienceSize: "",
     engagement: "",
     notes: []
