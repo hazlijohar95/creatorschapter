@@ -65,7 +65,11 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
       };
       
       if (isEditing && item) {
-        await updatePortfolioItem(item.id, itemData);
+        // When updating, we need to pass the id as well to match the UpdatePortfolioItemDTO type
+        await updatePortfolioItem(item.id, {
+          ...itemData,
+          id: item.id
+        });
       } else {
         await createPortfolioItem(userId, itemData);
       }
