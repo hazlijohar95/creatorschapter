@@ -6,6 +6,13 @@ import { useAuthStore } from "@/lib/auth";
 import { CardSkeleton } from "@/components/shared/CardSkeleton";
 import { ErrorFallback } from "@/components/shared/ErrorFallback";
 
+interface BrandMetrics {
+  activeCampaigns: number;
+  totalApplications: number;
+  activeCollaborations: number;
+  deliveredContent: number;
+}
+
 export function BrandOverview() {
   const { user } = useAuthStore();
 
@@ -13,26 +20,24 @@ export function BrandOverview() {
     queryKey: ['brand-metrics', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Define campaign types explicitly to avoid recursive type definition
-      type Campaign = { status: string };
-      type Application = { status: string };
-      
+      // Use explicit return types for Supabase queries
       const { data: campaigns } = await supabase
         .from('campaigns')
-        .select('status')
-        .eq('brand_id', user?.id);
+        .select('status');
 
       const { data: applications } = await supabase
         .from('campaign_creators')
         .select('status')
         .eq('brand_id', user?.id);
 
-      return {
+      const metrics: BrandMetrics = {
         activeCampaigns: campaigns?.filter(c => c.status === 'active').length || 0,
         totalApplications: applications?.length || 0,
         activeCollaborations: applications?.filter(a => a.status === 'active').length || 0,
         deliveredContent: applications?.filter(a => a.status === 'completed').length || 0
       };
+      
+      return metrics;
     }
   });
 
