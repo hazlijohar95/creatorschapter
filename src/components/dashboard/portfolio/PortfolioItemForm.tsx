@@ -4,14 +4,16 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { PortfolioItemFormFields } from "./PortfolioItemFormFields";
 import { PortfolioItemMediaUpload } from "./PortfolioItemMediaUpload";
+import { PortfolioItem, CreatePortfolioItemDTO } from "@/types/portfolio";
+import { createPortfolioItem, updatePortfolioItem } from "@/services/portfolioService";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 interface PortfolioItemFormProps {
   onClose: () => void;
-  item?: any;
+  item?: PortfolioItem;
   userId?: string;
 }
 
@@ -54,7 +56,7 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
     setIsLoading(true);
     
     try {
-      const itemData = {
+      const itemData: CreatePortfolioItemDTO = {
         title,
         description,
         is_featured: isFeatured,
@@ -62,20 +64,10 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
         external_link: externalLink || null
       };
       
-      if (isEditing) {
-        const { error } = await supabase
-          .from('portfolio_items')
-          .update(itemData)
-          .eq('id', item.id);
-        if (error) throw error;
+      if (isEditing && item) {
+        await updatePortfolioItem(item.id, itemData);
       } else {
-        const { error } = await supabase
-          .from('portfolio_items')
-          .insert([{
-            ...itemData,
-            creator_id: userId
-          }]);
-        if (error) throw error;
+        await createPortfolioItem(userId, itemData);
       }
       
       queryClient.invalidateQueries({ queryKey: ['portfolio', userId] });
@@ -100,35 +92,37 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4">
-      <PortfolioItemFormFields
-        title={title}
-        setTitle={setTitle}
-        description={description}
-        setDescription={setDescription}
-        externalLink={externalLink}
-        setExternalLink={setExternalLink}
-        isFeatured={isFeatured}
-        setIsFeatured={setIsFeatured}
-      />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <PortfolioItemMediaUpload
-          mediaPreview={mediaPreview}
-          onUploadComplete={handleUploadComplete}
-          onUploadError={handleUploadError}
+    <ErrorBoundary>
+      <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <PortfolioItemFormFields
+          title={title}
+          setTitle={setTitle}
+          description={description}
+          setDescription={setDescription}
+          externalLink={externalLink}
+          setExternalLink={setExternalLink}
+          isFeatured={isFeatured}
+          setIsFeatured={setIsFeatured}
         />
-      </div>
         
-      <DialogFooter className="pt-4">
-        <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? "Save Changes" : "Add Item"}
-        </Button>
-      </DialogFooter>
-    </form>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <PortfolioItemMediaUpload
+            mediaPreview={mediaPreview}
+            onUploadComplete={handleUploadComplete}
+            onUploadError={handleUploadError}
+          />
+        </div>
+          
+        <DialogFooter className="pt-4">
+          <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEditing ? "Save Changes" : "Add Item"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </ErrorBoundary>
   );
 }

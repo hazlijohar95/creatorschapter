@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { withErrorHandling } from "./serviceUtils";
 
@@ -17,13 +16,7 @@ export async function getPortfolioItems(creatorId: string) {
 }
 
 // Create portfolio item
-export async function createPortfolioItem(creatorId: string, item: {
-  title: string;
-  description?: string;
-  media_url?: string | null;
-  external_link?: string | null;
-  is_featured?: boolean;
-}) {
+export async function createPortfolioItem(creatorId: string, item: CreatePortfolioItemDTO) {
   return withErrorHandling(async () => {
     const { data, error } = await supabase
       .from("portfolio_items")
@@ -36,13 +29,7 @@ export async function createPortfolioItem(creatorId: string, item: {
 }
 
 // Update portfolio item
-export async function updatePortfolioItem(itemId: string, updates: {
-  title?: string;
-  description?: string | null;
-  media_url?: string | null;
-  external_link?: string | null;
-  is_featured?: boolean;
-}) {
+export async function updatePortfolioItem(itemId: string, updates: UpdatePortfolioItemDTO) {
   return withErrorHandling(async () => {
     const { data, error } = await supabase
       .from("portfolio_items")

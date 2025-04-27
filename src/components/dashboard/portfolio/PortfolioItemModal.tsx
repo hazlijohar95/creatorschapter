@@ -2,11 +2,13 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PortfolioItemForm } from "./PortfolioItemForm";
+import { PortfolioItem } from "@/types/portfolio";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 interface PortfolioItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  item?: any;
+  item?: PortfolioItem;
   userId?: string;
 }
 
@@ -22,7 +24,9 @@ export default function PortfolioItemModal({
         <DialogHeader>
           <DialogTitle>{item ? "Edit Portfolio Item" : "Add New Portfolio Item"}</DialogTitle>
         </DialogHeader>
-        <PortfolioItemForm onClose={onClose} item={item} userId={userId} />
+        <ErrorBoundary>
+          <PortfolioItemForm onClose={onClose} item={item} userId={userId} />
+        </ErrorBoundary>
       </DialogContent>
     </Dialog>
   );
