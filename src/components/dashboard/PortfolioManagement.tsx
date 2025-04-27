@@ -2,12 +2,15 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
+import { CardSkeleton } from "@/components/shared/CardSkeleton";
+import { ErrorFallback } from "@/components/shared/ErrorFallback";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { FolderOpen } from "lucide-react";
 
 export default function PortfolioManagement() {
   const { user } = useAuthStore();
 
-  // Fetch portfolio items for the creator
-  const { data: portfolio = [] } = useQuery({
+  const { data: portfolio = [], isLoading, error, refetch } = useQuery({
     queryKey: ["portfolio", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -21,6 +24,45 @@ export default function PortfolioManagement() {
       return data || [];
     },
   });
+
+  if (isLoading) {
+    return (
+      <div>
+        <h1 className="text-2xl font-semibold mb-6">Your Portfolio</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1 className="text-2xl font-semibold mb-6">Your Portfolio</h1>
+        <ErrorFallback 
+          error={error as Error} 
+          message="Failed to load portfolio" 
+          resetErrorBoundary={() => refetch()}
+        />
+      </div>
+    );
+  }
+
+  if (portfolio.length === 0) {
+    return (
+      <div>
+        <h1 className="text-2xl font-semibold mb-6">Your Portfolio</h1>
+        <EmptyState
+          icon={<FolderOpen className="w-12 h-12 text-muted-foreground" />}
+          title="No portfolio items yet"
+          description="Start building your portfolio by adding your best work"
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
