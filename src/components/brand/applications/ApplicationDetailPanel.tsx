@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetFooter } from "@/components/ui/sheet";
 import { ApplicationDetailHeader } from "@/domains/applications/components/ApplicationDetailHeader";

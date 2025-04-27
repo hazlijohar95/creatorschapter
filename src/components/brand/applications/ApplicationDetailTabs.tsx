@@ -11,7 +11,7 @@ interface Props {
   activeTab: string;
   setActiveTab: (t: string) => void;
   application: {
-    id: number;
+    id: string; // Changed from number to string
     campaign: string;
     budget: string;
     date: string;
@@ -21,7 +21,7 @@ interface Props {
     match: number;
     notes?: string[];
   };
-  onAddNote: (id: number, note: string) => void;
+  onAddNote: (id: string, note: string) => void; // Changed from number to string
 }
 
 export function ApplicationDetailTabs({
