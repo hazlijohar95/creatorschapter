@@ -1,4 +1,3 @@
-
 // Define all query keys in one place for consistency
 export const queryKeys = {
   // User related
@@ -18,5 +17,7 @@ export const queryKeys = {
   // Messaging
   conversations: (userId: string) => ['conversations', userId],
   messages: (conversationId: string) => ['messages', conversationId],
+  
+  // Application related
+  applications: () => ['applications'],
 } as const;
-
