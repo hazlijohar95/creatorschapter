@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ApplicationFilterBar } from "./applications/ApplicationFilterBar";
+import { ApplicationFilterBar } from "@/domains/applications/components/ApplicationFilterBar";
 import { ApplicationDetailPanel } from "./applications/ApplicationDetailPanel";
 import { BulkActions } from "./applications/BulkActions";
 import { ApplicationsGrid } from "./applications/ApplicationsGrid";
