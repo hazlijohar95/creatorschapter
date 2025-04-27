@@ -5,20 +5,11 @@ import { useAuthStore } from "@/lib/auth";
 import { CardSkeleton } from "@/components/shared/CardSkeleton";
 import { ErrorFallback } from "@/components/shared/ErrorFallback";
 import { BrandMetrics } from "@/types/brandDashboard";
-import { Tables } from "@/integrations/supabase/types";
-
-interface CampaignStatus {
-  status: string;
-}
-
-interface ApplicationStatus {
-  status: string;
-}
 
 export function BrandOverview() {
   const { user } = useAuthStore();
 
-  const { data: metrics, isLoading, error } = useQuery<BrandMetrics>({
+  const { data: metrics, isLoading, error } = useQuery({
     queryKey: ['brand-metrics', user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -28,46 +19,33 @@ export function BrandOverview() {
 
       const { data: campaigns, error: campaignsError } = await supabase
         .from('campaigns')
-        .select('status') as { 
-          data: CampaignStatus[] | null, 
-          error: any 
-        };
+        .select('status');
 
       if (campaignsError) {
-        console.error("Error fetching campaigns:", campaignsError);
         throw campaignsError;
       }
 
       const { data: applications, error: applicationsError } = await supabase
         .from('campaign_creators')
         .select('status')
-        .eq('brand_id', user.id) as { 
-          data: ApplicationStatus[] | null, 
-          error: any 
-        };
+        .eq('brand_id', user.id);
 
       if (applicationsError) {
-        console.error("Error fetching applications:", applicationsError);
         throw applicationsError;
       }
 
-      const safeFilteredCampaigns = campaigns?.filter(c => c.status === 'active') || [];
-      const safeFilteredApplications = applications?.filter(a => 
-        a.status === 'active' || a.status === 'completed'
-      ) || [];
-
       return {
-        activeCampaigns: safeFilteredCampaigns.length,
-        totalApplications: applications?.length || 0,
-        activeCollaborations: safeFilteredApplications.filter(a => a.status === 'active').length,
-        deliveredContent: safeFilteredApplications.filter(a => a.status === 'completed').length
+        activeCampaigns: campaigns?.filter(c => c.status === 'active').length ?? 0,
+        totalApplications: applications?.length ?? 0,
+        activeCollaborations: applications?.filter(a => a.status === 'active').length ?? 0,
+        deliveredContent: applications?.filter(a => a.status === 'completed').length ?? 0
       };
     }
   });
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-6">
         <h1 className="text-2xl font-bold">Brand Dashboard</h1>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
