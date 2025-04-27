@@ -1,10 +1,38 @@
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ApplicationCard } from "./ApplicationCard";
+import { Button } from "@/components/ui/button";
+import { Filter, Check, X, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ApplicationFilterBar } from "./applications/ApplicationFilterBar";
 import { ApplicationDetailPanel } from "./applications/ApplicationDetailPanel";
-import { ApplicationHeader } from "./applications/ApplicationHeader";
-import { ApplicationTabs } from "./applications/ApplicationTabs";
-import { Application, Status } from "./applications/types";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+
+type Status = "pending" | "approved" | "rejected" | "in_discussion";
+
+interface Application {
+  id: number;
+  creatorName: string;
+  creatorHandle: string;
+  avatar: string;
+  campaign: string;
+  date: string;
+  status: Status;
+  message: string;
+  categories: string[];
+  match: number;
+  isNew: boolean;
+  budget: string;
+  audienceSize?: string;
+  engagement?: string;
+  notes?: string[];
+}
 
 const APPLICATIONS: Application[] = [
   {
@@ -92,7 +120,7 @@ export function ApplicationReview() {
 
   const handleApprove = (id: number) => {
     setApplications(apps => apps.map(app =>
-      app.id === id ? { ...app, status: "approved" as Status, isNew: false } : app
+      app.id === id ? { ...app, status: "approved", isNew: false } : app
     ));
     toast({
       title: "Application approved",
@@ -102,7 +130,7 @@ export function ApplicationReview() {
 
   const handleReject = (id: number) => {
     setApplications(apps => apps.map(app =>
-      app.id === id ? { ...app, status: "rejected" as Status, isNew: false } : app
+      app.id === id ? { ...app, status: "rejected", isNew: false } : app
     ));
     toast({
       title: "Application rejected",
@@ -112,7 +140,7 @@ export function ApplicationReview() {
 
   const handleDiscuss = (id: number) => {
     setApplications(apps => apps.map(app =>
-      app.id === id ? { ...app, status: "in_discussion" as Status, isNew: false } : app
+      app.id === id ? { ...app, status: "in_discussion", isNew: false } : app
     ));
     toast({
       title: "Application moved to discussion",
@@ -241,12 +269,52 @@ export function ApplicationReview() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto animate-fade-in">
-      <ApplicationHeader
-        selectedApplications={selectedApplications}
-        clearSelection={() => setSelectedApplications([])}
-        handleBulkAction={handleBulkAction}
-        handleBulkMessage={handleBulkMessage}
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-bold font-space">Creator Applications</h1>
+        
+        <div className="flex flex-wrap gap-2">
+          {selectedApplications.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-muted">
+                {selectedApplications.length} selected
+              </Badge>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="flex items-center gap-1">
+                    Bulk Actions <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleBulkAction("approve")}>
+                    <Check className="mr-2 h-4 w-4 text-green-600" />
+                    Approve Selected
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkAction("reject")}>
+                    <X className="mr-2 h-4 w-4 text-red-600" />
+                    Reject Selected
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkAction("discuss")}>
+                    <Check className="mr-2 h-4 w-4 text-blue-600" />
+                    Move to Discussion
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleBulkMessage}>
+                    Send Message to Selected
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => setSelectedApplications([])}
+            disabled={selectedApplications.length === 0}
+          >
+            Clear Selection
+          </Button>
+        </div>
+      </div>
 
       <ApplicationFilterBar 
         filterValues={filterValues}
@@ -254,17 +322,41 @@ export function ApplicationReview() {
         availableCampaigns={Array.from(new Set(applications.map(app => app.campaign)))}
       />
 
-      <ApplicationTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        filteredApplications={filteredApplications}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onDiscuss={handleDiscuss}
-        onViewProfile={handleViewDetail}
-        selectedApplications={selectedApplications}
-        onToggleSelection={toggleApplicationSelection}
-      />
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="approved">Approved</TabsTrigger>
+          <TabsTrigger value="in_discussion">In Discussion</TabsTrigger>
+          <TabsTrigger value="rejected">Rejected</TabsTrigger>
+        </TabsList>
+        {["all", "pending", "approved", "in_discussion", "rejected"].map(tab => (
+          <TabsContent key={tab} value={tab} className="mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredApplications(tab).length > 0 ? (
+                filteredApplications(tab).map(application => (
+                  <ApplicationCard
+                    key={application.id}
+                    application={application}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    onDiscuss={handleDiscuss}
+                    onViewProfile={() => handleViewDetail(application)}
+                    isSelected={selectedApplications.includes(application.id)}
+                    onToggleSelection={() => toggleApplicationSelection(application.id)}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full flex flex-col items-center py-16 animate-fade-in">
+                  <span className="text-5xl mb-2">🕵️‍♂️</span>
+                  <h2 className="text-lg font-semibold mb-1">No applications found</h2>
+                  <p className="text-muted-foreground mb-2">Try another tab or adjust your filters.</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
 
       <ApplicationDetailPanel 
         application={selectedApplication}

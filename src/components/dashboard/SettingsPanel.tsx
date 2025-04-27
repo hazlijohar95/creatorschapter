@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, LogOut, UserCog, Layout, CreditCard, Instagram, Target, Link, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Enums } from "@/integrations/supabase/types";
-import { supabase } from "@/integrations/supabase/client"; 
+import { supabase } from "@/integrations/supabase/client"; // Added missing import
 
 // Import centralized service functions
 import {
@@ -60,35 +60,24 @@ export default function SettingsPanel() {
     queryKey: ['profile-settings', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
       // All profile data with centralized service
-      const profileResponse = await getProfile(user.id);
-      if (profileResponse.data) {
-        setUsername(profileResponse.data.username || "");
-        setFullName(profileResponse.data.full_name || "");
-        setBio(profileResponse.data.bio || "");
-        setEmail(profileResponse.data.email || "");
-      }
+      const profile = await getProfile(user.id);
+      setUsername(profile.username || "");
+      setFullName(profile.full_name || "");
+      setBio(profile.bio || "");
+      setEmail(profile.email || "");
 
-      const creatorProfileResponse = await getCreatorProfile(user.id);
-      if (creatorProfileResponse.data) {
-        setCategories(Array.isArray(creatorProfileResponse.data.categories) ? creatorProfileResponse.data.categories : []);
-        setContentFormats(Array.isArray(creatorProfileResponse.data.content_formats)
-          ? creatorProfileResponse.data.content_formats as Enums<"content_format">[]
-          : []);
-        setPaymentPreferences(Array.isArray(creatorProfileResponse.data.payment_preferences) ? creatorProfileResponse.data.payment_preferences : []);
-      }
+      const creatorProfile = await getCreatorProfile(user.id);
+      setCategories(Array.isArray(creatorProfile.categories) ? creatorProfile.categories : []);
+      setContentFormats(Array.isArray(creatorProfile.content_formats)
+        ? creatorProfile.content_formats as Enums<"content_format">[]
+        : []);
+      setPaymentPreferences(Array.isArray(creatorProfile.payment_preferences) ? creatorProfile.payment_preferences : []);
 
-      const socialLinksResponse = await getSocialLinks(user.id);
-      if (socialLinksResponse.data) {
-        setSocialLinks(Array.isArray(socialLinksResponse.data) ? socialLinksResponse.data : []);
-      }
+      const socialLinkRows = await getSocialLinks(user.id);
+      setSocialLinks(Array.isArray(socialLinkRows) ? socialLinkRows : []);
 
-      return { 
-        profile: profileResponse.data, 
-        creatorProfile: creatorProfileResponse.data, 
-        socialLinks: socialLinksResponse.data 
-      };
+      return { profile, creatorProfile, socialLinkRows };
     },
     enabled: !!user
   });
@@ -101,24 +90,20 @@ export default function SettingsPanel() {
     if (!user) return;
     setLoading(true);
     try {
-      const profileResponse = await updateProfile(user.id, { username, full_name: fullName, bio, email });
-      const creatorProfileResponse = await updateCreatorProfile(user.id, {
+      await updateProfile(user.id, { username, full_name: fullName, bio, email });
+      await updateCreatorProfile(user.id, {
         categories,
         content_formats: contentFormats,
         payment_preferences: paymentPreferences,
       });
-      
-      if (profileResponse.error || creatorProfileResponse.error) {
-        const errorMessage = profileResponse.error?.message || creatorProfileResponse.error?.message;
-        toast({
-          title: "Error updating profile",
-          description: errorMessage,
-          variant: "destructive"
-        });
-      } else {
-        toast({ title: "Profile updated successfully" });
-        refetch();
-      }
+      toast({ title: "Profile updated successfully" });
+      refetch();
+    } catch (err: any) {
+      toast({
+        title: "Error updating profile",
+        description: err.message,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -132,18 +117,12 @@ export default function SettingsPanel() {
       toast({ title: "Both platform and URL are required.", variant: "destructive" });
       return;
     }
-    
-    const response = await saveSocialLink(user.id, link);
-    
-    if (response.error) {
-      toast({ 
-        title: "Failed to save link", 
-        description: response.error.message, 
-        variant: "destructive" 
-      });
-    } else {
+    try {
+      await saveSocialLink(user.id, link);
       toast({ title: link.id ? "Social link updated" : "Social link added" });
       refetch();
+    } catch (error: any) {
+      toast({ title: "Failed to save link", description: error.message, variant: "destructive" });
     }
   };
 
@@ -154,19 +133,13 @@ export default function SettingsPanel() {
       setSocialLinks((prev) => prev.filter((_, i) => i !== idx));
       return;
     }
-    
-    const response = await deleteSocialLink(link.id);
-    
-    if (response.error) {
-      toast({ 
-        title: "Failed to delete link", 
-        description: response.error.message, 
-        variant: "destructive" 
-      });
-    } else {
+    try {
+      await deleteSocialLink(link.id);
       setSocialLinks((prev) => prev.filter((_, i) => i !== idx));
       toast({ title: "Social link removed" });
       refetch();
+    } catch (error: any) {
+      toast({ title: "Failed to delete link", description: error.message, variant: "destructive" });
     }
   };
 

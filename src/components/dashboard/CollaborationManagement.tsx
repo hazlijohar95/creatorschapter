@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -5,54 +6,12 @@ import { CollaborationCard } from "./collaborations/CollaborationCard";
 import { useCollaborations } from "./collaborations/useCollaborations";
 import { CollaborationCalendar } from "./collaborations/CollaborationCalendar";
 import { Calendar, BarChart2 } from "lucide-react";
-import { CardSkeleton } from "@/components/shared/CardSkeleton";
-import { ErrorFallback } from "@/components/shared/ErrorFallback";
-import { EmptyState } from "@/components/shared/EmptyState";
 
 export default function CollaborationManagement() {
   const [activeTab, setActiveTab] = useState<"active" | "pending" | "completed" | "all">("active");
   const [view, setView] = useState<"list" | "calendar">("list");
   
   const { collaborations, isLoading, error, refetch } = useCollaborations(activeTab);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Collaborations</h2>
-          <div className="flex items-center gap-2">
-            <div className="border rounded-md overflow-hidden flex">
-              <Button variant="ghost" size="sm" className="rounded-none">
-                <BarChart2 className="h-4 w-4 mr-1" /> List
-              </Button>
-              <Button variant="ghost" size="sm" className="rounded-none">
-                <Calendar className="h-4 w-4 mr-1" /> Calendar
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <CardSkeleton key={i} rows={4} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold">Collaborations</h2>
-        <ErrorFallback 
-          error={error as Error} 
-          message="Failed to load collaborations" 
-          resetErrorBoundary={() => refetch()}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

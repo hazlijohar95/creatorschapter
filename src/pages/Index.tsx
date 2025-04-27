@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import Header from '../components/Header';
-import { BannerCenteredButton } from '../components/BannerCenteredButton';
 import HeroSection from '../components/HeroSection';
 import HowItWorksSection from '../components/HowItWorksSection';
 import FeaturesSection from '../components/FeaturesSection';
@@ -19,7 +18,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-darkbg text-white overflow-x-hidden">
       <Header />
-      <BannerCenteredButton />
       <main>
         <HeroSection />
         <HowItWorksSection />

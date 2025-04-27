@@ -1,90 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuthStore } from "@/lib/auth";
-import { CardSkeleton } from "@/components/shared/CardSkeleton";
-import { ErrorFallback } from "@/components/shared/ErrorFallback";
-import { BrandMetrics } from "@/types/brandDashboard";
 
 export function BrandOverview() {
-  const { user } = useAuthStore();
-
-  const { data: metrics, isLoading, error } = useQuery<BrandMetrics>({
-    queryKey: ['brand-metrics', user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      if (!user?.id) {
-        throw new Error("User not available");
-      }
-
-      // Type annotations to help TypeScript understand the structure
-      type CampaignData = { status: string }[];
-      type ApplicationData = { status: string }[];
-
-      // First query: campaigns
-      const campaignsResult = await supabase
-        .from('campaigns')
-        .select('status');
-
-      if (campaignsResult.error) {
-        throw campaignsResult.error;
-      }
-
-      const campaigns = campaignsResult.data as CampaignData;
-
-      // Second query with explicit userId type
-      const userId = user.id as string;
-      const applicationsResult = await supabase
-        .from('campaign_creators')
-        .select('status')
-        .eq('brand_id', userId);
-
-      if (applicationsResult.error) {
-        throw applicationsResult.error;
-      }
-
-      const applications = applicationsResult.data as ApplicationData;
-
-      // Calculate metrics with null checks
-      return {
-        activeCampaigns: campaigns?.filter(c => c.status === 'active').length ?? 0,
-        totalApplications: applications?.length ?? 0,
-        activeCollaborations: applications?.filter(a => a.status === 'active').length ?? 0,
-        deliveredContent: applications?.filter(a => a.status === 'completed').length ?? 0
-      };
-    }
-  });
-
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Brand Dashboard</h1>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <CardSkeleton key={i} headerHeightScale={4} rows={2} />
-          ))}
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <CardSkeleton headerHeightScale={4} rows={4} />
-          <CardSkeleton headerHeightScale={4} rows={4} />
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !metrics) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Brand Dashboard</h1>
-        <ErrorFallback 
-          error={error as Error || new Error("Failed to load metrics")} 
-          message="Failed to load dashboard data" 
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold">Brand Dashboard</h1>
@@ -95,7 +12,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeCampaigns}</div>
+            <div className="text-2xl font-bold">3</div>
             <p className="text-xs text-muted-foreground">+2 from last month</p>
           </CardContent>
         </Card>
@@ -105,7 +22,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Creator Applications</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalApplications}</div>
+            <div className="text-2xl font-bold">12</div>
             <p className="text-xs text-muted-foreground">+5 new this week</p>
           </CardContent>
         </Card>
@@ -115,7 +32,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Active Collaborations</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeCollaborations}</div>
+            <div className="text-2xl font-bold">7</div>
             <p className="text-xs text-muted-foreground">+2 from last month</p>
           </CardContent>
         </Card>
@@ -125,7 +42,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Content Delivered</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.deliveredContent}</div>
+            <div className="text-2xl font-bold">15</div>
             <p className="text-xs text-muted-foreground">+8 from last month</p>
           </CardContent>
         </Card>
