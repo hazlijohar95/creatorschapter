@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +7,6 @@ import { ErrorFallback } from "@/components/shared/ErrorFallback";
 import { BrandMetrics } from "@/types/brandDashboard";
 import { Tables } from "@/integrations/supabase/types";
 
-// Explicit interface to help TypeScript with type inference
 interface CampaignStatus {
   status: string;
 }
@@ -28,7 +26,6 @@ export function BrandOverview() {
         throw new Error("User not available");
       }
 
-      // Explicitly type the query results
       const { data: campaigns, error: campaignsError } = await supabase
         .from('campaigns')
         .select('status') as { 
@@ -54,7 +51,6 @@ export function BrandOverview() {
         throw applicationsError;
       }
 
-      // Safe null checks and fallbacks
       const safeFilteredCampaigns = campaigns?.filter(c => c.status === 'active') || [];
       const safeFilteredApplications = applications?.filter(a => 
         a.status === 'active' || a.status === 'completed'
@@ -75,12 +71,12 @@ export function BrandOverview() {
         <h1 className="text-2xl font-bold">Brand Dashboard</h1>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <CardSkeleton key={i} headerHeight={4} rows={2} />
+            <CardSkeleton key={i} headerHeightScale={4} rows={2} />
           ))}
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <CardSkeleton rows={4} />
-          <CardSkeleton rows={4} />
+          <CardSkeleton headerHeightScale={4} rows={4} />
+          <CardSkeleton headerHeightScale={4} rows={4} />
         </div>
       </div>
     );
