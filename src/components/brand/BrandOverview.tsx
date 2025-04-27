@@ -1,37 +1,60 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { CardSkeleton } from "@/components/shared/CardSkeleton";
 import { ErrorFallback } from "@/components/shared/ErrorFallback";
 import { BrandMetrics, Campaign, CampaignCreator } from "@/types/brandDashboard";
+import { useEffect, useState } from "react";
 
 export function BrandOverview() {
   const { user } = useAuthStore();
+  const [metrics, setMetrics] = useState<BrandMetrics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { data: metrics, isLoading, error } = useQuery<BrandMetrics>({
-    queryKey: ['brand-metrics', user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data: campaigns } = await supabase
-        .from('campaigns')
-        .select('status') as { data: Campaign[] | null };
-
-      const { data: applications } = await supabase
-        .from('campaign_creators')
-        .select('status')
-        .eq('brand_id', user?.id) as { data: CampaignCreator[] | null };
-
-      const metrics: BrandMetrics = {
-        activeCampaigns: campaigns?.filter(c => c.status === 'active').length || 0,
-        totalApplications: applications?.length || 0,
-        activeCollaborations: applications?.filter(a => a.status === 'active').length || 0,
-        deliveredContent: applications?.filter(a => a.status === 'completed').length || 0
-      };
-      
-      return metrics;
+  useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
     }
-  });
+
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const { data: campaigns, error: campaignsError } = await supabase
+          .from('campaigns')
+          .select('status');
+
+        if (campaignsError) throw campaignsError;
+
+        const { data: applications, error: applicationsError } = await supabase
+          .from('campaign_creators')
+          .select('status')
+          .eq('brand_id', user.id);
+
+        if (applicationsError) throw applicationsError;
+
+        const calculatedMetrics: BrandMetrics = {
+          activeCampaigns: (campaigns as Campaign[] || []).filter(c => c.status === 'active').length,
+          totalApplications: (applications as CampaignCreator[] || []).length,
+          activeCollaborations: (applications as CampaignCreator[] || []).filter(a => a.status === 'active').length,
+          deliveredContent: (applications as CampaignCreator[] || []).filter(a => a.status === 'completed').length
+        };
+        
+        setMetrics(calculatedMetrics);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setError(err instanceof Error ? err : new Error('Failed to fetch dashboard data'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
 
   if (isLoading) {
     return (
