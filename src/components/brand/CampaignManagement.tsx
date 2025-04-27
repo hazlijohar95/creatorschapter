@@ -5,16 +5,23 @@ import { useAuthStore } from "@/lib/auth";
 import { CampaignCalendarView } from "./calendar/CampaignCalendarView";
 import { CampaignFormDialog } from "./campaigns/CampaignFormDialog";
 import { CampaignHeader } from "./campaigns/CampaignHeader";
-import { CampaignFilters } from "./campaigns/CampaignFilters";
+import { CampaignAdvancedFilters } from "./campaigns/CampaignAdvancedFilters";
 import { CampaignTabs } from "./campaigns/CampaignTabs";
 import { CampaignLoadingState } from "./campaigns/CampaignLoadingState";
 import { CampaignErrorState } from "./campaigns/CampaignErrorState";
+import { CampaignAnalytics } from "./campaigns/CampaignAnalytics";
+
+const defaultFilters = {
+  categories: [],
+  status: "all"
+};
 
 export function CampaignManagement() {
   const [activeTab, setActiveTab] = useState("all");
   const [view, setView] = useState<"list" | "calendar">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [filters, setFilters] = useState(defaultFilters);
   
   const { user } = useAuthStore();
   const { 
@@ -28,6 +35,13 @@ export function CampaignManagement() {
     status: activeTab !== "all" ? activeTab : undefined
   });
 
+  // Mock analytics data - replace with real data from your backend
+  const analyticsData = [
+    { name: "Jan", impressions: 1200, engagements: 800 },
+    { name: "Feb", impressions: 1800, engagements: 1200 },
+    { name: "Mar", impressions: 2400, engagements: 1600 },
+  ];
+
   const handleCreateCampaign = (data: any) => {
     createCampaign({
       ...data,
@@ -35,6 +49,10 @@ export function CampaignManagement() {
       status: "draft"
     });
     setFormDialogOpen(false);
+  };
+
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
   };
 
   if (isLoading) return <CampaignLoadingState />;
@@ -48,10 +66,12 @@ export function CampaignManagement() {
         onViewChange={setView}
       />
       
-      <CampaignFilters 
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+      <CampaignAdvancedFilters 
+        filters={filters}
+        onFilterChange={handleFilterChange}
       />
+
+      <CampaignAnalytics data={analyticsData} />
 
       {view === "calendar" ? (
         <CampaignCalendarView />
