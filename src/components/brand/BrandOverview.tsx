@@ -1,11 +1,13 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { CardSkeleton } from "@/components/shared/CardSkeleton";
 import { ErrorFallback } from "@/components/shared/ErrorFallback";
-import { BrandMetrics, Campaign, CampaignCreator } from "@/types/brandDashboard";
-import { useEffect, useState } from "react";
+import { BrandMetrics } from "@/types/brandDashboard";
 
+// Simple interfaces for query responses without complex type nesting
 interface CampaignResponse {
   status: string;
 }
@@ -16,50 +18,42 @@ interface ApplicationResponse {
 
 export function BrandOverview() {
   const { user } = useAuthStore();
-  const [metrics, setMetrics] = useState<BrandMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const campaignsQuery = supabase.from('campaigns').select('status');
-        const { data: campaignsData, error: campaignsError } = await campaignsQuery;
-        if (campaignsError) throw campaignsError;
-
-        const applicationsQuery = supabase.from('campaign_creators').select('status').eq('brand_id', user.id);
-        const { data: applicationsData, error: applicationsError } = await applicationsQuery;
-        if (applicationsError) throw applicationsError;
-
-        const campaigns = (campaignsData || []) as CampaignResponse[];
-        const applications = (applicationsData || []) as ApplicationResponse[];
-
-        const calculatedMetrics: BrandMetrics = {
-          activeCampaigns: campaigns.filter(c => c.status === 'active').length,
-          totalApplications: applications.length,
-          activeCollaborations: applications.filter(a => a.status === 'active').length,
-          deliveredContent: applications.filter(a => a.status === 'completed').length
-        };
-        
-        setMetrics(calculatedMetrics);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch dashboard data'));
-      } finally {
-        setIsLoading(false);
+  const { data: metrics, isLoading, error } = useQuery({
+    queryKey: ['brand-metrics', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user?.id) {
+        throw new Error("User not authenticated");
       }
-    };
 
-    fetchData();
-  }, [user]);
+      // Fetch campaigns with simple typing
+      const { data: campaignsData, error: campaignsError } = await supabase
+        .from('campaigns')
+        .select('status');
+      
+      if (campaignsError) throw campaignsError;
+
+      // Fetch applications with simple typing
+      const { data: applicationsData, error: applicationsError } = await supabase
+        .from('campaign_creators')
+        .select('status')
+        .eq('brand_id', user.id);
+      
+      if (applicationsError) throw applicationsError;
+
+      // Use type assertion only once for each dataset
+      const campaigns = campaignsData as CampaignResponse[] || [];
+      const applications = applicationsData as ApplicationResponse[] || [];
+
+      return {
+        activeCampaigns: campaigns.filter(c => c.status === 'active').length,
+        totalApplications: applications.length,
+        activeCollaborations: applications.filter(a => a.status === 'active').length,
+        deliveredContent: applications.filter(a => a.status === 'completed').length
+      } as BrandMetrics;
+    }
+  });
 
   if (isLoading) {
     return (
@@ -78,12 +72,12 @@ export function BrandOverview() {
     );
   }
 
-  if (error) {
+  if (error || !metrics) {
     return (
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Brand Dashboard</h1>
         <ErrorFallback 
-          error={error as Error} 
+          error={error as Error || new Error("Failed to load metrics")} 
           message="Failed to load dashboard data" 
         />
       </div>
@@ -100,7 +94,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.activeCampaigns}</div>
+            <div className="text-2xl font-bold">{metrics.activeCampaigns}</div>
             <p className="text-xs text-muted-foreground">+2 from last month</p>
           </CardContent>
         </Card>
@@ -110,7 +104,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Creator Applications</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.totalApplications}</div>
+            <div className="text-2xl font-bold">{metrics.totalApplications}</div>
             <p className="text-xs text-muted-foreground">+5 new this week</p>
           </CardContent>
         </Card>
@@ -120,7 +114,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Active Collaborations</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.activeCollaborations}</div>
+            <div className="text-2xl font-bold">{metrics.activeCollaborations}</div>
             <p className="text-xs text-muted-foreground">+2 from last month</p>
           </CardContent>
         </Card>
@@ -130,7 +124,7 @@ export function BrandOverview() {
             <CardTitle className="text-sm font-medium">Content Delivered</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics?.deliveredContent}</div>
+            <div className="text-2xl font-bold">{metrics.deliveredContent}</div>
             <p className="text-xs text-muted-foreground">+8 from last month</p>
           </CardContent>
         </Card>
