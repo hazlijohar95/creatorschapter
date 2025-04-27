@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
@@ -6,6 +5,14 @@ import { CardSkeleton } from "@/components/shared/CardSkeleton";
 import { ErrorFallback } from "@/components/shared/ErrorFallback";
 import { BrandMetrics, Campaign, CampaignCreator } from "@/types/brandDashboard";
 import { useEffect, useState } from "react";
+
+interface CampaignResponse {
+  status: string;
+}
+
+interface ApplicationResponse {
+  status: string;
+}
 
 export function BrandOverview() {
   const { user } = useAuthStore();
@@ -24,22 +31,16 @@ export function BrandOverview() {
         setIsLoading(true);
         setError(null);
 
-        // Use explicit typing for Supabase queries to avoid deep type instantiation
-        const campaignsResponse = await supabase
-          .from('campaigns')
-          .select('status');
-        
-        const applicationsResponse = await supabase
-          .from('campaign_creators')
-          .select('status')
-          .eq('brand_id', user.id);
-        
-        if (campaignsResponse.error) throw campaignsResponse.error;
-        if (applicationsResponse.error) throw applicationsResponse.error;
-        
-        // Safely convert response data to our expected types
-        const campaigns = (campaignsResponse.data || []) as Campaign[];
-        const applications = (applicationsResponse.data || []) as CampaignCreator[];
+        const campaignsQuery = supabase.from('campaigns').select('status');
+        const { data: campaignsData, error: campaignsError } = await campaignsQuery;
+        if (campaignsError) throw campaignsError;
+
+        const applicationsQuery = supabase.from('campaign_creators').select('status').eq('brand_id', user.id);
+        const { data: applicationsData, error: applicationsError } = await applicationsQuery;
+        if (applicationsError) throw applicationsError;
+
+        const campaigns = (campaignsData || []) as CampaignResponse[];
+        const applications = (applicationsData || []) as ApplicationResponse[];
 
         const calculatedMetrics: BrandMetrics = {
           activeCampaigns: campaigns.filter(c => c.status === 'active').length,
