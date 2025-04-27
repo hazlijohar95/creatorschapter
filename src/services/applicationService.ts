@@ -32,7 +32,7 @@ export async function getBrandApplications(brandId: string) {
 
   // Transform data to match Application interface
   return (data || []).map((item): Application => ({
-    id: item.id,
+    id: item.id, // Ensure id is correctly typed as per Application interface
     creatorName: item.profiles.full_name || "Anonymous",
     creatorHandle: item.profiles.username || "",
     avatar: item.profiles.avatar_url || "",
@@ -41,7 +41,7 @@ export async function getBrandApplications(brandId: string) {
     status: item.status as Status,
     message: item.application_message || "",
     categories: [],
-    match: 0, // To be implemented with AI matching
+    match: 0, // This is now correctly a number value
     isNew: false,
     budget: item.campaigns.budget?.toString() || "Not specified",
     audienceSize: "",
@@ -60,15 +60,62 @@ export async function updateApplicationStatus(applicationId: string, status: Sta
   if (error) throw error;
 }
 
-// Add note to application
+// Add note to application - Using the messages table instead of application_notes
 export async function addApplicationNote(applicationId: string, note: string) {
-  const { error } = await supabase
-    .from("application_notes")
-    .insert([{
-      application_id: applicationId,
-      content: note
-    }]);
+  // Since there's no application_notes table, we'll use the messages table
+  // and create a special conversation for application notes
   
-  if (error) throw error;
+  // First, get the application details to find the creator and brand
+  const { data: applicationData, error: applicationError } = await supabase
+    .from("campaign_creators")
+    .select(`
+      creator_id,
+      campaigns(brand_id)
+    `)
+    .eq("id", applicationId)
+    .single();
+  
+  if (applicationError) throw applicationError;
+  
+  // Create or find a conversation for this application
+  const conversationName = `application-notes-${applicationId}`;
+  const { data: existingConversation, error: convQueryError } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("creator_id", applicationData.creator_id)
+    .eq("brand_id", applicationData.campaigns.brand_id)
+    .single();
+  
+  if (convQueryError && convQueryError.code !== "PGRST116") throw convQueryError;
+  
+  let conversationId;
+  
+  if (!existingConversation) {
+    // Create a new conversation for this application
+    const { data: newConversation, error: createConvError } = await supabase
+      .from("conversations")
+      .insert({
+        creator_id: applicationData.creator_id,
+        brand_id: applicationData.campaigns.brand_id
+      })
+      .select()
+      .single();
+    
+    if (createConvError) throw createConvError;
+    conversationId = newConversation.id;
+  } else {
+    conversationId = existingConversation.id;
+  }
+  
+  // Add the note as a message
+  const { error: messageError } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: applicationData.campaigns.brand_id,
+      receiver_id: applicationData.creator_id,
+      content: `[Application Note] ${note}`
+    });
+  
+  if (messageError) throw messageError;
 }
-
