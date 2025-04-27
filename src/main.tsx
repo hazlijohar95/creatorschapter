@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "./lib/queryClientProvider";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from './components/ui/toaster';
 import App from './App';
 import './index.css';
@@ -15,8 +16,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <QueryProvider>
           <App />
           <Toaster />
+          <ReactQueryDevtools initialIsOpen={false} />
         </QueryProvider>
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
+
