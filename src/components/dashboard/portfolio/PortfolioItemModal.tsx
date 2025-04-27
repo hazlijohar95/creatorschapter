@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Loader2, Upload, Link, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { FileUpload } from "@/components/shared/FileUpload";
 
 interface PortfolioItemModalProps {
   isOpen: boolean;
@@ -58,17 +58,17 @@ export default function PortfolioItemModal({
     }
   }, [isOpen, item]);
 
-  // Handle file change
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setMediaFile(file);
-      const fileReader = new FileReader();
-      fileReader.onload = (e) => {
-        setMediaPreview(e.target?.result as string);
-      };
-      fileReader.readAsDataURL(file);
-    }
+  const handleFileUpload = (url: string) => {
+    setMediaPreview(url);
+    setMediaFile(null); // Clear the file since we're using the URL directly now
+  };
+
+  const handleFileError = (error: Error) => {
+    toast({
+      title: "Upload failed",
+      description: error.message,
+      variant: "destructive"
+    });
   };
 
   // Handle form submission
@@ -89,26 +89,11 @@ export default function PortfolioItemModal({
     try {
       let mediaUrl = item?.media_url || null;
       
-      // If there's a new file to upload
-      if (mediaFile) {
-        const fileExt = mediaFile.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `${userId}/${fileName}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('portfolio-media')
-          .upload(filePath, mediaFile);
-        
-        if (uploadError) throw uploadError;
-        
-        mediaUrl = `https://xceitaturyhtqzuoibrd.supabase.co/storage/v1/object/public/portfolio-media/${filePath}`;
-      }
-      
       const itemData = {
         title,
         description,
         is_featured: isFeatured,
-        media_url: mediaUrl,
+        media_url: mediaPreview,
         external_link: externalLink || null
       };
       
@@ -183,14 +168,13 @@ export default function PortfolioItemModal({
             <div className="space-y-2">
               <Label htmlFor="media">Media Upload</Label>
               <div className="border rounded-md p-2">
-                <Input
-                  id="media"
-                  type="file"
-                  onChange={handleFileChange}
+                <FileUpload
+                  onUploadComplete={handleFileUpload}
+                  onError={handleFileError}
                   accept="image/*,video/*"
-                  className="mb-2"
+                  buttonText="Upload Media"
                 />
-                
+              
                 {mediaPreview && (
                   <div className="mt-2 relative aspect-video bg-muted rounded-md overflow-hidden">
                     {mediaPreview.match(/\.(jpg|jpeg|png|gif|webp)$/i) || mediaPreview.startsWith('data:image/') ? (
