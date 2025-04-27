@@ -1,34 +1,26 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { CardSkeleton } from "@/components/shared/CardSkeleton";
 import { ErrorFallback } from "@/components/shared/ErrorFallback";
-
-interface BrandMetrics {
-  activeCampaigns: number;
-  totalApplications: number;
-  activeCollaborations: number;
-  deliveredContent: number;
-}
+import { BrandMetrics, Campaign, CampaignCreator } from "@/types/brandDashboard";
 
 export function BrandOverview() {
   const { user } = useAuthStore();
 
-  const { data: metrics, isLoading, error } = useQuery({
+  const { data: metrics, isLoading, error } = useQuery<BrandMetrics>({
     queryKey: ['brand-metrics', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      // Use explicit return types for Supabase queries
       const { data: campaigns } = await supabase
         .from('campaigns')
-        .select('status');
+        .select('status') as { data: Campaign[] | null };
 
       const { data: applications } = await supabase
         .from('campaign_creators')
         .select('status')
-        .eq('brand_id', user?.id);
+        .eq('brand_id', user?.id) as { data: CampaignCreator[] | null };
 
       const metrics: BrandMetrics = {
         activeCampaigns: campaigns?.filter(c => c.status === 'active').length || 0,
