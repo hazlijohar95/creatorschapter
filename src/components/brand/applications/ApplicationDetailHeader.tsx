@@ -1,7 +1,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { ApplicationStatusBadge } from "../ApplicationStatusBadge";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 
 interface Props {
   creatorName: string;
@@ -28,7 +28,7 @@ export function ApplicationDetailHeader({
           <SheetDescription>{creatorHandle}</SheetDescription>
         </div>
       </div>
-      <ApplicationStatusBadge status={status} />
+      <StatusBadge status={status} />
     </div>
   );
 }
