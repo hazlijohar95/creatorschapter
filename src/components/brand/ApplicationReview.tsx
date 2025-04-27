@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplicationFilterBar } from "./applications/ApplicationFilterBar";
@@ -9,6 +8,7 @@ import { useApplications } from "@/hooks/useApplications";
 import { Application } from "@/types/applications";
 import { APPLICATIONS } from "@/data/mock-applications";
 import { useToast } from "@/hooks/use-toast";
+import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
 
 export function ApplicationReview() {
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -67,9 +67,6 @@ export function ApplicationReview() {
   };
 
   const handleAddNote = (id: number, note: string) => {
-    // Instead of using setApplications (which doesn't exist), we need to handle this differently
-    // since we're using the useApplications custom hook
-    // We'll just log and display a toast notification
     console.log(`Adding note to application ${id}: ${note}`);
     toast({
       title: "Note added",

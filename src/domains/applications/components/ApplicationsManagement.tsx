@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, MessageSquare } from "lucide-react";
 import { useState } from "react";
-import { Application } from "../types/opportunity";
+import { Application } from "@/types/applications";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 
 interface ApplicationsManagementProps {
