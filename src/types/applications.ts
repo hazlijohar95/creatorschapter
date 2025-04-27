@@ -2,7 +2,7 @@
 export type Status = "pending" | "approved" | "rejected" | "in_discussion";
 
 export interface Application {
-  id: number;
+  id: string;  // Changed from number to string to match UUID
   creatorName: string;
   creatorHandle: string;
   avatar: string;
