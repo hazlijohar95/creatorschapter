@@ -13,6 +13,10 @@ export function BrandOverview() {
     queryKey: ['brand-metrics', user?.id],
     enabled: !!user,
     queryFn: async () => {
+      // Define campaign types explicitly to avoid recursive type definition
+      type Campaign = { status: string };
+      type Application = { status: string };
+      
       const { data: campaigns } = await supabase
         .from('campaigns')
         .select('status')
