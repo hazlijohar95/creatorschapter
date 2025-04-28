@@ -60,7 +60,7 @@ export function CampaignManagement() {
   const handleCreateCampaignWizard = (data: any) => {
     // Convert the wizard data format to the format expected by createCampaign
     createCampaign({
-      brandId: user?.id || "",
+      brand_id: user?.id || "",
       name: data.name,
       description: data.description,
       budget: data.budget,

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
@@ -244,7 +243,7 @@ export function CampaignCalendarView({ campaigns }: CampaignCalendarViewProps) {
           popup
         />
       </div>
-      <style jsx global>{`
+      <style>{`
         .rbc-event {
           padding: 4px;
         }
