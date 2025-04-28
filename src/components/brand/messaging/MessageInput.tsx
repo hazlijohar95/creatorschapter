@@ -61,7 +61,7 @@ export function MessageInput({ conversationId }: MessageInputProps) {
       toast({
         title: "Failed to send",
         description: "Your message could not be sent. Please try again.",
-        variant: "destructive",
+        type: "error"
       });
     } finally {
       setLoading(false);

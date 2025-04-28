@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BrandIdentityForm } from "./BrandIdentityForm";
@@ -49,7 +48,7 @@ export function BrandSettingsPanel() {
         toast({
           title: "Error loading profile",
           description: error.message,
-          variant: "destructive"
+          type: "error"
         });
       } finally {
         setIsLoading(false);
@@ -67,7 +66,7 @@ export function BrandSettingsPanel() {
       toast({
         title: "Error signing out",
         description: error.message,
-        variant: "destructive"
+        type: "error"
       });
     }
   };

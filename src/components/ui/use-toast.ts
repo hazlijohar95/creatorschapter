@@ -1,5 +1,6 @@
 
-import { useToast } from "@/hooks/use-toast";
-import { toast } from "sonner";
+// Re-export from the central hook
+import { useToast, toast, ToastProps, toastTypes } from "@/hooks/use-toast";
 
-export { useToast, toast };
+export { useToast, toast, toastTypes };
+export type { ToastProps };

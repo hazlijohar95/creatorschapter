@@ -30,7 +30,7 @@ export function EventForm({ campaignId, onSuccess, onCancel }: EventFormProps) {
       toast({
         title: "Missing fields",
         description: "Please fill in all required fields",
-        variant: "destructive",
+        type: "error",
       });
       return;
     }
@@ -44,6 +44,7 @@ export function EventForm({ campaignId, onSuccess, onCancel }: EventFormProps) {
       toast({
         title: "Event created",
         description: `Event "${title}" created for ${format(date, "MMMM d, yyyy")}`,
+        type: "success"
       });
       
       if (onSuccess) onSuccess();
@@ -52,7 +53,7 @@ export function EventForm({ campaignId, onSuccess, onCancel }: EventFormProps) {
       toast({
         title: "Error",
         description: "Failed to create event. Please try again.",
-        variant: "destructive",
+        type: "error"
       });
     } finally {
       setIsSubmitting(false);

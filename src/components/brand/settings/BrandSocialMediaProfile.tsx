@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,7 @@ export function BrandSocialMediaProfile() {
     if (!link.platform || !link.url) {
       toast({ 
         title: "Both platform and URL are required.", 
-        variant: "destructive" 
+        type: "error"
       });
       return;
     }
@@ -48,14 +47,15 @@ export function BrandSocialMediaProfile() {
     try {
       await saveSocialLink(user.id, link);
       toast({ 
-        title: link.id ? "Social link updated" : "Social link added" 
+        title: link.id ? "Social link updated" : "Social link added",
+        type: "success" 
       });
       refetch();
     } catch (error: any) {
       toast({ 
         title: "Failed to save link", 
         description: error.message, 
-        variant: "destructive" 
+        type: "error"
       });
     } finally {
       setLoading(false);
@@ -74,12 +74,12 @@ export function BrandSocialMediaProfile() {
     try {
       await deleteSocialLink(link.id);
       setSocialLinks((prev) => prev.filter((_, i) => i !== idx));
-      toast({ title: "Social link removed" });
+      toast({ title: "Social link removed", type: "success" });
     } catch (error: any) {
       toast({ 
         title: "Failed to delete link", 
         description: error.message, 
-        variant: "destructive" 
+        type: "error"
       });
     } finally {
       setLoading(false);
