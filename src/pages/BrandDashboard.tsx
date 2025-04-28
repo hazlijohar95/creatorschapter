@@ -9,7 +9,7 @@ import { Bell, Mail, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export default function BrandDashboard() {
   const { user } = useAuthStore();

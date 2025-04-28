@@ -1,4 +1,5 @@
-import { toast } from "@/components/ui/sonner";
+
+import { toast } from "sonner";
 import { PostgrestError, AuthError } from "@supabase/supabase-js";
 
 // Error categories for better organization
@@ -111,9 +112,8 @@ export function handleError(error: any, contextMessage?: string): AppError {
 
 // Display toast notification for error
 export function showErrorToast(error: AppError) {
-  toast("Error", {
-    description: error.message,
-    variant: "error"
+  toast.error("Error", {
+    description: error.message
   });
 }
 

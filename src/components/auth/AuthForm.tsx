@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { handleError } from "@/lib/auth";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
 import AuthHeader from "./AuthHeader";
@@ -64,9 +64,8 @@ export default function AuthForm() {
     const errors = validateAll();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      toast("Please check your info", {
-        description: Object.values(errors).join(". "),
-        variant: "error"
+      toast.error("Please check your info", {
+        description: Object.values(errors).join(". ")
       });
       return;
     }
@@ -80,20 +79,18 @@ export default function AuthForm() {
         });
         if (error) {
           if (error.message && error.message.toLowerCase().includes("duplicate key value") && error.message.includes("profiles_email_key")) {
-            toast("Sign up error", {
-              description: "Email is already in use.",
-              variant: "error"
+            toast.error("Sign up error", {
+              description: "Email is already in use."
             });
           } else {
-            toast("Sign up error", {
-              description: "Something went wrong. Try again.",
-              variant: "error"
+            toast.error("Sign up error", {
+              description: "Something went wrong. Try again."
             });
           }
           setIsLoading(false);
           return;
         }
-        toast("Account created!", {
+        toast.success("Account created!", {
           description: "Welcome to Creator Chapter"
         });
         // Redirect new users to the appropriate onboarding
@@ -105,14 +102,13 @@ export default function AuthForm() {
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          toast("Login error", {
-            description: "Invalid credentials. Try again.",
-            variant: "error"
+          toast.error("Login error", {
+            description: "Invalid credentials. Try again."
           });
           setIsLoading(false);
           return;
         }
-        toast("Welcome back!", {
+        toast.success("Welcome back!", {
           description: "Signed in successfully"
         });
         // Retrieve profile to check role and redirect
@@ -130,9 +126,8 @@ export default function AuthForm() {
       }
     } catch (error) {
       handleError(error as Error);
-      toast("Unexpected error", {
-        description: isSignUp ? "Sign up error. Try again." : "Login error. Try again.",
-        variant: "error"
+      toast.error("Unexpected error", {
+        description: isSignUp ? "Sign up error. Try again." : "Login error. Try again."
       });
     } finally {
       setIsLoading(false);

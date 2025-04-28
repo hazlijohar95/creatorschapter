@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 import { WaitlistForm } from './waitlist/WaitlistForm';
 import { WaitlistSuccessMessage } from './waitlist/WaitlistSuccessMessage';
 import { WaitlistErrorDialog } from './waitlist/WaitlistErrorDialog';
@@ -77,7 +78,7 @@ const WaitlistSection: React.FC = () => {
           description: "Your information was saved, but we couldn't send confirmation emails. We'll contact you soon!"
         });
       } else {
-        toast("Success!", {
+        toast.success("Success!", {
           description: "You've been added to our waitlist. Check your email for confirmation."
         });
       }
@@ -87,9 +88,8 @@ const WaitlistSection: React.FC = () => {
       console.error('Error submitting form:', error);
       setErrorDetails(error.message);
       
-      toast("Error", {
-        description: "There was an error submitting your form. Please try again.",
-        variant: "error"
+      toast.error("Error", {
+        description: "There was an error submitting your form. Please try again."
       });
       
       setShowErrorDialog(true);

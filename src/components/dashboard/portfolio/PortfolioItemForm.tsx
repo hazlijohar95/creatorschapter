@@ -3,7 +3,7 @@ import React from "react";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { PortfolioItemFormFields } from "./PortfolioItemFormFields";
 import { PortfolioItemMediaUpload } from "./PortfolioItemMediaUpload";
@@ -18,7 +18,6 @@ interface PortfolioItemFormProps {
 }
 
 export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormProps) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!item;
   
@@ -34,10 +33,8 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
   };
 
   const handleUploadError = (error: Error) => {
-    toast({
-      title: "Upload failed",
-      description: error.message,
-      variant: "destructive"
+    toast.error("Upload failed", {
+      description: error.message
     });
   };
 
@@ -45,10 +42,8 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
     e.preventDefault();
     if (!userId) return;
     if (!title.trim()) {
-      toast({ 
-        title: "Title required", 
-        description: "Please enter a title for your portfolio item",
-        variant: "destructive"
+      toast.error("Title required", { 
+        description: "Please enter a title for your portfolio item"
       });
       return;
     }
@@ -76,8 +71,7 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
       
       queryClient.invalidateQueries({ queryKey: ['portfolio', userId] });
       
-      toast({
-        title: isEditing ? "Item updated" : "Item added",
+      toast.success(isEditing ? "Item updated" : "Item added", {
         description: isEditing 
           ? "Your portfolio item has been updated successfully" 
           : "New portfolio item has been added to your collection"
@@ -85,10 +79,8 @@ export function PortfolioItemForm({ onClose, item, userId }: PortfolioItemFormPr
       
       onClose();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
+      toast.error("Error", {
+        description: error.message
       });
     } finally {
       setIsLoading(false);

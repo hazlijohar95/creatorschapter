@@ -1,23 +1,37 @@
 
-import { toast as sonnerToast } from "@/components/ui/sonner";
+import { toast as sonnerToast, type ToastT } from "sonner";
 
-export type ToastOptions = {
+export type ToastProps = {
   title?: string;
   description?: string;
-  variant?: "default" | "destructive";
   action?: React.ReactNode;
+  type?: "default" | "success" | "error" | "warning" | "info";
 };
 
 export function useToast() {
-  const toast = ({ title, description, variant = "default", ...props }: ToastOptions) => {
-    sonnerToast[variant === "destructive" ? "error" : "default"](title, {
-      description,
-      ...props,
-    });
+  const toast = (props: ToastProps) => {
+    const { title, description, action, type = "default" } = props;
+    
+    if (type === "error") {
+      sonnerToast.error(title, {
+        description,
+        action
+      });
+    } else if (type === "success") {
+      sonnerToast.success(title, {
+        description,
+        action
+      });
+    } else {
+      sonnerToast(title, {
+        description,
+        action
+      });
+    }
   };
 
   return { toast };
 }
 
 // Re-export the sonner toast for direct usage
-export { toast } from "@/components/ui/sonner";
+export { toast } from "sonner";
