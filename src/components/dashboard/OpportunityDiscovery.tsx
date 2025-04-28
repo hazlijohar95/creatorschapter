@@ -1,11 +1,12 @@
-
 import { useState, useEffect } from "react";
 import { OpportunityTabs } from "./opportunity/OpportunityTabs";
 import { OpportunityContent } from "./opportunity/OpportunityContent";
 import { OpportunitySummary } from "./OpportunitySummary";
 import { OpportunityDetailModal } from "./opportunity/OpportunityDetailModal";
+import { OpportunitySkeleton } from "./opportunity/OpportunitySkeleton";
 import { Application, FilterOptions, Opportunity, OpportunityTab } from "./types/opportunity";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function OpportunityDiscovery() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -26,8 +27,10 @@ export default function OpportunityDiscovery() {
     sortBy: "relevance",
   });
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
-    const fetchOpportunities = async () => {
+    const prefetchData = async () => {
       setIsLoading(true);
       try {
         const mockData: Opportunity[] = [
@@ -105,11 +108,14 @@ export default function OpportunityDiscovery() {
           },
         ];
         
-        setOpportunities(mockData);
+        queryClient.setQueryData(['opportunities'], mockData);
         
         const recommended = [...mockData]
           .sort((a, b) => b.match - a.match)
           .slice(0, 3);
+        queryClient.setQueryData(['recommendedOpportunities'], recommended);
+        
+        setOpportunities(mockData);
         setRecommendedOpportunities(recommended);
         
         const mockApplications: Application[] = [
@@ -142,6 +148,7 @@ export default function OpportunityDiscovery() {
           },
         ];
         
+        queryClient.setQueryData(['applications'], mockApplications);
         setApplications(mockApplications);
       } catch (error) {
         console.error("Error fetching opportunities:", error);
@@ -151,8 +158,8 @@ export default function OpportunityDiscovery() {
       }
     };
 
-    fetchOpportunities();
-  }, []);
+    prefetchData();
+  }, [queryClient]);
 
   const filteredOpportunities = opportunities.filter((opp) => {
     const searchMatch =
@@ -268,6 +275,10 @@ export default function OpportunityDiscovery() {
       sortBy: "relevance",
     });
   };
+
+  if (isLoading) {
+    return <OpportunitySkeleton />;
+  }
 
   return (
     <div className="space-y-8 pb-12 px-4 md:px-8 max-w-[1300px] mx-auto animate-fade-in">

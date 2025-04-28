@@ -10,7 +10,7 @@ interface QueryProviderProps {
 export function QueryProvider({ children }: QueryProviderProps) {
   const { prefetchData } = useConfigStore();
   
-  // Create a client with optimized caching strategies based on config
+  // Create a client with optimized caching strategies
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -30,4 +30,3 @@ export function QueryProvider({ children }: QueryProviderProps) {
     </QueryClientProvider>
   );
 }
-
