@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, addDays, startOfWeek } from "date-fns";
+import { getCalendarLabel, getNavigationDate } from "../utils/dateUtils";
 
 interface CalendarToolbarProps {
   date: Date;
@@ -12,38 +12,12 @@ interface CalendarToolbarProps {
 
 export function CalendarToolbar({ date, view, onNavigate, onView }: CalendarToolbarProps) {
   const goToBack = () => {
-    let newDate;
-    switch (view) {
-      case "month":
-        newDate = new Date(date.getFullYear(), date.getMonth() - 1, 1);
-        break;
-      case "week":
-        newDate = addDays(date, -7);
-        break;
-      case "day":
-        newDate = addDays(date, -1);
-        break;
-      default:
-        newDate = new Date();
-    }
+    const newDate = getNavigationDate(view, date, "prev");
     onNavigate("prev", newDate);
   };
 
   const goToNext = () => {
-    let newDate;
-    switch (view) {
-      case "month":
-        newDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-        break;
-      case "week":
-        newDate = addDays(date, 7);
-        break;
-      case "day":
-        newDate = addDays(date, 1);
-        break;
-      default:
-        newDate = new Date();
-    }
+    const newDate = getNavigationDate(view, date, "next");
     onNavigate("next", newDate);
   };
 
@@ -51,18 +25,7 @@ export function CalendarToolbar({ date, view, onNavigate, onView }: CalendarTool
     onNavigate("TODAY", new Date());
   };
 
-  const label = () => {
-    if (view === "month") {
-      return format(date, "MMMM yyyy");
-    } else if (view === "week") {
-      const start = startOfWeek(date);
-      const end = addDays(start, 6);
-      return `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`;
-    } else if (view === "day") {
-      return format(date, "MMMM d, yyyy");
-    }
-    return "";
-  };
+  const label = getCalendarLabel(view, date);
 
   return (
     <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
@@ -78,7 +41,7 @@ export function CalendarToolbar({ date, view, onNavigate, onView }: CalendarTool
         </Button>
       </div>
 
-      <h2 className="text-xl font-semibold">{label()}</h2>
+      <h2 className="text-xl font-semibold">{label}</h2>
 
       <div className="flex items-center space-x-2">
         <Select value={view} onValueChange={onView}>

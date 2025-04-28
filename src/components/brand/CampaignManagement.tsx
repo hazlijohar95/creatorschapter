@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCampaigns } from "@/hooks/queries/useCampaigns";
 import { useAuthStore } from "@/lib/auth";
@@ -80,6 +81,8 @@ export function CampaignManagement() {
       setSearchQuery(newFilters.searchTerm);
     }
   };
+  
+  const handleCreateClick = () => setWizardOpen(true);
 
   if (isLoading) return <CampaignLoadingState />;
   if (error) return <CampaignErrorState error={error as Error} />;
@@ -87,7 +90,7 @@ export function CampaignManagement() {
   return (
     <div className="p-6 space-y-6">
       <CampaignHeader 
-        onCreateClick={() => setWizardOpen(true)}
+        onCreateClick={handleCreateClick}
         view={view}
         onViewChange={setView}
       />
@@ -100,14 +103,17 @@ export function CampaignManagement() {
       <CampaignAnalytics data={analyticsData} />
 
       {view === "calendar" ? (
-        <CampaignCalendarView campaigns={campaigns} />
+        <CampaignCalendarView 
+          campaigns={campaigns} 
+          onCreateClick={handleCreateClick} 
+        />
       ) : (
         <CampaignTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
           campaigns={campaigns}
           searchQuery={searchQuery}
-          onCreateClick={() => setWizardOpen(true)}
+          onCreateClick={handleCreateClick}
         />
       )}
 

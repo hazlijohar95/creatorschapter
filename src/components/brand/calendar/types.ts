@@ -19,4 +19,5 @@ export interface CalendarEvent {
 
 export interface CampaignCalendarViewProps {
   campaigns: Campaign[];
+  onCreateClick?: () => void;
 }
