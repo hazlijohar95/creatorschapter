@@ -4,9 +4,9 @@ import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { BrandSidebar } from "@/components/brand/BrandSidebar";
-import { BrandOverview } from "@/components/brand/BrandOverview";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Outlet } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function BrandDashboard() {
   const { user } = useAuthStore();
@@ -27,6 +27,7 @@ export default function BrandDashboard() {
           <Outlet />
         </main>
       </div>
+      <Toaster />
     </SidebarProvider>
   );
 }

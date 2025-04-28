@@ -34,45 +34,81 @@ export function useBrandDashboardStats() {
     queryFn: async (): Promise<BrandDashboardStats> => {
       if (!userId) throw new Error("No user ID");
       
-      // Get active campaigns count
-      const { data: activeCampaigns, error: campaignsError } = await supabase
-        .from("campaigns")
-        .select("id", { count: "exact" })
-        .eq("brand_id", userId)
-        .eq("status", "active");
+      console.log("Fetching brand dashboard stats for user ID:", userId);
+      
+      try {
+        // Get active campaigns count
+        const { data: activeCampaigns, error: campaignsError } = await supabase
+          .from("campaigns")
+          .select("id", { count: "exact" })
+          .eq("brand_id", userId)
+          .eq("status", "active");
 
-      if (campaignsError) throw campaignsError;
+        if (campaignsError) throw campaignsError;
+        console.log("Active campaigns found:", activeCampaigns?.length);
 
-      // Get applications count
-      const { data: applications, error: applicationsError } = await supabase
-        .from("campaign_creators")
-        .select("id", { count: "exact" })
-        .eq("status", "pending");
+        // Get all campaign IDs for this brand (needed for filtering applications)
+        const { data: allCampaigns, error: allCampaignsError } = await supabase
+          .from("campaigns")
+          .select("id")
+          .eq("brand_id", userId);
+          
+        if (allCampaignsError) throw allCampaignsError;
+        
+        const campaignIds = allCampaigns?.map(c => c.id) || [];
+        console.log("All campaign IDs:", campaignIds);
+        
+        // Get applications count - filtering by campaigns owned by this brand
+        let applicationsCount = 0;
+        if (campaignIds.length > 0) {
+          const { data: applications, error: applicationsError } = await supabase
+            .from("campaign_creators")
+            .select("id", { count: "exact" })
+            .in("campaign_id", campaignIds)
+            .eq("status", "pending");
 
-      if (applicationsError) throw applicationsError;
+          if (applicationsError) throw applicationsError;
+          applicationsCount = applications?.length || 0;
+          console.log("Applications count:", applicationsCount);
+        }
 
-      // Get active collaborations count (approved campaign creators)
-      const { data: collaborations, error: collaborationsError } = await supabase
-        .from("campaign_creators")
-        .select("id", { count: "exact" })
-        .eq("status", "approved");
+        // Get active collaborations count (approved campaign creators)
+        let collaborationsCount = 0;
+        if (campaignIds.length > 0) {
+          const { data: collaborations, error: collaborationsError } = await supabase
+            .from("campaign_creators")
+            .select("id", { count: "exact" })
+            .in("campaign_id", campaignIds)
+            .eq("status", "approved");
 
-      if (collaborationsError) throw collaborationsError;
+          if (collaborationsError) throw collaborationsError;
+          collaborationsCount = collaborations?.length || 0;
+          console.log("Active collaborations count:", collaborationsCount);
+        }
 
-      // Get content delivered count from campaign metrics
-      // Removed the 'distinct' option as it's not supported
-      const { data: metrics, error: metricsError } = await supabase
-        .from("campaign_metrics")
-        .select("campaign_id", { count: "exact" });
+        // Get content delivered count from campaign metrics
+        let contentCount = 0;
+        if (campaignIds.length > 0) {
+          const { data: metrics, error: metricsError } = await supabase
+            .from("campaign_metrics")
+            .select("id", { count: "exact" })
+            .in("campaign_id", campaignIds);
 
-      if (metricsError) throw metricsError;
+          if (metricsError) throw metricsError;
+          contentCount = metrics?.length || 0;
+          console.log("Content delivered count:", contentCount);
+        }
 
-      return {
-        activeCampaigns: activeCampaigns?.length || 0,
-        creatorApplications: applications?.length || 0,
-        activeCollaborations: collaborations?.length || 0,
-        contentDelivered: metrics?.length || 0
-      };
+        return {
+          activeCampaigns: activeCampaigns?.length || 0,
+          creatorApplications: applicationsCount,
+          activeCollaborations: collaborationsCount,
+          contentDelivered: contentCount
+        };
+      } catch (error) {
+        console.error("Error fetching brand dashboard stats:", error);
+        throw error;
+      }
     },
     enabled: !!userId
   });
@@ -83,32 +119,46 @@ export function useBrandDashboardStats() {
     queryFn: async (): Promise<RecentApplication[]> => {
       if (!userId) throw new Error("No user ID");
       
-      const { data, error } = await supabase
-        .from("campaign_creators")
-        .select(`
-          id,
-          created_at,
-          campaigns!inner(
-            name,
-            brand_id
-          ),
-          profiles!creator_id(
-            full_name
-          )
-        `)
-        .eq("campaigns.brand_id", userId)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(3);
+      try {
+        // First, get all campaign IDs for this brand
+        const { data: campaigns, error: campaignsError } = await supabase
+          .from("campaigns")
+          .select("id")
+          .eq("brand_id", userId);
+          
+        if (campaignsError) throw campaignsError;
+        
+        const campaignIds = campaigns?.map(c => c.id) || [];
+        if (campaignIds.length === 0) return [];
+        
+        // Then get recent applications for these campaigns
+        const { data, error } = await supabase
+          .from("campaign_creators")
+          .select(`
+            id,
+            created_at,
+            campaign_id,
+            campaigns!inner(name),
+            creator_id,
+            profiles!creator_id(full_name)
+          `)
+          .in("campaign_id", campaignIds)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(3);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      return (data || []).map(item => ({
-        id: item.id,
-        creator_name: item.profiles?.full_name || "Unknown Creator",
-        campaign_name: item.campaigns?.name || "Unknown Campaign",
-        created_at: item.created_at
-      }));
+        return (data || []).map(item => ({
+          id: item.id,
+          creator_name: item.profiles?.full_name || "Unknown Creator",
+          campaign_name: item.campaigns?.name || "Unknown Campaign",
+          created_at: item.created_at
+        }));
+      } catch (error) {
+        console.error("Error fetching recent applications:", error);
+        return [];
+      }
     },
     enabled: !!userId
   });
@@ -119,23 +169,29 @@ export function useBrandDashboardStats() {
     queryFn: async (): Promise<Deadline[]> => {
       if (!userId) throw new Error("No user ID");
       
-      const { data, error } = await supabase
-        .from("campaigns")
-        .select("id, name, end_date")
-        .eq("brand_id", userId)
-        .order("end_date", { ascending: true })
-        .limit(3);
+      try {
+        const { data, error } = await supabase
+          .from("campaigns")
+          .select("id, name, end_date")
+          .eq("brand_id", userId)
+          .not('end_date', 'is', null)
+          .order("end_date", { ascending: true })
+          .limit(3);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      return (data || [])
-        .filter(item => item.end_date) // Only include items with end_date
-        .map(item => ({
-          id: item.id,
-          name: item.name,
-          date: item.end_date,
-          type: "Campaign End"
-        }));
+        return (data || [])
+          .filter(item => item.end_date) // Double-check we have dates
+          .map(item => ({
+            id: item.id,
+            name: item.name,
+            date: item.end_date,
+            type: "Campaign End"
+          }));
+      } catch (error) {
+        console.error("Error fetching upcoming deadlines:", error);
+        return [];
+      }
     },
     enabled: !!userId
   });

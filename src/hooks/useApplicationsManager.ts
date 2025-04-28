@@ -34,6 +34,7 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
   
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string, status: Status }) => {
+      console.log(`Updating application ${id} status to ${status}`);
       const { error } = await supabase
         .from('campaign_creators')
         .update({ status })
@@ -42,13 +43,38 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
       if (error) throw error;
       return { id, status };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.brandApplications] });
+      
+      const statusMessages = {
+        approved: "Application approved successfully",
+        rejected: "Application rejected",
+        in_discussion: "Application moved to discussion"
+      };
+      
+      toast({
+        title: statusMessages[data.status] || "Status updated",
+        type: data.status === "approved" ? "success" : "default"
+      });
+      
+      // If moving to discussion, create a conversation if one doesn't exist
+      if (data.status === "in_discussion") {
+        createConversationIfNeeded(data.id);
+      }
+    },
+    onError: (error) => {
+      console.error("Error updating application status:", error);
+      toast({
+        title: "Error updating application",
+        description: "There was a problem updating the application status. Please try again.",
+        type: "destructive"
+      });
     }
   });
   
   const addNoteMutation = useMutation({
     mutationFn: async ({ id, note }: AddNoteParams) => {
+      console.log(`Adding note to application ${id}: ${note}`);
       const { error } = await supabase
         .from('campaign_creators')
         .update({ brand_response: note })
@@ -59,8 +85,74 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeys.brandApplications] });
+      toast({
+        title: "Note added",
+        description: "Your note has been added to the application",
+        type: "success"
+      });
+    },
+    onError: (error) => {
+      console.error("Error adding note:", error);
+      toast({
+        title: "Error adding note",
+        description: "There was a problem adding your note. Please try again.",
+        type: "destructive"
+      });
     }
   });
+
+  const createConversationIfNeeded = async (applicationId: string) => {
+    try {
+      // First get the application data to get creator_id
+      const { data: applicationData, error: appError } = await supabase
+        .from("campaign_creators")
+        .select(`
+          creator_id,
+          campaigns!inner(brand_id)
+        `)
+        .eq("id", applicationId)
+        .single();
+        
+      if (appError) throw appError;
+      
+      const creatorId = applicationData.creator_id;
+      const brandId = applicationData.campaigns.brand_id;
+      
+      if (!creatorId || !brandId) {
+        throw new Error("Missing creator or brand ID");
+      }
+      
+      // Check if a conversation already exists
+      const { data: existingConversation, error: convError } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("creator_id", creatorId)
+        .eq("brand_id", brandId)
+        .maybeSingle();
+        
+      if (convError) throw convError;
+      
+      // If no conversation exists, create one
+      if (!existingConversation) {
+        const { data: newConversation, error: createError } = await supabase
+          .from("conversations")
+          .insert([{
+            creator_id: creatorId,
+            brand_id: brandId
+          }])
+          .select()
+          .single();
+          
+        if (createError) throw createError;
+        
+        console.log("Created new conversation:", newConversation);
+      } else {
+        console.log("Conversation already exists:", existingConversation);
+      }
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+    }
+  };
 
   const handleApprove = async (id: string) => {
     await updateStatusMutation.mutate({ id, status: "approved" });
@@ -79,7 +171,7 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
       toast({
         title: "No applications selected",
         description: "Please select at least one application to perform this action.",
-        variant: "destructive"
+        type: "destructive"
       });
       return;
     }
@@ -102,7 +194,8 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
     if (successCount > 0) {
       toast({
         title: `${successCount} applications updated`,
-        description: `Status changed to ${newStatus}.`
+        description: `Status changed to ${newStatus}.`,
+        type: "success"
       });
     }
 
@@ -110,7 +203,7 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
       toast({
         title: `${errorCount} updates failed`,
         description: "Some applications couldn't be updated. Please try again.",
-        variant: "destructive"
+        type: "destructive"
       });
     }
 
