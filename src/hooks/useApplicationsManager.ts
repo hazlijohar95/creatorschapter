@@ -1,13 +1,15 @@
 
+import { useState } from 'react';
 import { useApplicationsQuery } from './queries/useApplicationsQuery';
 import { useApplicationStore } from '@/store/applicationStore';
-import { Application } from '@/types/applications';
+import { Application, Status } from '@/types/applications';
 import { useToast } from './use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export function useApplicationsManager(initialApplications?: Application[]) {
-  const { data: applications = [] } = useApplicationsQuery();
+  const { data = [], isLoading: isLoadingData } = useApplicationsQuery();
+  const applications = initialApplications || data;
   const { selectedApplications, toggleApplicationSelection, clearSelection } = useApplicationStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -97,7 +99,7 @@ export function useApplicationsManager(initialApplications?: Application[]) {
     clearSelection();
   };
 
-  const addNote = async (id: string, note: string) => {
+  const addNote = async ({ id, note }: { id: string, note: string }) => {
     await addNoteMutation.mutate({ id, note });
   };
 
