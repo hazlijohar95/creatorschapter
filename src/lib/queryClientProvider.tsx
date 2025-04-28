@@ -2,10 +2,15 @@
 import { ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useConfigStore } from "@/store/configStore";
-import { handleError, showErrorToast } from "@/lib/errorHandling";
+import { handleError, showErrorToast, ErrorCategory } from "@/lib/errorHandling";
 
 interface QueryProviderProps {
   children: ReactNode;
+}
+
+// Define a proper type for the mutation context
+interface MutationContext {
+  timestamp?: number;
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
@@ -19,7 +24,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
         retry: (failureCount, error) => {
           // Don't retry on 404s or auth errors
           const appError = handleError(error);
-          if (appError.category === "not_found" || appError.category === "auth") {
+          if (appError.category === ErrorCategory.NOT_FOUND || appError.category === ErrorCategory.AUTH) {
             return false;
           }
           return failureCount < 2;
@@ -27,8 +32,6 @@ export function QueryProvider({ children }: QueryProviderProps) {
         refetchOnMount: prefetchData,
         refetchOnWindowFocus: prefetchData,
         refetchOnReconnect: true,
-        suspense: true, // Enable React Suspense mode
-        useErrorBoundary: true, // Use error boundaries for query errors
       },
       mutations: {
         onError: (error) => {
@@ -37,11 +40,12 @@ export function QueryProvider({ children }: QueryProviderProps) {
         },
         onMutate: () => {
           // Show pending toast for long-running mutations
-          return { timestamp: Date.now() };
+          return { timestamp: Date.now() } as MutationContext;
         },
         onSettled: (_, error, variables, context) => {
-          if (!error && context?.timestamp) {
-            const duration = Date.now() - context.timestamp;
+          const typedContext = context as MutationContext;
+          if (!error && typedContext?.timestamp) {
+            const duration = Date.now() - typedContext.timestamp;
             // Only show success toast for operations that took longer than 1 second
             if (duration > 1000) {
               // toast.success("Operation completed successfully");
