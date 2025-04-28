@@ -60,9 +60,10 @@ export function useBrandDashboardStats() {
       if (collaborationsError) throw collaborationsError;
 
       // Get content delivered count from campaign metrics
+      // Removed the 'distinct' option as it's not supported
       const { data: metrics, error: metricsError } = await supabase
         .from("campaign_metrics")
-        .select("campaign_id", { count: "exact", distinct: true });
+        .select("campaign_id", { count: "exact" });
 
       if (metricsError) throw metricsError;
 

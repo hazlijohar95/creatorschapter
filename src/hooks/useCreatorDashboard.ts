@@ -108,7 +108,7 @@ export function useCreatorDashboard() {
           name,
           description,
           budget,
-          brand_profiles!brand_id(company_name),
+          brand_id,
           created_at
         `)
         .eq("status", "active")
@@ -116,6 +116,24 @@ export function useCreatorDashboard() {
         .limit(3);
       
       if (error) throw error;
+      
+      // Get brand info separately
+      const brandInfo = new Map<string, string>();
+      if (data && data.length > 0) {
+        const brandIds = data.map(item => item.brand_id).filter(Boolean);
+        if (brandIds.length > 0) {
+          const { data: brands } = await supabase
+            .from("brand_profiles")
+            .select("id, company_name")
+            .in("id", brandIds);
+          
+          if (brands) {
+            brands.forEach(brand => {
+              brandInfo.set(brand.id, brand.company_name || "Brand");
+            });
+          }
+        }
+      }
       
       return (data || []).map(item => {
         // Determine tag based on recency
@@ -127,7 +145,7 @@ export function useCreatorDashboard() {
         let tagStyle = daysDiff <= 1 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800";
         
         // If budget is within certain ranges, mark as perfect match (simplified logic)
-        if (item.budget && parseFloat(item.budget) >= 1000) {
+        if (item.budget && parseFloat(String(item.budget)) >= 1000) {
           tag = "Perfect Match";
           tagStyle = "bg-blue-100 text-blue-800";
         }
@@ -135,7 +153,7 @@ export function useCreatorDashboard() {
         return {
           id: item.id,
           title: item.name,
-          brand: item.brand_profiles?.company_name || "Brand",
+          brand: brandInfo.get(item.brand_id) || "Brand",
           price: item.budget ? `$${item.budget}` : "TBD",
           tag,
           tagStyle
