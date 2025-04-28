@@ -9,12 +9,11 @@ import { Bell, Mail, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 
 export default function BrandDashboard() {
   const { user } = useAuthStore();
   const { loading } = useProfileCompletion();
-  const { toast } = useToast();
 
   useEffect(() => {
     document.title = "Brand Dashboard | Creator Chapter";
@@ -24,8 +23,7 @@ export default function BrandDashboard() {
   if (loading) return <div className="p-6 flex items-center justify-center min-h-screen"><div className="animate-pulse text-accent">Loading...</div></div>;
 
   const handleNotificationClick = () => {
-    toast({
-      title: "Notifications",
+    toast("Notifications", {
       description: "You have 3 unread notifications"
     });
   };
@@ -67,7 +65,9 @@ export default function BrandDashboard() {
                   variant="ghost" 
                   size="icon" 
                   className="text-gray-400 hover:text-white hover:bg-white/10"
-                  onClick={() => toast({ title: "Messages", description: "You have 2 unread messages" })}
+                  onClick={() => toast("Messages", {
+                    description: "You have 2 unread messages"
+                  })}
                 >
                   <Mail className="h-5 w-5" />
                   <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent text-[10px] font-medium flex items-center justify-center">2</span>

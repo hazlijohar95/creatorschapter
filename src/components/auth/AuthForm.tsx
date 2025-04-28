@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { handleError } from "@/lib/auth";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
 import AuthHeader from "./AuthHeader";
@@ -64,10 +64,9 @@ export default function AuthForm() {
     const errors = validateAll();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      toast({
-        title: "Please check your info",
+      toast("Please check your info", {
         description: Object.values(errors).join(". "),
-        variant: "destructive"
+        variant: "error"
       });
       return;
     }
@@ -81,14 +80,22 @@ export default function AuthForm() {
         });
         if (error) {
           if (error.message && error.message.toLowerCase().includes("duplicate key value") && error.message.includes("profiles_email_key")) {
-            toast({ title: "Sign up error", description: "Email is already in use.", variant: "destructive" });
+            toast("Sign up error", {
+              description: "Email is already in use.",
+              variant: "error"
+            });
           } else {
-            toast({ title: "Sign up error", description: "Something went wrong. Try again.", variant: "destructive" });
+            toast("Sign up error", {
+              description: "Something went wrong. Try again.",
+              variant: "error"
+            });
           }
           setIsLoading(false);
           return;
         }
-        toast({ title: "Account created!", description: "Welcome to Creator Chapter" });
+        toast("Account created!", {
+          description: "Welcome to Creator Chapter"
+        });
         // Redirect new users to the appropriate onboarding
         if (role === "brand") {
           navigate("/brand-onboarding");
@@ -98,11 +105,16 @@ export default function AuthForm() {
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          toast({ title: "Login error", description: "Invalid credentials. Try again.", variant: "destructive" });
+          toast("Login error", {
+            description: "Invalid credentials. Try again.",
+            variant: "error"
+          });
           setIsLoading(false);
           return;
         }
-        toast({ title: "Welcome back!", description: "Signed in successfully" });
+        toast("Welcome back!", {
+          description: "Signed in successfully"
+        });
         // Retrieve profile to check role and redirect
         const userId = data?.user?.id;
         if (userId) {
@@ -118,10 +130,9 @@ export default function AuthForm() {
       }
     } catch (error) {
       handleError(error as Error);
-      toast({
-        title: isSignUp ? "Sign up error" : "Login error",
-        description: "Unexpected error. Try again.",
-        variant: "destructive"
+      toast("Unexpected error", {
+        description: isSignUp ? "Sign up error. Try again." : "Login error. Try again.",
+        variant: "error"
       });
     } finally {
       setIsLoading(false);
