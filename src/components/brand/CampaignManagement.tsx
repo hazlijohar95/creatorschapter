@@ -40,7 +40,6 @@ export function CampaignManagement() {
     status: activeTab !== "all" ? activeTab : undefined
   });
 
-  // Mock analytics data - replace with real data from your backend
   const analyticsData = [
     { name: "Jan", impressions: 1200, engagements: 800 },
     { name: "Feb", impressions: 1800, engagements: 1200 },
@@ -57,7 +56,6 @@ export function CampaignManagement() {
   };
   
   const handleCreateCampaignWizard = (data: any) => {
-    // Convert the wizard data format to the format expected by createCampaign
     createCampaign({
       brand_id: user?.id || "",
       name: data.name,
@@ -66,9 +64,7 @@ export function CampaignManagement() {
       start_date: data.start_date,
       end_date: data.end_date,
       categories: data.categories,
-      status: "draft",
-      content_requirements: data.content_requirements,
-      audience_requirements: data.audience_requirements
+      status: "draft"
     });
     setWizardOpen(false);
     
@@ -80,7 +76,6 @@ export function CampaignManagement() {
 
   const handleFilterChange = (newFilters: any) => {
     setFilters(newFilters);
-    // Update searchQuery if searchTerm is provided
     if (newFilters.searchTerm !== undefined) {
       setSearchQuery(newFilters.searchTerm);
     }
@@ -116,7 +111,6 @@ export function CampaignManagement() {
         />
       )}
 
-      {/* Legacy campaign form dialog */}
       <CampaignFormDialog 
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}
@@ -125,7 +119,6 @@ export function CampaignManagement() {
         mode="create"
       />
       
-      {/* New campaign wizard dialog */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-auto p-0 gap-0">
           <CampaignWizard
