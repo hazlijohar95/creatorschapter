@@ -5,7 +5,7 @@
 
 The Chapter Creator team takes security seriously. We appreciate your efforts to responsibly disclose your findings.
 
-To report a security vulnerability, please email [SECURITY CONTACT EMAIL] with a description of the issue, the steps you took to create the issue, affected versions, and if known, mitigations for the issue.
+To report a security vulnerability, please email work@hazli.wtf with a description of the issue, the steps you took to create the issue, affected versions, and if known, mitigations for the issue.
 
 We aim to respond to vulnerability reports within 48 hours, and will work with you to understand and address the issue quickly.
 
