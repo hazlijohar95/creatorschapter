@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { OpportunityTabs } from "./opportunity/OpportunityTabs";
 import { OpportunityContent } from "./opportunity/OpportunityContent";
+import { OpportunitySummary } from "./OpportunitySummary";
 import { OpportunityDetailModal } from "./opportunity/OpportunityDetailModal";
 import { Application, FilterOptions, Opportunity, OpportunityTab } from "./types/opportunity";
 import { toast } from "sonner";
