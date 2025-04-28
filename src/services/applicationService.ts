@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Application, Status, ApplicationApiResponse } from "@/types/applications";
 import { withErrorHandling } from "./serviceUtils";
@@ -33,7 +34,7 @@ export async function getBrandApplications(brandId: string) {
     if (error) throw error;
 
     // Transform data to match Application interface
-    return (data || []).map((item: ApplicationApiResponse) => transformApplicationData(item));
+    return (data || []).map((item: any) => transformApplicationData(item));
   }, "Failed to fetch applications");
 }
 
@@ -55,7 +56,7 @@ export async function addApplicationNote(applicationId: string, note: string) {
     const { error } = await supabase
       .from("campaign_creators")
       .update({ brand_response: note })
-      .eq("id", id);
+      .eq("id", applicationId); // Fixed: using applicationId instead of id
     
     if (error) throw error;
   }, "Failed to add application note");

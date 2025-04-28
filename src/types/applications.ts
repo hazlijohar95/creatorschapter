@@ -32,15 +32,17 @@ export interface ValidationResult {
   message?: string;
 }
 
-// API response shapes
+// API response shapes - Updated to match actual database response structure
 export interface ApplicationApiResponse {
   id: string;
   created_at: string;
-  campaign_id: string;
-  creator_id: string;
-  status: Status;
+  status: string; // Changed from Status to string to match DB response
   application_message?: string;
   brand_response?: string;
+  // These fields are only in some responses
+  campaign_id?: string;
+  creator_id?: string;
+  // Nested objects
   campaigns?: {
     id: string;
     name: string;
@@ -48,6 +50,7 @@ export interface ApplicationApiResponse {
     budget?: number;
   };
   profiles?: {
+    id?: string;
     full_name?: string;
     username?: string;
     avatar_url?: string;

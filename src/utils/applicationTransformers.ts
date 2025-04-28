@@ -12,7 +12,7 @@ export function transformApplicationData(item: ApplicationApiResponse): Applicat
     avatar: item.profiles?.avatar_url || "",
     campaign: item.campaigns?.name || "Unknown Campaign",
     date: new Date(item.created_at).toLocaleDateString(),
-    status: item.status as Status,
+    status: item.status as Status, // Cast string to Status type
     message: item.application_message || "",
     categories: [],  // Default empty array
     match: 85,  // Default match score

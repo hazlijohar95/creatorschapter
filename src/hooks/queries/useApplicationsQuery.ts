@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/services/queryKeys";
 import { useAuthStore } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Application, Status, ApplicationApiResponse } from "@/types/applications";
+import { Application, Status } from "@/types/applications";
+import { transformApplicationData } from "@/utils/applicationTransformers";
 
 export interface UseApplicationsQueryOptions {
   brandId?: string;
@@ -38,7 +39,8 @@ export function useApplicationsQuery(options: UseApplicationsQueryOptions = {}) 
           campaigns (
             id,
             name,
-            description
+            description,
+            budget
           ),
           profiles (
             full_name, 
@@ -57,21 +59,7 @@ export function useApplicationsQuery(options: UseApplicationsQueryOptions = {}) 
       }
 
       // Transform data to match the Application interface
-      return (data || []).map((item: ApplicationApiResponse): Application => ({
-        id: item.id,
-        creatorName: item.profiles?.full_name || "Anonymous",
-        creatorHandle: item.profiles?.username || "@unknown",
-        avatar: item.profiles?.avatar_url || "",
-        campaign: item.campaigns?.name || "Unknown Campaign",
-        date: new Date(item.created_at).toLocaleDateString(),
-        status: item.status as Status,
-        message: item.application_message || "",
-        categories: [],  // Default empty array
-        match: 85,  // Default match score
-        isNew: false,  // Default isNew status
-        budget: item.campaigns?.budget ? `$${item.campaigns.budget}` : "Unspecified",
-        notes: item.brand_response ? [item.brand_response] : []
-      }));
+      return (data || []).map((item: any) => transformApplicationData(item));
     },
     enabled: !!brand_id,
   });
