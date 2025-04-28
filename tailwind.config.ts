@@ -64,12 +64,19 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				// Custom colors
-				darkbg: '#0B0B0B',
-				neon: '#F6FF00',
-				premiumBlack: '#111111',
-				navygrad: '#0A102D',
-				glassBg: 'rgba(255, 255, 255, 0.05)',
-				glassBorder: 'rgba(255, 255, 255, 0.1)',
+				darkbg: '#1A1F2C',             // Dark blue background
+				darksurface: '#222B40',        // Slightly lighter surface
+				softblue: '#39506E',           // Soft blue for accents
+				accentblue: '#4A6FFF',         // Accent blue for highlights
+				navygrad: '#0A102D',           // Navy gradient color
+				glassBg: 'rgba(34, 43, 64, 0.9)', // Semi-transparent background
+				glassBorder: 'rgba(73, 85, 114, 0.3)', // Subtle border 
+				chartpurple: '#9b87f5',        // Purple for charts
+				chartblue: '#4A6FFF',          // Blue for charts
+				chartcyan: '#33C3F0',          // Cyan for charts
+				success: '#10B981',            // Success green
+				warning: '#F59E0B',            // Warning orange
+				error: '#EF4444',              // Error red
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -105,10 +112,10 @@ export default {
 				},
 				'glow': {
 					'0%, 100%': {
-						boxShadow: '0 0 20px 2px rgba(246, 255, 0, 0.3)'
+						boxShadow: '0 0 20px 2px rgba(74, 111, 255, 0.3)'
 					},
 					'50%': {
-						boxShadow: '0 0 25px 5px rgba(246, 255, 0, 0.5)'
+						boxShadow: '0 0 25px 5px rgba(74, 111, 255, 0.5)'
 					}
 				}
 			},

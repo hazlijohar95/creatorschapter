@@ -92,9 +92,12 @@ export function ApplicationReview() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto animate-fade-in">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold font-space">Creator Applications</h1>
+        <div>
+          <h1 className="text-2xl font-bold font-space text-white">Creator Applications</h1>
+          <p className="text-gray-400 text-sm mt-1">Review and manage creator applications</p>
+        </div>
         
         <div className="flex flex-wrap gap-2">
           <BulkActions 
@@ -106,49 +109,64 @@ export function ApplicationReview() {
         </div>
       </div>
 
-      <ApplicationFilterBar 
-        filterValues={filterValues}
-        setFilterValues={setFilterValues}
-        availableCampaigns={Array.from(new Set(applications.map(app => app.campaign)))}
-      />
+      <div className="bg-darksurface border border-softblue/20 rounded-lg shadow-md p-4">
+        <ApplicationFilterBar 
+          filterValues={filterValues}
+          setFilterValues={setFilterValues}
+          availableCampaigns={Array.from(new Set(applications.map(app => app.campaign)))}
+        />
 
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="in_discussion">In Discussion</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-        
-        {["all", "pending", "approved", "in_discussion", "rejected"].map(tab => (
-          <TabsContent key={tab} value={tab} className="mt-4">
-            <ApplicationsGrid 
-              applications={filteredApplications(tab)}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onDiscuss={handleDiscuss}
-              onViewProfile={handleViewDetail}
-              selectedApplications={selectedApplications}
-              onToggleSelection={toggleApplicationSelection}
-              useVirtualization={filteredApplications(tab).length > 20}
-            />
-            
-            {filteredApplications(tab).length >= 20 && (
-              <div className="flex justify-center mt-6">
-                <Button 
-                  onClick={loadMoreApplications}
-                  variant="outline"
-                  disabled={isLoadingData}
-                  className="w-40"
-                >
-                  {isLoadingData ? "Loading..." : "Load More"}
-                </Button>
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mt-6">
+          <TabsList className="bg-muted mb-4">
+            <TabsTrigger value="all" className="data-[state=active]:bg-accent data-[state=active]:text-white">All</TabsTrigger>
+            <TabsTrigger value="pending" className="data-[state=active]:bg-accent data-[state=active]:text-white">Pending</TabsTrigger>
+            <TabsTrigger value="approved" className="data-[state=active]:bg-accent data-[state=active]:text-white">Approved</TabsTrigger>
+            <TabsTrigger value="in_discussion" className="data-[state=active]:bg-accent data-[state=active]:text-white">In Discussion</TabsTrigger>
+            <TabsTrigger value="rejected" className="data-[state=active]:bg-accent data-[state=active]:text-white">Rejected</TabsTrigger>
+          </TabsList>
+          
+          {["all", "pending", "approved", "in_discussion", "rejected"].map(tab => (
+            <TabsContent key={tab} value={tab} className="mt-4">
+              {isLoadingData ? (
+                <div className="flex justify-center items-center h-48">
+                  <div className="animate-pulse text-accent">Loading applications...</div>
+                </div>
+              ) : filteredApplications(tab).length === 0 ? (
+                <div className="text-center py-12 bg-darksurface/60 rounded-lg border border-dashed border-softblue/20">
+                  <p className="text-gray-400">No applications found</p>
+                  <p className="text-xs text-gray-500 mt-1">Try adjusting your filters or switching tabs</p>
+                </div>
+              ) : (
+                <>
+                  <ApplicationsGrid 
+                    applications={filteredApplications(tab)}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    onDiscuss={handleDiscuss}
+                    onViewProfile={handleViewDetail}
+                    selectedApplications={selectedApplications}
+                    onToggleSelection={toggleApplicationSelection}
+                    useVirtualization={filteredApplications(tab).length > 20}
+                  />
+                  
+                  {filteredApplications(tab).length >= 20 && (
+                    <div className="flex justify-center mt-6">
+                      <Button 
+                        onClick={loadMoreApplications}
+                        variant="outline"
+                        disabled={isLoadingData}
+                        className="w-40 bg-muted hover:bg-accent hover:text-white border-softblue/20"
+                      >
+                        {isLoadingData ? "Loading..." : "Load More"}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
 
       <ApplicationDetailPanel 
         application={selectedApplication}

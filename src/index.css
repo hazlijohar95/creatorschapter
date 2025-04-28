@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 
 @tailwind base;
@@ -6,76 +7,53 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 224 27% 12%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 224 32% 15%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 224 32% 15%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 224 100% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 22% 30%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 16% 22%;
+    --muted-foreground: 220 10% 70%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 70% 60%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.75rem;
+    --border: 220 25% 26%;
+    --input: 220 25% 26%;
+    --ring: 224 100% 65%;
+    
+    --sidebar-background: 224 35% 10%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-border: 220 25% 26%;
+    --sidebar-primary: 220 70% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 20% 26%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-ring: 220 70% 60%;
+    
+    --radius: 0.5rem;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
     -webkit-tap-highlight-color: transparent;
   }
   
   body {
-    @apply bg-darkbg text-white font-manrope m-0 p-0;
+    @apply bg-darkbg text-white font-inter m-0 p-0;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -106,33 +84,41 @@
 
 @layer components {
   .glass-card {
-    @apply bg-glassBg border border-glassBorder backdrop-blur-lg rounded-2xl transition-all;
+    @apply bg-glassBg border border-glassBorder backdrop-blur-lg rounded-lg transition-all shadow-md;
   }
   
-  .btn-neon {
-    @apply bg-neon text-darkbg font-bold rounded-full py-3 px-8 hover:animate-glow transition-all transform hover:scale-105 duration-300 inline-block;
+  .btn-accent {
+    @apply bg-accentblue text-white font-medium rounded-md py-2 px-4 hover:bg-accent/90 transition-all transform hover:scale-105 duration-300 inline-block shadow-sm;
   }
   
-  .hero-gradient {
-    @apply bg-gradient-to-br from-premiumBlack to-darkbg;
+  .dashboard-gradient {
+    @apply bg-gradient-to-br from-darkbg to-darksurface;
   }
   
   .section-padding {
-    @apply py-20 px-5 md:px-10 lg:px-16;
+    @apply py-6 px-4 md:py-8 md:px-6;
+  }
+  
+  .dashboard-card {
+    @apply bg-darksurface border border-softblue/20 rounded-lg shadow-sm p-4;
+  }
+  
+  .sidebar-menu-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-md text-white hover:bg-white/10 transition-colors;
+  }
+  
+  .sidebar-menu-item.active {
+    @apply bg-accentblue text-white;
   }
 }
 
 /* Mobile-specific optimizations */
 @media (max-width: 768px) {
   .section-padding {
-    @apply py-16 px-4;
+    @apply py-4 px-3;
   }
   
   .glass-card {
-    @apply p-6;
-  }
-  
-  .btn-neon {
-    @apply w-full justify-center;
+    @apply p-4;
   }
 }
