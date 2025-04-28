@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,15 +9,18 @@ import {
 } from "@/components/ui/card";
 import { ThumbsUp } from "lucide-react";
 import { Opportunity } from "../types/opportunity";
+import { VirtualizedOpportunities } from "./VirtualizedOpportunities";
 
 interface RecommendedOpportunitiesProps {
   opportunities: Opportunity[];
   onViewOpportunity: (opportunityId: string) => void;
+  useVirtualization?: boolean;
 }
 
 export function RecommendedOpportunities({
   opportunities,
   onViewOpportunity,
+  useVirtualization = false,
 }: RecommendedOpportunitiesProps) {
   if (!opportunities.length) return null;
 
@@ -29,15 +31,23 @@ export function RecommendedOpportunities({
         <h2 className="text-lg font-semibold font-space">Recommended For You</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {opportunities.slice(0, 3).map((opportunity) => (
-          <RecommendedCard
-            key={opportunity.id}
-            opportunity={opportunity}
-            onViewOpportunity={onViewOpportunity}
-          />
-        ))}
-      </div>
+      {useVirtualization && opportunities.length > 10 ? (
+        <VirtualizedOpportunities 
+          opportunities={opportunities.slice(0, 10)} 
+          onViewOpportunity={onViewOpportunity}
+          listHeight={500}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {opportunities.slice(0, 3).map((opportunity) => (
+            <RecommendedCard
+              key={opportunity.id}
+              opportunity={opportunity}
+              onViewOpportunity={onViewOpportunity}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

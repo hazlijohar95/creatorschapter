@@ -1,6 +1,7 @@
 
 import { ApplicationCard } from "../ApplicationCard";
 import { Application } from "../../../types/applications";
+import { VirtualizedList } from "@/components/shared/VirtualizedList";
 
 interface ApplicationsGridProps {
   applications: Application[];
@@ -10,6 +11,7 @@ interface ApplicationsGridProps {
   onViewProfile: (application: Application) => void;
   selectedApplications: string[];
   onToggleSelection: (id: string) => void;
+  useVirtualization?: boolean;
 }
 
 export function ApplicationsGrid({
@@ -20,6 +22,7 @@ export function ApplicationsGrid({
   onViewProfile,
   selectedApplications,
   onToggleSelection,
+  useVirtualization = true,
 }: ApplicationsGridProps) {
   if (applications.length === 0) {
     return (
@@ -31,6 +34,40 @@ export function ApplicationsGrid({
     );
   }
 
+  // Calculate estimated item height for virtualization (adjust based on your card's actual size)
+  const estimatedItemHeight = 400; 
+  
+  const renderApplicationCard = (application: Application, index: number) => (
+    <div className="p-3" key={application.id}>
+      <ApplicationCard
+        application={application}
+        onApprove={onApprove}
+        onReject={onReject}
+        onDiscuss={onDiscuss}
+        onViewProfile={() => onViewProfile(application)}
+        isSelected={selectedApplications.includes(application.id)}
+        onToggleSelection={() => onToggleSelection(application.id)}
+      />
+    </div>
+  );
+
+  // Use virtualization for large lists
+  if (useVirtualization && applications.length > 20) {
+    // For three columns on large screens, one column on mobile
+    return (
+      <div className="w-full">
+        <VirtualizedList
+          items={applications}
+          height={700} // Adjust based on your layout
+          itemSize={estimatedItemHeight}
+          renderItem={renderApplicationCard}
+          itemKey={(index, data) => data[index].id}
+        />
+      </div>
+    );
+  }
+  
+  // Standard grid for smaller lists
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {applications.map(application => (

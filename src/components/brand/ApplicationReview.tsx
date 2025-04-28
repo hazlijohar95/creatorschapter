@@ -6,10 +6,10 @@ import { ApplicationDetailPanel } from "./applications/ApplicationDetailPanel";
 import { BulkActions } from "./applications/BulkActions";
 import { ApplicationsGrid } from "./applications/ApplicationsGrid";
 import { useApplicationsManager } from "@/hooks/useApplicationsManager";
-import { Application } from "@/types/applications";
-import { APPLICATIONS } from "@/data/mock-applications";
+import { Application, Status } from "@/types/applications";
 import { useToast } from "@/hooks/use-toast";
-import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
+import { Button } from "@/components/ui/button";
+import { validateApplication } from "@/utils/applicationTransformers";
 
 export function ApplicationReview() {
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -36,8 +36,10 @@ export function ApplicationReview() {
     toggleApplicationSelection,
     clearSelection,
     isUpdating,
-    isAddingNote
-  } = useApplicationsManager(APPLICATIONS);
+    isAddingNote,
+    isLoadingData,
+    loadMoreApplications
+  } = useApplicationsManager();
 
   const handleBulkMessage = () => {
     toast({
@@ -49,7 +51,7 @@ export function ApplicationReview() {
   const filteredApplications = (tab: string) => {
     let filtered = tab === "all" 
       ? applications 
-      : applications.filter(a => a.status === tab);
+      : applications.filter(a => a.status === tab as Status);
 
     if (filterValues.search) {
       const searchLower = filterValues.search.toLowerCase();
@@ -72,8 +74,17 @@ export function ApplicationReview() {
   };
 
   const handleViewDetail = (application: Application) => {
-    setSelectedApplication(application);
-    setDetailPanelOpen(true);
+    // Validate application before showing detail panel
+    if (validateApplication(application)) {
+      setSelectedApplication(application);
+      setDetailPanelOpen(true);
+    } else {
+      toast({
+        title: "Error displaying application",
+        description: "There was an error loading the application details. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddNote = (id: string, note: string) => {
@@ -120,7 +131,21 @@ export function ApplicationReview() {
               onViewProfile={handleViewDetail}
               selectedApplications={selectedApplications}
               onToggleSelection={toggleApplicationSelection}
+              useVirtualization={filteredApplications(tab).length > 20}
             />
+            
+            {filteredApplications(tab).length >= 20 && (
+              <div className="flex justify-center mt-6">
+                <Button 
+                  onClick={loadMoreApplications}
+                  variant="outline"
+                  disabled={isLoadingData}
+                  className="w-40"
+                >
+                  {isLoadingData ? "Loading..." : "Load More"}
+                </Button>
+              </div>
+            )}
           </TabsContent>
         ))}
       </Tabs>

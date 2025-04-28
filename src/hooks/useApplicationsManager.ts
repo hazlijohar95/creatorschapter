@@ -1,21 +1,39 @@
 
 import { useState } from 'react';
-import { useApplicationsQuery } from './queries/useApplicationsQuery';
+import { useApplicationsQuery, UseApplicationsQueryOptions } from './queries/useApplicationsQuery';
 import { useApplicationStore } from '@/store/applicationStore';
 import { Application, Status } from '@/types/applications';
 import { useToast } from './use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/services/queryKeys';
 
-export function useApplicationsManager(initialApplications?: Application[]) {
-  const { data = [], isLoading: isLoadingData } = useApplicationsQuery();
+interface AddNoteParams {
+  id: string;
+  note: string;
+}
+
+interface UseApplicationsManagerOptions {
+  queryOptions?: UseApplicationsQueryOptions;
+  initialApplications?: Application[];
+}
+
+export function useApplicationsManager(options: UseApplicationsManagerOptions = {}) {
+  const { queryOptions, initialApplications } = options;
+  const [currentPage, setCurrentPage] = useState(0);
+  
+  const { data = [], isLoading: isLoadingData, refetch } = useApplicationsQuery({
+    ...queryOptions,
+    page: currentPage
+  });
+  
   const applications = initialApplications || data;
   const { selectedApplications, toggleApplicationSelection, clearSelection } = useApplicationStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string, status: string }) => {
+    mutationFn: async ({ id, status }: { id: string, status: Status }) => {
       const { error } = await supabase
         .from('campaign_creators')
         .update({ status })
@@ -25,12 +43,12 @@ export function useApplicationsManager(initialApplications?: Application[]) {
       return { id, status };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['brandApplications'] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.brandApplications] });
     }
   });
   
   const addNoteMutation = useMutation({
-    mutationFn: async ({ id, note }: { id: string, note: string }) => {
+    mutationFn: async ({ id, note }: AddNoteParams) => {
       const { error } = await supabase
         .from('campaign_creators')
         .update({ brand_response: note })
@@ -40,7 +58,7 @@ export function useApplicationsManager(initialApplications?: Application[]) {
       return { id, note };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['brandApplications'] });
+      queryClient.invalidateQueries({ queryKey: [queryKeys.brandApplications] });
     }
   });
 
@@ -74,7 +92,7 @@ export function useApplicationsManager(initialApplications?: Application[]) {
 
     for (const id of selectedApplications) {
       try {
-        await updateStatusMutation.mutateAsync({ id, status: newStatus });
+        await updateStatusMutation.mutateAsync({ id, status: newStatus as Status });
         successCount++;
       } catch {
         errorCount++;
@@ -99,8 +117,18 @@ export function useApplicationsManager(initialApplications?: Application[]) {
     clearSelection();
   };
 
-  const addNote = async ({ id, note }: { id: string, note: string }) => {
+  const addNote = async ({ id, note }: AddNoteParams) => {
     await addNoteMutation.mutate({ id, note });
+  };
+
+  const loadMoreApplications = () => {
+    setCurrentPage(prev => prev + 1);
+  };
+
+  const loadPreviousApplications = () => {
+    if (currentPage > 0) {
+      setCurrentPage(prev => prev - 1);
+    }
   };
 
   return {
@@ -114,6 +142,11 @@ export function useApplicationsManager(initialApplications?: Application[]) {
     toggleApplicationSelection,
     clearSelection,
     isUpdating: updateStatusMutation.isPending,
-    isAddingNote: addNoteMutation.isPending
+    isAddingNote: addNoteMutation.isPending,
+    isLoadingData,
+    currentPage,
+    loadMoreApplications,
+    loadPreviousApplications,
+    refetch
   };
 }
