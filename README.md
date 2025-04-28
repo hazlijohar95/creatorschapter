@@ -1,4 +1,4 @@
-# Chapter Creator - AI-Powered Creator Success Platform
+# Creator Chaptor - A platform for Creator & Brands to work together
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Issues](https://img.shields.io/github/issues/yourusername/chapter-creator)](https://github.com/yourusername/chapter-creator/issues)
@@ -6,11 +6,7 @@
 [![Last Commit](https://img.shields.io/github/last-commit/yourusername/chapter-creator)](https://github.com/yourusername/chapter-creator/commits/main)
 [![Deployment Status](https://img.shields.io/website?url=https://chapter-creator.lovable.dev)](https://chapter-creator.lovable.dev)
 
-Connect brands with the perfect creators for their campaigns using our AI-powered platform.
-
-## 🚀 Live Demo
-
-Experience Chapter Creator in action: [Live Demo](https://chapter-creator.lovable.dev)
+Connect brands with the perfect creators for their campaigns!
 
 ## 🌟 Features
 
@@ -118,7 +114,3 @@ Join our [GitHub Discussions](https://github.com/yourusername/chapter-creator/di
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## ✨ Recognition
-
-Built with [Lovable](https://lovable.dev) - the AI-powered web development platform.
