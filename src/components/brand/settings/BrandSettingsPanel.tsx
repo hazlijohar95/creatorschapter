@@ -5,6 +5,7 @@ import { BrandIdentityForm } from "./BrandIdentityForm";
 import { CompanyProfileForm } from "./CompanyProfileForm";
 import { CampaignPreferencesForm } from "./CampaignPreferencesForm";
 import { SecuritySettingsForm } from "./SecuritySettingsForm";
+import { BrandSocialMediaProfile } from "./BrandSocialMediaProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -95,12 +96,15 @@ export function BrandSettingsPanel() {
         onValueChange={setActiveTab} 
         className="space-y-6"
       >
-        <TabsList className="grid md:grid-cols-4 grid-cols-2 h-auto">
+        <TabsList className="grid md:grid-cols-5 grid-cols-2 h-auto">
           <TabsTrigger value="identity" className="py-3">
             Brand Identity
           </TabsTrigger>
           <TabsTrigger value="company" className="py-3">
             Company Profile
+          </TabsTrigger>
+          <TabsTrigger value="social" className="py-3">
+            Social Media
           </TabsTrigger>
           <TabsTrigger value="campaigns" className="py-3">
             Campaign Preferences
@@ -125,6 +129,10 @@ export function BrandSettingsPanel() {
             userId={user?.id}
             onSaveSuccess={handleProfileUpdate}
           />
+        </TabsContent>
+        
+        <TabsContent value="social" className="space-y-6">
+          <BrandSocialMediaProfile />
         </TabsContent>
         
         <TabsContent value="campaigns" className="space-y-6">

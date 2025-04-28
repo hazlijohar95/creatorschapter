@@ -92,3 +92,34 @@ export async function deleteSocialLink(id: string) {
     if (error) throw error;
   }, "Failed to delete social link");
 }
+
+// Brand profile management functions
+export async function getBrandProfile(userId: string) {
+  return withErrorHandling(async () => {
+    const { data, error } = await supabase
+      .from("brand_profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    if (error) throw error;
+    return data;
+  }, "Failed to fetch brand profile");
+}
+
+// Update brand profile with enhanced typing
+export async function updateBrandProfile(userId: string, update: Partial<{
+  company_name: string;
+  company_size: string;
+  industry: string;
+  website: string;
+  target_audience: any;
+  campaign_preferences: any;
+}>) {
+  return withErrorHandling(async () => {
+    const { error } = await supabase
+      .from("brand_profiles")
+      .update(update)
+      .eq("id", userId);
+    if (error) throw error;
+  }, "Failed to update brand profile");
+}
