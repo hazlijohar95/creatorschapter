@@ -1,12 +1,12 @@
 
-import { toast as sonnerToast, type ToastOptions as SonnerToastOptions } from "@/components/ui/sonner";
+import { toast as sonnerToast } from "@/components/ui/sonner";
 
-interface ToastOptions extends SonnerToastOptions {
+export type ToastOptions = {
   title?: string;
   description?: string;
   variant?: "default" | "destructive";
   action?: React.ReactNode;
-}
+};
 
 export function useToast() {
   const toast = ({ title, description, variant = "default", ...props }: ToastOptions) => {
@@ -19,4 +19,5 @@ export function useToast() {
   return { toast };
 }
 
-export { toast } from "../components/ui/use-toast";
+// Re-export the sonner toast for direct usage
+export { toast } from "@/components/ui/sonner";
