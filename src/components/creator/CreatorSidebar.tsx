@@ -1,106 +1,85 @@
-import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, Search, FolderOpen, MessageSquare, Users, Settings, Globe } from "lucide-react";
+
+import { SidebarMenu, SidebarMenuItem, Sidebar, SidebarHeader, SidebarContent, SidebarMenuAction, SidebarFooter, SidebarMenuSub, SidebarMenuSubItem, SidebarInset } from "../ui/sidebar";
+import { Home, Search, LayoutGrid, Users, Sliders, Settings, LogOut } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth";
-import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { usePrefetch } from "@/hooks/usePrefetch";
+
 export function CreatorSidebar() {
   const location = useLocation();
-  const {
-    user
-  } = useAuthStore();
-  const isActive = (path: string) => {
-    return location.pathname === path;
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { prefetchOpportunities, prefetchProfile } = usePrefetch();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
   };
-  return <Sidebar style={{
-    "--sidebar-width": "16rem"
-  } as React.CSSProperties} className="border-r">
-      <SidebarHeader className="border-b">
-        <div className="p-4">
-          <h2 className="font-space text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-gray-50">
-            Creator Dashboard
-          </h2>
-        </div>
+
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <h2 className="text-xl font-bold">Creator Chapter</h2>
       </SidebarHeader>
-      
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard")} tooltip="Overview">
-                  <Link to="/creator-dashboard">
-                    <LayoutDashboard />
-                    <span>Overview</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/opportunities")} tooltip="Discover Opportunities">
-                  <Link to="/creator-dashboard/opportunities">
-                    <Search />
-                    <span>Opportunities</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/portfolio")} tooltip="Portfolio Management">
-                  <Link to="/creator-dashboard/portfolio">
-                    <FolderOpen />
-                    <span>Portfolio</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupLabel>Connect</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/collaborations")} tooltip="Manage Collaborations">
-                  <Link to="/creator-dashboard/collaborations">
-                    <Users />
-                    <span>Collaborations</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/social")} tooltip="Social Media Profile">
-                  <Link to="/creator-dashboard/social">
-                    <Globe />
-                    <span>Platform & Reach</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/creator-dashboard/settings")} tooltip="Settings">
-                  <Link to="/creator-dashboard/settings">
-                    <Settings />
-                    <span>Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarMenu>
+          <SidebarMenuItem
+            active={location.pathname === "/creator-dashboard"}
+            icon={<Home className="h-5 w-5" />}
+            onClick={() => navigate("/creator-dashboard")}
+          >
+            Dashboard
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem
+            active={location.pathname.includes("/creator-dashboard/opportunities")}
+            icon={<Search className="h-5 w-5" />}
+            onClick={() => navigate("/creator-dashboard/opportunities")}
+            onMouseEnter={prefetchOpportunities}
+          >
+            Opportunities
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem
+            active={location.pathname.includes("/creator-dashboard/portfolio")}
+            icon={<LayoutGrid className="h-5 w-5" />}
+            onClick={() => navigate("/creator-dashboard/portfolio")}
+          >
+            Portfolio
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem
+            active={location.pathname.includes("/creator-dashboard/collaborations")}
+            icon={<Users className="h-5 w-5" />}
+            onClick={() => navigate("/creator-dashboard/collaborations")}
+          >
+            Collaborations
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem
+            active={location.pathname.includes("/creator-dashboard/social")}
+            icon={<Sliders className="h-5 w-5" />}
+            onClick={() => navigate("/creator-dashboard/social")}
+          >
+            Social Media
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem
+            active={location.pathname.includes("/creator-dashboard/settings")}
+            icon={<Settings className="h-5 w-5" />}
+            onClick={() => navigate("/creator-dashboard/settings")}
+            onMouseEnter={prefetchProfile}
+          >
+            Settings
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarContent>
-      
-      <SidebarFooter className="border-t p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm">
-            <p className="font-medium">{user?.email}</p>
-            <p className="text-xs text-muted-foreground">Creator Account</p>
-          </div>
-        </div>
+      <SidebarFooter>
+        <SidebarMenuAction icon={<LogOut className="h-5 w-5" />} onClick={handleSignOut}>
+          Sign Out
+        </SidebarMenuAction>
       </SidebarFooter>
-    </Sidebar>;
+    </Sidebar>
+  );
 }

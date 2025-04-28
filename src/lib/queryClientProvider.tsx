@@ -1,5 +1,5 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useConfigStore } from "@/store/configStore";
 
@@ -10,8 +10,8 @@ interface QueryProviderProps {
 export function QueryProvider({ children }: QueryProviderProps) {
   const { prefetchData } = useConfigStore();
   
-  // Create a client with optimized caching strategies
-  const queryClient = new QueryClient({
+  // Use state to ensure the client persists across renders
+  const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
         staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
@@ -21,8 +21,15 @@ export function QueryProvider({ children }: QueryProviderProps) {
         refetchOnWindowFocus: prefetchData, // Only refetch if prefetchData is enabled
         refetchOnReconnect: true, // Always refetch on reconnection
       },
+      mutations: {
+        retry: 1,
+        onError: (error) => {
+          console.error('Mutation error:', error);
+          // We could add global error handling here
+        }
+      }
     },
-  });
+  }));
 
   return (
     <QueryClientProvider client={queryClient}>

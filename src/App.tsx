@@ -1,5 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect, useState, Suspense, lazy, startTransition } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
 import LoadingOverlay from './components/LoadingOverlay';
@@ -18,8 +18,13 @@ const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
 const BrandDashboard = lazy(() => import('./pages/BrandDashboard'));
 const BrandOnboarding = lazy(() => import('./pages/BrandOnboarding'));
 
-// Lazy load creator components
-const CreatorOverview = lazy(() => import('./components/creator/CreatorOverview').then(module => ({ default: module.CreatorOverview })));
+// Lazy load creator components with preloading
+const CreatorOverview = lazy(() => {
+  const module = import('./components/creator/CreatorOverview')
+    .then(module => ({ default: module.CreatorOverview }));
+  return module;
+});
+
 const OpportunityDiscovery = lazy(() => import('./components/dashboard/OpportunityDiscovery'));
 const PortfolioManagement = lazy(() => import('./components/dashboard/PortfolioManagement'));
 const CollaborationManagement = lazy(() => import('./components/dashboard/CollaborationManagement'));
@@ -39,11 +44,40 @@ const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 
+// Preload module function
+const preloadModule = (importFn: () => Promise<any>) => {
+  startTransition(() => {
+    importFn();
+  });
+};
+
+// Preloader component to trigger on hover
+export function ModulePreloader({ path }: { path: string }) {
+  useEffect(() => {
+    // Map paths to lazy components for preloading
+    const moduleMap: Record<string, () => Promise<any>> = {
+      '/creator-dashboard': () => import('./components/creator/CreatorOverview').then(module => ({ default: module.CreatorOverview })),
+      '/creator-dashboard/opportunities': () => import('./components/dashboard/OpportunityDiscovery'),
+      '/creator-dashboard/portfolio': () => import('./components/dashboard/PortfolioManagement'),
+      '/brand-dashboard': () => import('./components/brand/BrandOverview').then(module => ({ default: module.BrandOverview })),
+      // Add other paths as needed
+    };
+    
+    // Preload the module if it exists in our map
+    if (moduleMap[path]) {
+      preloadModule(moduleMap[path]);
+    }
+  }, [path]);
+  
+  return null; // This is just a utility component, doesn't render anything
+}
+
 function App() {
   const { setUser, setSession, user } = useAuthStore();
   const [isNavigating, setIsNavigating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigateEvents = typeof window !== "undefined" && window.addEventListener;
+  const location = useLocation();
 
   useEffect(() => {
     initSupabaseServices();
@@ -52,7 +86,7 @@ function App() {
   useEffect(() => {
     if (!navigateEvents) return;
 
-    const handleNavigate = (e: any) => {
+    const handleNavigate = () => {
       if (window.location.pathname === "/auth") {
         setIsNavigating(true);
       }
@@ -69,7 +103,7 @@ function App() {
       window.removeEventListener("replacestate", handleNavigate);
       window.removeEventListener("load", handleComplete);
     };
-  }, []);
+  }, [navigateEvents]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -85,6 +119,23 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, [setUser, setSession]);
+
+  // Preload the next likely routes based on current route
+  useEffect(() => {
+    if (!user) return;
+    
+    // Only preload after initial authentication to avoid unnecessary loads
+    if (location.pathname === '/') {
+      // When on landing, preload auth related components
+      preloadModule(() => import('./pages/Auth'));
+    } else if (location.pathname === '/auth' && user) {
+      // When authenticated, preload dashboard
+      preloadModule(() => import('./pages/Dashboard'));
+    } else if (location.pathname === '/creator-dashboard') {
+      // When on creator dashboard, preload common sections
+      preloadModule(() => import('./components/dashboard/OpportunityDiscovery'));
+    }
+  }, [location.pathname, user]);
 
   if (isLoading) {
     return <LoadingOverlay />;
