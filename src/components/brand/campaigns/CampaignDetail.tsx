@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
@@ -16,10 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useCampaignDetails, useCampaignCreators, useCampaignMetrics } from "@/hooks/queries/useCampaigns";
+import { useCampaignDetails } from "@/hooks/campaign";
+import { useCampaignUpdate } from "@/hooks/campaign";
 import { CampaignFormDialog } from "./CampaignFormDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateCampaign, deleteCampaign, updateCampaignStatus } from "@/services/campaignService";
+import { updateCampaignStatus, deleteCampaign } from "@/services/campaign/campaignUpdate";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
@@ -51,14 +51,22 @@ export function CampaignDetail() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data: campaign, isLoading, error } = useCampaignDetails(campaignId);
-  const { data: creators = [] } = useCampaignCreators(campaignId);
-  const { data: metrics = [] } = useCampaignMetrics(campaignId);
+  const { 
+    campaign, 
+    metrics, 
+    isLoading, 
+    error 
+  } = useCampaignDetails(campaignId);
   
+  const creators = [];
+
+  const { updateCampaign, updateStatus, deleteCampaign: deleteAction } = useCampaignUpdate(campaign?.brand_id || '');
+
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       if (!campaignId) throw new Error("Campaign ID is required");
-      await updateCampaign(campaignId, {
+      return updateCampaign({
+        id: campaignId,
         name: data.name,
         description: data.description,
         budget: data.budget,
@@ -66,7 +74,6 @@ export function CampaignDetail() {
         endDate: data.end_date,
         categories: data.categories
       });
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
@@ -88,8 +95,10 @@ export function CampaignDetail() {
   const statusMutation = useMutation({
     mutationFn: async (status: string) => {
       if (!campaignId) throw new Error("Campaign ID is required");
-      await updateCampaignStatus(campaignId, status);
-      return status;
+      return updateStatus({
+        id: campaignId,
+        status: status
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
@@ -110,7 +119,7 @@ export function CampaignDetail() {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!campaignId) throw new Error("Campaign ID is required");
-      await deleteCampaign(campaignId);
+      return deleteAction(campaignId);
     },
     onSuccess: () => {
       toast({
@@ -162,7 +171,6 @@ export function CampaignDetail() {
                   campaign.status === "active" ? 66 : 
                   campaign.status === "planning" ? 25 : 10;
 
-  // Format dates for display
   const startDate = campaign.start_date ? format(new Date(campaign.start_date), "PPP") : "Not set";
   const endDate = campaign.end_date ? format(new Date(campaign.end_date), "PPP") : "Not set";
 
@@ -382,7 +390,6 @@ export function CampaignDetail() {
         </TabsContent>
       </Tabs>
 
-      {/* Edit Campaign Dialog */}
       <CampaignFormDialog 
         open={editDialogOpen} 
         onOpenChange={setEditDialogOpen}
@@ -392,7 +399,6 @@ export function CampaignDetail() {
         mode="edit"
       />
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

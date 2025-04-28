@@ -44,7 +44,7 @@ export function useCampaignCore({ brandId, status }: UseCampaignsOptions) {
   });
 
   return {
-    campaigns,
+    campaigns: campaigns as Campaign[],
     isLoading,
     error,
     createCampaign: createMutation.mutate,

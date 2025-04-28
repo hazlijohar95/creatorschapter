@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { getCampaign } from '@/services/campaign/campaignCore';
 import { getCampaignMetrics } from '@/services/campaign/campaignMetrics';
+import { Campaign, CampaignMetrics } from '@/types/campaign';
 
 export function useCampaignDetails(campaignId: string | undefined) {
   const { toast } = useToast();
@@ -31,12 +32,12 @@ export function useCampaignDetails(campaignId: string | undefined) {
       if (!campaignId) return [];
       return getCampaignMetrics(campaignId);
     },
-    enabled: !!campaignId
+    enabled: !!campaignId,
   });
 
   return {
-    campaign: campaignQuery.data,
-    metrics: metricsQuery.data,
+    campaign: campaignQuery.data as Campaign | undefined,
+    metrics: metricsQuery.data as CampaignMetrics[] | undefined,
     isLoading: campaignQuery.isLoading || metricsQuery.isLoading,
     error: campaignQuery.error || metricsQuery.error
   };

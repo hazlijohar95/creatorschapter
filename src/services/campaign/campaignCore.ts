@@ -37,15 +37,14 @@ export async function getBrandCampaigns(brandId: string) {
         end_date,
         status,
         categories,
-        content_requirements,
-        audience_requirements,
-        created_at
+        created_at,
+        brand_id
       `)
       .eq("brand_id", brandId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data as Campaign[];
   }, "Failed to fetch campaigns");
 }
 
@@ -62,8 +61,6 @@ export async function getCampaign(campaignId: string) {
         end_date,
         status,
         categories,
-        content_requirements,
-        audience_requirements,
         created_at,
         brand_id
       `)
@@ -71,6 +68,6 @@ export async function getCampaign(campaignId: string) {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as Campaign;
   }, "Failed to fetch campaign");
 }

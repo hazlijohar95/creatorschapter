@@ -12,8 +12,7 @@ export async function updateCampaign(campaignId: string, updates: UpdateCampaign
       start_date: updates.startDate,
       end_date: updates.endDate,
       categories: updates.categories,
-      content_requirements: updates.contentRequirements,
-      audience_requirements: updates.audienceRequirements
+      status: updates.status
     };
 
     const { error } = await supabase

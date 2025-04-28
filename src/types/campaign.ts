@@ -10,6 +10,16 @@ export interface Campaign {
   end_date?: string;
   categories?: string[];
   created_at?: string;
+  content_requirements?: {
+    formats: string[];
+    deliverables: string[];
+    guidelines: string;
+  };
+  audience_requirements?: {
+    minFollowers: number;
+    preferredNiches: string[];
+    preferredLocations: string[];
+  };
 }
 
 export interface CampaignMetrics {
@@ -46,12 +56,14 @@ export interface CreateCampaignData {
 }
 
 export interface UpdateCampaignData {
+  id?: string;
   name?: string;
   description?: string;
   budget?: number;
   startDate?: string;
   endDate?: string;
   categories?: string[];
+  status?: string;
   contentRequirements?: {
     formats: string[];
     deliverables: string[];

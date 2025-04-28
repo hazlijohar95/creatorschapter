@@ -3,22 +3,55 @@ import { useApplicationsQuery } from './queries/useApplicationsQuery';
 import { useApplicationStore } from '@/store/applicationStore';
 import { Application } from '@/types/applications';
 import { useToast } from './use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-export function useApplicationsManager(initialApplications: Application[]) {
-  const { applications, updateStatus, addNote, isUpdating, isAddingNote } = useApplicationsQuery(initialApplications);
+export function useApplicationsManager(initialApplications?: Application[]) {
+  const { data: applications = [] } = useApplicationsQuery();
   const { selectedApplications, toggleApplicationSelection, clearSelection } = useApplicationStore();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string, status: string }) => {
+      const { error } = await supabase
+        .from('campaign_creators')
+        .update({ status })
+        .eq('id', id);
+        
+      if (error) throw error;
+      return { id, status };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brandApplications'] });
+    }
+  });
+  
+  const addNoteMutation = useMutation({
+    mutationFn: async ({ id, note }: { id: string, note: string }) => {
+      const { error } = await supabase
+        .from('campaign_creators')
+        .update({ brand_response: note })
+        .eq('id', id);
+        
+      if (error) throw error;
+      return { id, note };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brandApplications'] });
+    }
+  });
 
   const handleApprove = async (id: string) => {
-    await updateStatus({ id, status: "approved" });
+    await updateStatusMutation.mutate({ id, status: "approved" });
   };
 
   const handleReject = async (id: string) => {
-    await updateStatus({ id, status: "rejected" });
+    await updateStatusMutation.mutate({ id, status: "rejected" });
   };
 
   const handleDiscuss = async (id: string) => {
-    await updateStatus({ id, status: "in_discussion" });
+    await updateStatusMutation.mutate({ id, status: "in_discussion" });
   };
 
   const handleBulkAction = async (action: "approve" | "reject" | "discuss") => {
@@ -39,7 +72,7 @@ export function useApplicationsManager(initialApplications: Application[]) {
 
     for (const id of selectedApplications) {
       try {
-        await updateStatus({ id, status: newStatus });
+        await updateStatusMutation.mutateAsync({ id, status: newStatus });
         successCount++;
       } catch {
         errorCount++;
@@ -64,6 +97,10 @@ export function useApplicationsManager(initialApplications: Application[]) {
     clearSelection();
   };
 
+  const addNote = async (id: string, note: string) => {
+    await addNoteMutation.mutate({ id, note });
+  };
+
   return {
     applications,
     selectedApplications,
@@ -74,7 +111,7 @@ export function useApplicationsManager(initialApplications: Application[]) {
     addNote,
     toggleApplicationSelection,
     clearSelection,
-    isUpdating,
-    isAddingNote
+    isUpdating: updateStatusMutation.isPending,
+    isAddingNote: addNoteMutation.isPending
   };
 }

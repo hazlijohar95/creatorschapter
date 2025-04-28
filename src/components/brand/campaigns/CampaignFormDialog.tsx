@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { 
@@ -30,24 +31,16 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/auth";
-import { useCampaignCore } from "@/hooks/campaign";
+import { useMutation } from "@tanstack/react-query";
+import { createCampaign } from "@/services/campaign/campaignCore";
+import { updateCampaign } from "@/services/campaign/campaignUpdate";
 import { useToast } from "@/hooks/use-toast";
-
-interface Campaign {
-  id?: string;
-  name: string;
-  description?: string;
-  budget?: number;
-  start_date?: string;
-  end_date?: string;
-  categories?: string[];
-  status?: string;
-}
+import { Campaign, CreateCampaignData } from "@/types/campaign";
 
 interface CampaignFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Campaign) => void;
+  onSubmit: (data: any) => void;
   isSubmitting: boolean;
   initialData?: Campaign;
   mode: "create" | "edit";
@@ -62,7 +55,6 @@ export function CampaignFormDialog({
   mode
 }: CampaignFormDialogProps) {
   const { user } = useAuthStore();
-  const { createCampaign, updateCampaign } = useCampaignCore();
   const { toast } = useToast();
   const [categories, setCategories] = useState<string>(
     initialData?.categories ? initialData.categories.join(", ") : ""
@@ -79,7 +71,41 @@ export function CampaignFormDialog({
     },
   });
 
-  const handleSubmit = (data: Campaign) => {
+  const createMutation = useMutation({
+    mutationFn: (data: CreateCampaignData) => createCampaign(data),
+    onSuccess: () => {
+      toast({
+        title: "Campaign created successfully",
+        description: "Your campaign has been successfully created.",
+      });
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error creating campaign",
+        description: "An error occurred while creating your campaign.",
+      });
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => updateCampaign(data.id, data),
+    onSuccess: () => {
+      toast({
+        title: "Campaign updated successfully",
+        description: "Your campaign has been successfully updated.",
+      });
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating campaign",
+        description: "An error occurred while updating your campaign.",
+      });
+    }
+  });
+
+  const handleSubmit = (data: any) => {
     // Parse categories from comma-separated string
     const parsedCategories = categories
       .split(",")
@@ -87,7 +113,7 @@ export function CampaignFormDialog({
       .filter(cat => cat.length > 0);
     
     // Include the campaign ID if we're editing
-    const campaignData: Campaign = {
+    const campaignData = {
       ...data,
       categories: parsedCategories,
     };
@@ -97,34 +123,32 @@ export function CampaignFormDialog({
     }
 
     if (mode === "create") {
-      createCampaign(campaignData)
-        .then(() => {
-          toast({
-            title: "Campaign created successfully",
-            description: "Your campaign has been successfully created.",
-          });
-        })
-        .catch((error) => {
-          toast({
-            title: "Error creating campaign",
-            description: "An error occurred while creating your campaign.",
-          });
-        });
+      const createData: CreateCampaignData = {
+        brandId: user?.id || "",
+        name: campaignData.name,
+        description: campaignData.description,
+        budget: campaignData.budget,
+        startDate: campaignData.start_date,
+        endDate: campaignData.end_date,
+        categories: campaignData.categories,
+        status: "draft"
+      };
+      
+      createMutation.mutate(createData);
     } else {
-      updateCampaign(campaignData)
-        .then(() => {
-          toast({
-            title: "Campaign updated successfully",
-            description: "Your campaign has been successfully updated.",
-          });
-        })
-        .catch((error) => {
-          toast({
-            title: "Error updating campaign",
-            description: "An error occurred while updating your campaign.",
-          });
-        });
+      updateMutation.mutate({
+        id: campaignData.id,
+        name: campaignData.name,
+        description: campaignData.description,
+        budget: campaignData.budget,
+        startDate: campaignData.start_date,
+        endDate: campaignData.end_date,
+        categories: campaignData.categories
+      });
     }
+    
+    // Also call the parent's onSubmit if provided
+    onSubmit(campaignData);
   };
 
   return (

@@ -7,7 +7,7 @@ import {
   updateCampaignStatus, 
   deleteCampaign 
 } from '@/services/campaign/campaignUpdate';
-import type { Campaign, UpdateCampaignData } from '@/types/campaign';
+import type { UpdateCampaignData } from '@/types/campaign';
 
 export function useCampaignUpdate(brandId: string) {
   const queryClient = useQueryClient();

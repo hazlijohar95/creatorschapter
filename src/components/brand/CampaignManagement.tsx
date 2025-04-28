@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCampaignCore } from "@/hooks/campaign";
 import { useAuthStore } from "@/lib/auth";
@@ -49,7 +50,7 @@ export function CampaignManagement() {
   const handleCreateCampaign = (data: any) => {
     createCampaign({
       ...data,
-      brand_id: user?.id || "",
+      brandId: user?.id || "",
       status: "draft"
     });
     setFormDialogOpen(false);
@@ -57,12 +58,12 @@ export function CampaignManagement() {
   
   const handleCreateCampaignWizard = (data: any) => {
     createCampaign({
-      brand_id: user?.id || "",
+      brandId: user?.id || "",
       name: data.name,
       description: data.description,
       budget: data.budget,
-      start_date: data.start_date,
-      end_date: data.end_date,
+      startDate: data.start_date,
+      endDate: data.end_date,
       categories: data.categories,
       status: "draft"
     });
