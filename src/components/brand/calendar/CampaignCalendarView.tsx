@@ -1,181 +1,263 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase } from "lucide-react";
-import { format } from "date-fns";
-import { useAuthStore } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+
+const locales = {
+  "en-US": require("date-fns/locale/en-US"),
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 0 }),
+  getDay,
+  locales,
+});
 
 interface Campaign {
   id: string;
   name: string;
+  description?: string;
   start_date?: string;
   end_date?: string;
   status: string;
 }
 
-export function CampaignCalendarView() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDateEvents, setSelectedDateEvents] = useState<Campaign[]>([]);
-  
-  const { user } = useAuthStore();
-  const navigate = useNavigate();
+interface CampaignCalendarViewProps {
+  campaigns: Campaign[];
+}
 
-  useEffect(() => {
-    async function fetchCampaigns() {
-      if (!user?.id) return;
-      
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('campaigns')
-          .select('id, name, start_date, end_date, status')
-          .eq('brand_id', user.id);
-          
-        if (error) throw error;
-        setCampaigns(data || []);
+export function CampaignCalendarView({ campaigns }: CampaignCalendarViewProps) {
+  const [view, setView] = useState("month");
+  const [date, setDate] = useState(new Date());
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
-        // Set selected date events
-        if (date) {
-          findEventsForDate(date, data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching campaigns for calendar:', error);
-      } finally {
-        setLoading(false);
+  // Convert campaigns to calendar events
+  const events = campaigns
+    .filter((campaign) => campaign.start_date && campaign.end_date)
+    .map((campaign) => ({
+      id: campaign.id,
+      title: campaign.name,
+      start: new Date(campaign.start_date as string),
+      end: new Date(campaign.end_date as string),
+      status: campaign.status,
+      description: campaign.description,
+    }));
+
+  // Customize the event style based on status
+  const eventStyleGetter = (event: any) => {
+    let style = {
+      backgroundColor: "#4f46e5", // Default color (primary)
+      borderRadius: "4px",
+      color: "white",
+      border: "none",
+      display: "block",
+    };
+
+    switch (event.status) {
+      case "active":
+        style.backgroundColor = "#16a34a"; // Green
+        break;
+      case "draft":
+        style.backgroundColor = "#6b7280"; // Gray
+        break;
+      case "paused":
+        style.backgroundColor = "#f59e0b"; // Yellow/amber
+        break;
+      case "completed":
+        style.backgroundColor = "#8b5cf6"; // Purple
+        break;
+    }
+
+    return {
+      style,
+    };
+  };
+
+  // Custom toolbar component
+  const CustomToolbar = (toolbar: any) => {
+    const goToBack = () => {
+      let newDate;
+      switch (toolbar.view) {
+        case "month":
+          newDate = new Date(
+            toolbar.date.getFullYear(),
+            toolbar.date.getMonth() - 1,
+            1
+          );
+          break;
+        case "week":
+          newDate = addDays(toolbar.date, -7);
+          break;
+        case "day":
+          newDate = addDays(toolbar.date, -1);
+          break;
+        default:
+          newDate = new Date();
       }
-    }
-    
-    fetchCampaigns();
-  }, [user?.id]);
+      toolbar.onNavigate("prev", newDate);
+    };
 
-  useEffect(() => {
-    if (date) {
-      findEventsForDate(date, campaigns);
-    }
-  }, [date]);
+    const goToNext = () => {
+      let newDate;
+      switch (toolbar.view) {
+        case "month":
+          newDate = new Date(
+            toolbar.date.getFullYear(),
+            toolbar.date.getMonth() + 1,
+            1
+          );
+          break;
+        case "week":
+          newDate = addDays(toolbar.date, 7);
+          break;
+        case "day":
+          newDate = addDays(toolbar.date, 1);
+          break;
+        default:
+          newDate = new Date();
+      }
+      toolbar.onNavigate("next", newDate);
+    };
 
-  const findEventsForDate = (selectedDate: Date, campaignList: Campaign[]) => {
-    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-    const eventsOnDate = campaignList.filter(campaign => {
-      if (!campaign.start_date || !campaign.end_date) return false;
-      
-      const startDate = campaign.start_date;
-      const endDate = campaign.end_date;
-      
-      return formattedDate >= startDate && formattedDate <= endDate;
-    });
-    
-    setSelectedDateEvents(eventsOnDate);
-  };
-  
-  const getCampaignStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'planning':
-        return 'bg-blue-100 text-blue-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
-      case 'completed':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+    const goToToday = () => {
+      toolbar.onNavigate("TODAY", new Date());
+    };
+
+    const label = () => {
+      const date = toolbar.date;
+      const viewType = toolbar.view;
+
+      if (viewType === "month") {
+        return format(date, "MMMM yyyy");
+      } else if (viewType === "week") {
+        const start = startOfWeek(date);
+        const end = addDays(start, 6);
+        return `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`;
+      } else if (viewType === "day") {
+        return format(date, "MMMM d, yyyy");
+      }
+      return "";
+    };
+
+    return (
+      <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" onClick={goToBack}>
+            Back
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToNext}>
+            Next
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToToday}>
+            Today
+          </Button>
+        </div>
+
+        <h2 className="text-xl font-semibold">{label()}</h2>
+
+        <div className="flex items-center space-x-2">
+          <Select
+            value={toolbar.view}
+            onValueChange={(newValue) => toolbar.onView(newValue)}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="View" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="month">Month</SelectItem>
+              <SelectItem value="week">Week</SelectItem>
+              <SelectItem value="day">Day</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    );
   };
 
-  // Function to generate CSS classes for days with events
-  const dayClassNames = (date: Date) => {
-    const formattedDate = format(date, 'yyyy-MM-dd');
-    
-    const hasEvent = campaigns.some(campaign => {
-      if (!campaign.start_date || !campaign.end_date) return false;
-      return formattedDate >= campaign.start_date && formattedDate <= campaign.end_date;
-    });
-    
-    return hasEvent ? "relative before:absolute before:bottom-1 before:left-1/2 before:-translate-x-1/2 before:w-1 before:h-1 before:bg-primary before:rounded-full" : "";
-  };
+  // Legend for campaign statuses
+  const Legend = () => (
+    <div className="flex flex-wrap items-center gap-4 mt-4 mb-2">
+      <div className="text-sm font-medium">Campaign Status:</div>
+      <div className="flex items-center">
+        <div className="w-3 h-3 rounded bg-green-500 mr-1" />
+        <span className="text-sm">Active</span>
+      </div>
+      <div className="flex items-center">
+        <div className="w-3 h-3 rounded bg-gray-500 mr-1" />
+        <span className="text-sm">Draft</span>
+      </div>
+      <div className="flex items-center">
+        <div className="w-3 h-3 rounded bg-amber-500 mr-1" />
+        <span className="text-sm">Paused</span>
+      </div>
+      <div className="flex items-center">
+        <div className="w-3 h-3 rounded bg-purple-500 mr-1" />
+        <span className="text-sm">Completed</span>
+      </div>
+    </div>
+  );
+
+  // Empty calendar state
+  if (events.length === 0) {
+    return (
+      <div className="text-center p-8 border rounded-lg bg-muted/20">
+        <h3 className="text-lg font-medium">No campaigns scheduled</h3>
+        <p className="text-muted-foreground mt-1">
+          Create campaigns with start and end dates to see them on the calendar
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <Card className="col-span-1">
-          <CardContent className="pt-6">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className={cn("rounded-md border")}
-              modifiersClassNames={{
-                today: "bg-primary/10"
-              }}
-              modifiers={{
-                customModifier: (date) => dayClassNames(date) !== ""
-              }}
-              classNames={{
-                day_selected: cn(
-                  "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground"
-                ),
-                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 customModifier"
-              }}
-            />
-          </CardContent>
-        </Card>
-        
-        <Card className="col-span-1 xl:col-span-2">
-          <CardContent className="pt-6">
-            <h3 className="font-semibold text-lg">
-              Events on {date ? format(date, 'MMMM d, yyyy') : 'Selected date'}
-            </h3>
-            
-            <div className="mt-4 space-y-4">
-              {loading ? (
-                <div className="flex items-center justify-center py-8 text-muted-foreground">
-                  <span className="animate-spin mr-2">
-                    <Briefcase className="h-4 w-4" />
-                  </span>
-                  Loading events...
-                </div>
-              ) : selectedDateEvents.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
-                  No campaigns scheduled for this date
-                </div>
-              ) : (
-                selectedDateEvents.map(campaign => (
-                  <div 
-                    key={campaign.id} 
-                    className="p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/brand-dashboard/campaigns/${campaign.id}`)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{campaign.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {campaign.start_date && campaign.end_date ? (
-                            <>
-                              {format(new Date(campaign.start_date), 'MMM d')} - 
-                              {format(new Date(campaign.end_date), 'MMM d')}
-                            </>
-                          ) : 'Date not set'}
-                        </p>
-                      </div>
-                      <Badge className={getCampaignStatusColor(campaign.status)}>
-                        {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-                      </Badge>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+    <div>
+      <Legend />
+      <div className="calendar-container border rounded-lg p-4 bg-background">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 600 }}
+          eventPropGetter={eventStyleGetter}
+          components={{
+            toolbar: CustomToolbar,
+          }}
+          view={view as any}
+          onView={(newView) => setView(newView)}
+          date={date}
+          onNavigate={(newDate) => setDate(newDate)}
+          views={isMobile ? ["day", "week"] : ["month", "week", "day"]}
+          popup
+        />
       </div>
+      <style jsx global>{`
+        .rbc-event {
+          padding: 4px;
+        }
+        .rbc-event-label {
+          font-size: 0.75rem;
+        }
+        .rbc-event-content {
+          font-size: 0.875rem;
+        }
+        .rbc-today {
+          background-color: rgba(59, 130, 246, 0.05);
+        }
+      `}</style>
     </div>
   );
 }
