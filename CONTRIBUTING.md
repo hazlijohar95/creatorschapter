@@ -5,13 +5,7 @@ First off, thank you for considering contributing to Chapter Creator! It's peopl
 
 ## Code of Conduct
 
-By participating in this project, you are expected to uphold our Code of Conduct:
-
-- Use welcoming and inclusive language
-- Be respectful of differing viewpoints and experiences
-- Gracefully accept constructive criticism
-- Focus on what is best for the community
-- Show empathy towards other community members
+By participating in this project, you are expected to uphold our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## How Can I Contribute?
 
@@ -19,13 +13,21 @@ By participating in this project, you are expected to uphold our Code of Conduct
 
 1. Check the [GitHub Issues](https://github.com/yourusername/chapter-creator/issues) to avoid duplicates
 2. If you're unable to find an open issue addressing the problem, open a new one
-3. Use the bug report template provided
+3. Use the bug report template provided and include:
+   - A clear title and description
+   - Steps to reproduce the issue
+   - Expected behavior and what actually happens
+   - Screenshots if applicable
+   - Environment details (OS, browser, etc.)
 
 ### Suggesting Enhancements
 
 1. Check the [ROADMAP.md](ROADMAP.md) to see if your suggestion is already planned
 2. Open a [GitHub Discussion](https://github.com/yourusername/chapter-creator/discussions) in the "Feature Suggestions" category
-3. Provide as much context as possible
+3. Provide as much context as possible including:
+   - The problem your enhancement would solve
+   - Who would benefit from this enhancement
+   - How it would work in practice
 
 ### Pull Requests
 
@@ -35,14 +37,38 @@ By participating in this project, you are expected to uphold our Code of Conduct
 4. Make sure your code lints
 5. Issue that pull request!
 
-## Development Process
+## Development Setup
 
 1. Clone the repo
-2. Install dependencies: \`npm install\`
-3. Create a branch for your changes
-4. Make your changes
-5. Test your changes
-6. Submit a pull request
+   ```
+   git clone https://github.com/yourusername/chapter-creator.git
+   cd chapter-creator
+   ```
+
+2. Install dependencies
+   ```
+   npm install
+   ```
+
+3. Copy the example environment file
+   ```
+   cp .env.example .env
+   ```
+
+4. Update the `.env` file with your Supabase credentials
+
+5. Start the development server
+   ```
+   npm run dev
+   ```
+
+## Development Process
+
+1. Choose an issue to work on (or create one if needed)
+2. Create a branch for your changes
+3. Make your changes
+4. Test your changes
+5. Submit a pull request
 
 ## Git Commit Messages
 
@@ -53,4 +79,4 @@ By participating in this project, you are expected to uphold our Code of Conduct
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under its MIT License.
+By contributing, you agree that your contributions will be licensed under the project's MIT License.
