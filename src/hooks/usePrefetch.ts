@@ -2,6 +2,7 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/services/queryKeys";
+import { User } from "@supabase/supabase-js";
 
 /**
  * Hook for prefetching data when users hover over navigation items
@@ -32,7 +33,7 @@ export function usePrefetch() {
 
   // Prefetch creator profile when hovering on profile menu
   const prefetchProfile = useCallback(() => {
-    const user = queryClient.getQueryData(["user"]);
+    const user = queryClient.getQueryData<User>(["user"]);
     if (user?.id) {
       queryClient.prefetchQuery({
         queryKey: queryKeys.creatorProfile(user.id),
