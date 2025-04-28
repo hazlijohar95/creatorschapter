@@ -1,0 +1,16 @@
+
+.rbc-event {
+  padding: 4px;
+}
+
+.rbc-event-label {
+  font-size: 0.75rem;
+}
+
+.rbc-event-content {
+  font-size: 0.875rem;
+}
+
+.rbc-today {
+  background-color: rgba(59, 130, 246, 0.05);
+}
