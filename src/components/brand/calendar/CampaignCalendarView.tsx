@@ -8,7 +8,7 @@ import { useCalendar } from "./hooks/useCalendar";
 import { CalendarToolbar } from "./components/CalendarToolbar";
 import { CalendarLegend } from "./components/CalendarLegend";
 import { CalendarEmptyState } from "./components/CalendarEmptyState";
-import type { CampaignCalendarViewProps } from "./types";
+import type { CampaignCalendarViewProps, CalendarViewType } from "./types";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -47,11 +47,13 @@ export function CampaignCalendarView({ campaigns, onCreateClick }: CampaignCalen
           components={{
             toolbar: CalendarToolbar,
           }}
-          view={view as any}
-          onView={(newView) => handleViewChange(newView)}
+          view={view}
+          onView={(newView) => handleViewChange(newView as CalendarViewType)}
           date={date}
           onNavigate={(newDate) => handleNavigate(newDate)}
-          views={availableViews}
+          views={availableViews.reduce((viewsObj, viewName) => {
+            return { ...viewsObj, [viewName]: true };
+          }, {})}
           popup
         />
       </div>

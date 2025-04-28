@@ -21,3 +21,6 @@ export interface CampaignCalendarViewProps {
   campaigns: Campaign[];
   onCreateClick?: () => void;
 }
+
+// Define the valid view types for react-big-calendar
+export type CalendarViewType = 'month' | 'week' | 'day' | 'agenda';

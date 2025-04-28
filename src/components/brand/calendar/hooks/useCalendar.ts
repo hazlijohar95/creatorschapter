@@ -1,11 +1,11 @@
 
 import { useState } from "react";
-import { Campaign, CalendarEvent } from "../types";
+import { Campaign, CalendarEvent, CalendarViewType } from "../types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { campaignToCalendarEvent } from "../utils/dateUtils";
 
 export function useCalendar(campaigns: Campaign[]) {
-  const [view, setView] = useState("month");
+  const [view, setView] = useState<CalendarViewType>("month");
   const [date, setDate] = useState(new Date());
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -44,7 +44,7 @@ export function useCalendar(campaigns: Campaign[]) {
     return { style };
   };
 
-  const handleViewChange = (newView: string) => {
+  const handleViewChange = (newView: CalendarViewType) => {
     setView(newView);
   };
 
@@ -52,7 +52,7 @@ export function useCalendar(campaigns: Campaign[]) {
     setDate(newDate);
   };
 
-  const availableViews = isMobile ? ["day", "week"] : ["month", "week", "day"];
+  const availableViews: CalendarViewType[] = isMobile ? ["day", "week"] : ["month", "week", "day"];
 
   return {
     view,
