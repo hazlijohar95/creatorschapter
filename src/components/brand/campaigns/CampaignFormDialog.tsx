@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { 
@@ -31,6 +30,8 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/lib/auth";
+import { useCampaignCore } from "@/hooks/campaign";
+import { useToast } from "@/hooks/use-toast";
 
 interface Campaign {
   id?: string;
@@ -61,6 +62,8 @@ export function CampaignFormDialog({
   mode
 }: CampaignFormDialogProps) {
   const { user } = useAuthStore();
+  const { createCampaign, updateCampaign } = useCampaignCore();
+  const { toast } = useToast();
   const [categories, setCategories] = useState<string>(
     initialData?.categories ? initialData.categories.join(", ") : ""
   );
@@ -93,7 +96,35 @@ export function CampaignFormDialog({
       campaignData.id = initialData.id;
     }
 
-    onSubmit(campaignData);
+    if (mode === "create") {
+      createCampaign(campaignData)
+        .then(() => {
+          toast({
+            title: "Campaign created successfully",
+            description: "Your campaign has been successfully created.",
+          });
+        })
+        .catch((error) => {
+          toast({
+            title: "Error creating campaign",
+            description: "An error occurred while creating your campaign.",
+          });
+        });
+    } else {
+      updateCampaign(campaignData)
+        .then(() => {
+          toast({
+            title: "Campaign updated successfully",
+            description: "Your campaign has been successfully updated.",
+          });
+        })
+        .catch((error) => {
+          toast({
+            title: "Error updating campaign",
+            description: "An error occurred while updating your campaign.",
+          });
+        });
+    }
   };
 
   return (

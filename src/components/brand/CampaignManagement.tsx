@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { useCampaigns } from "@/hooks/queries/useCampaigns";
+import { useCampaignCore } from "@/hooks/campaign";
 import { useAuthStore } from "@/lib/auth";
 import { CampaignCalendarView } from "./calendar/CampaignCalendarView";
 import { CampaignFormDialog } from "./campaigns/CampaignFormDialog";
@@ -36,7 +35,7 @@ export function CampaignManagement() {
     error, 
     createCampaign, 
     isCreating 
-  } = useCampaigns({ 
+  } = useCampaignCore({ 
     brandId: user?.id || "", 
     status: activeTab !== "all" ? activeTab : undefined
   });
