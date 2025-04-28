@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useCampaigns } from "@/hooks/queries/useCampaigns";
 import { useAuthStore } from "@/lib/auth";
@@ -64,12 +63,12 @@ export function CampaignManagement() {
       name: data.name,
       description: data.description,
       budget: data.budget,
-      startDate: data.start_date,
-      endDate: data.end_date,
+      start_date: data.start_date,
+      end_date: data.end_date,
       categories: data.categories,
       status: "draft",
-      contentRequirements: data.content_requirements,
-      audienceRequirements: data.audience_requirements
+      content_requirements: data.content_requirements,
+      audience_requirements: data.audience_requirements
     });
     setWizardOpen(false);
     
