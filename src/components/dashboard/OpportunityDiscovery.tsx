@@ -1,17 +1,9 @@
-
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { OpportunitySummary } from "./OpportunitySummary";
-import { OpportunityFilters } from "./opportunity/OpportunityFilters";
+import { OpportunityTabs } from "./opportunity/OpportunityTabs";
+import { OpportunityContent } from "./opportunity/OpportunityContent";
 import { OpportunityDetailModal } from "./opportunity/OpportunityDetailModal";
-import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
-import { RecommendedOpportunities } from "./opportunity/RecommendedOpportunities";
 import { Application, FilterOptions, Opportunity, OpportunityTab } from "./types/opportunity";
 import { toast } from "sonner";
-import { OpportunityCard } from "./opportunity/OpportunityCard";
 
 export default function OpportunityDiscovery() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -265,6 +257,16 @@ export default function OpportunityDiscovery() {
     console.log("Opening messages for application:", applicationId);
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      categories: [],
+      minBudget: null,
+      maxBudget: null,
+      sortBy: "relevance",
+    });
+  };
+
   return (
     <div className="space-y-8 pb-12 px-4 md:px-8 max-w-[1300px] mx-auto animate-fade-in">
       <OpportunitySummary
@@ -273,105 +275,26 @@ export default function OpportunityDiscovery() {
         searchQuery={filters.search}
       />
 
-      <Tabs 
-        defaultValue="discover" 
-        value={activeTab} 
-        onValueChange={(value) => setActiveTab(value as OpportunityTab)}
-        className="space-y-6"
-      >
-        <TabsList className="mb-4">
-          <TabsTrigger value="discover">Discover Opportunities</TabsTrigger>
-          <TabsTrigger value="applications">
-            My Applications
-            {applications.length > 0 && (
-              <span className="ml-1.5 bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
-                {applications.length}
-              </span>
-            )}
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="discover" className="space-y-8">
-          <OpportunityFilters
-            filters={filters}
-            onFilterChange={setFilters}
-            totalOpportunities={opportunities.length}
-            filteredCount={filteredOpportunities.length}
-          />
+      <OpportunityTabs
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        applicationsCount={applications.length}
+      />
 
-          {filters.search === "" && filters.categories.length === 0 && (
-            <RecommendedOpportunities
-              opportunities={recommendedOpportunities}
-              onViewOpportunity={handleViewOpportunity}
-            />
-          )}
-
-          <div>
-            <h2 className="text-lg font-semibold font-space mb-4">
-              {filters.search || filters.categories.length > 0
-                ? "Search Results"
-                : "Available Opportunities"}
-            </h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pt-2">
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="animate-pulse border h-[280px] rounded-lg bg-muted/40"
-                  >
-                    <div className="h-24 bg-muted rounded-t-lg" />
-                    <div className="p-4 space-y-3">
-                      <div className="h-5 bg-muted rounded w-3/4" />
-                      <div className="h-4 bg-muted rounded w-1/2" />
-                      <div className="h-16 bg-muted rounded w-full" />
-                      <div className="h-8 bg-muted rounded w-full" />
-                    </div>
-                  </div>
-                ))
-              ) : sortedOpportunities.length > 0 ? (
-                sortedOpportunities.map((opp) => (
-                  <OpportunityCard
-                    key={opp.id}
-                    opportunity={opp}
-                    onViewOpportunity={handleViewOpportunity}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full flex flex-col items-center mt-8 py-16">
-                  <span className="text-4xl mb-2">😕</span>
-                  <h2 className="text-lg font-semibold mb-2">No opportunities found</h2>
-                  <p className="text-muted-foreground mb-4">
-                    Try adjusting your search or filters to find more opportunities.
-                  </p>
-                  {(filters.search || filters.categories.length > 0) && (
-                    <Button
-                      onClick={() =>
-                        setFilters({
-                          search: "",
-                          categories: [],
-                          minBudget: null,
-                          maxBudget: null,
-                          sortBy: "relevance",
-                        })
-                      }
-                    >
-                      Clear Filters
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="applications" className="space-y-4">
-          <ApplicationsManagement
-            applications={applications}
-            onViewDetails={handleViewApplication}
-            onMessageBrand={handleMessageBrand}
-          />
-        </TabsContent>
-      </Tabs>
+      <OpportunityContent
+        activeTab={activeTab}
+        opportunities={opportunities}
+        filteredOpportunities={sortedOpportunities}
+        recommendedOpportunities={recommendedOpportunities}
+        applications={applications}
+        isLoading={isLoading}
+        filters={filters}
+        onFilterChange={setFilters}
+        onViewOpportunity={handleViewOpportunity}
+        onMessageBrand={handleMessageBrand}
+        onViewApplication={handleViewApplication}
+        onClearFilters={handleClearFilters}
+      />
 
       <OpportunityDetailModal
         opportunity={selectedOpportunity}
@@ -379,76 +302,6 @@ export default function OpportunityDiscovery() {
         onClose={() => setIsDetailModalOpen(false)}
         onApply={handleApply}
       />
-
-      <AlertDialog open={isApplicationDialogOpen} onOpenChange={setIsApplicationDialogOpen}>
-        <AlertDialogContent className="max-w-xl">
-          {selectedApplication && (
-            <>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Application Details</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Submitted on {selectedApplication.appliedDate}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              
-              <div className="py-4 space-y-4">
-                <div>
-                  <h3 className="font-medium mb-1">Status</h3>
-                  <div className="flex items-center">
-                    {selectedApplication.status === "pending" && (
-                      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                        Pending Review
-                      </Badge>
-                    )}
-                    {selectedApplication.status === "approved" && (
-                      <Badge className="bg-green-100 text-green-800 border-green-200">
-                        Approved
-                      </Badge>
-                    )}
-                    {selectedApplication.status === "rejected" && (
-                      <Badge className="bg-red-100 text-red-800 border-red-200">
-                        Not Selected
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium mb-1">Opportunity</h3>
-                  <p>
-                    {selectedApplication.opportunity.title} with{" "}
-                    {selectedApplication.opportunity.company}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Budget: {selectedApplication.opportunity.budget}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium mb-1">Your Message</h3>
-                  <p className="text-sm">{selectedApplication.message}</p>
-                </div>
-                
-                {selectedApplication.brandResponse && (
-                  <div>
-                    <h3 className="font-medium mb-1">Brand Response</h3>
-                    <p className="text-sm">{selectedApplication.brandResponse}</p>
-                  </div>
-                )}
-              </div>
-              
-              <AlertDialogFooter>
-                <Button variant="outline" onClick={() => setIsApplicationDialogOpen(false)}>
-                  Close
-                </Button>
-                <Button onClick={() => handleMessageBrand(selectedApplication.id)}>
-                  Message Brand
-                </Button>
-              </AlertDialogFooter>
-            </>
-          )}
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
