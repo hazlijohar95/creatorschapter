@@ -63,7 +63,7 @@ const WaitlistSection: React.FC = () => {
       const userEmailResponse = await supabase.functions.invoke('send-email', {
         body: JSON.stringify({
           to: data.email,
-          subject: 'Welcome to Dealflow Waitlist!',
+          subject: 'Welcome to Creator Chapter Waitlist!',
           template: 'waitlist-confirmation',
           templateData: {
             name: data.name,
@@ -75,11 +75,11 @@ const WaitlistSection: React.FC = () => {
 
       console.log('User confirmation email response:', userEmailResponse);
 
-      const adminEmail = 'your-admin-email@yourdomain.com'; // Update this with your admin email
+      const adminEmail = 'your-admin-email@yourdomain.com';
       const adminEmailResponse = await supabase.functions.invoke('send-email', {
         body: JSON.stringify({
           to: adminEmail,
-          subject: 'New Waitlist Submission',
+          subject: 'New Creator Chapter Waitlist Submission',
           template: 'admin-notification',
           templateData: {
             name: data.name,

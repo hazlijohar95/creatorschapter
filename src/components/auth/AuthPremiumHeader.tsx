@@ -14,17 +14,17 @@ export default function AuthPremiumHeader({ isSignUp }: { isSignUp: boolean }) {
           ? (
             <>
               <span className="inline-block text-neon">Join</span>{" "}
-              <span className="inline-block text-primary">Chapter Creator</span>
+              <span className="inline-block text-primary">Creator Chapter</span>
             </>
           )
-          : <span className="inline-block text-primary">Sign In to Chapter Creator</span>
+          : <span className="inline-block text-primary">Sign In to Creator Chapter</span>
         }
       </h2>
       <div className="w-2/3 sm:w-1/2 h-[4px] bg-gradient-to-r from-neon via-[#9b87f5] to-[#8E9196] rounded-full my-2" />
       <p className="font-inter text-base text-muted-foreground mt-2 text-center max-w-xl">
         {isSignUp
-          ? "Create your Chapter Creator account to unlock premium brand deals and creative collabs."
-          : "Welcome back! Sign in to Chapter Creator and power up your next creative chapter."}
+          ? "Create your Creator Chapter account to unlock premium brand deals and creative collabs."
+          : "Welcome back! Sign in to Creator Chapter and power up your next creative chapter."}
       </p>
     </div>
   );

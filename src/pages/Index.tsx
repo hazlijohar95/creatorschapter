@@ -12,7 +12,7 @@ import Footer from '../components/Footer';
 const Index = () => {
   useEffect(() => {
     console.log("Index page mounted");
-    document.title = "DEALFLOW - Get Better Brand Deals Without the Back-and-Forth";
+    document.title = "Creator Chapter - Get Better Brand Deals Without the Back-and-Forth";
   }, []);
   
   return (
