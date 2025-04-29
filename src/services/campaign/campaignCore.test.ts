@@ -6,12 +6,36 @@ import { supabase } from '@/integrations/supabase/client';
 // Mock the Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    single: vi.fn(),
+    from: vi.fn(() => {
+      return {
+        select: vi.fn(() => {
+          return {
+            eq: vi.fn(() => {
+              return {
+                order: vi.fn(() => {
+                  return {
+                    data: null,
+                    error: null
+                  };
+                })
+              };
+            }),
+            single: vi.fn(() => {
+              return {
+                data: null,
+                error: null
+              };
+            })
+          };
+        }),
+        insert: vi.fn(() => {
+          return {
+            data: null,
+            error: null
+          };
+        }),
+      };
+    })
   }
 }));
 
@@ -39,25 +63,37 @@ describe('Campaign Core Services', () => {
 
   describe('getBrandCampaigns', () => {
     it('should retrieve campaigns for a brand', async () => {
-      supabase.order.mockReturnValue({
-        data: mockCampaigns,
-        error: null
-      });
+      const mockFromReturn = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnValue({
+          data: mockCampaigns,
+          error: null
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       const result = await getBrandCampaigns('test-brand-id');
       
       expect(result).toEqual(mockCampaigns);
       expect(supabase.from).toHaveBeenCalledWith('campaigns');
-      expect(supabase.select).toHaveBeenCalled();
-      expect(supabase.eq).toHaveBeenCalledWith('brand_id', 'test-brand-id');
+      expect(mockFromReturn.select).toHaveBeenCalled();
+      expect(mockFromReturn.eq).toHaveBeenCalledWith('brand_id', 'test-brand-id');
     });
 
     it('should throw error when Supabase returns an error', async () => {
       const mockError = new Error('Database error');
-      supabase.order.mockReturnValue({
-        data: null,
-        error: mockError
-      });
+      const mockFromReturn = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnValue({
+          data: null,
+          error: mockError
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       await expect(getBrandCampaigns('test-brand-id')).rejects.toThrow();
     });
@@ -65,17 +101,23 @@ describe('Campaign Core Services', () => {
 
   describe('getCampaign', () => {
     it('should retrieve a single campaign by ID', async () => {
-      supabase.single.mockReturnValue({
-        data: mockCampaigns[0],
-        error: null
-      });
+      const mockFromReturn = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockReturnValue({
+          data: mockCampaigns[0],
+          error: null
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       const result = await getCampaign('1');
       
       expect(result).toEqual(mockCampaigns[0]);
       expect(supabase.from).toHaveBeenCalledWith('campaigns');
-      expect(supabase.select).toHaveBeenCalled();
-      expect(supabase.eq).toHaveBeenCalledWith('id', '1');
+      expect(mockFromReturn.select).toHaveBeenCalled();
+      expect(mockFromReturn.eq).toHaveBeenCalledWith('id', '1');
     });
   });
 
@@ -88,17 +130,21 @@ describe('Campaign Core Services', () => {
         status: 'draft'
       };
       
-      supabase.insert.mockReturnValue({
-        data: null,
-        error: null
-      });
+      const mockFromReturn = {
+        insert: vi.fn().mockReturnValue({
+          data: null,
+          error: null
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       await createCampaign(newCampaign);
       
       expect(supabase.from).toHaveBeenCalledWith('campaigns');
-      expect(supabase.insert).toHaveBeenCalled();
-      expect(supabase.insert.mock.calls[0][0][0]).toHaveProperty('name', 'New Campaign');
-      expect(supabase.insert.mock.calls[0][0][0]).toHaveProperty('brand_id', 'test-brand-id');
+      expect(mockFromReturn.insert).toHaveBeenCalled();
+      expect(mockFromReturn.insert.mock.calls[0][0][0]).toHaveProperty('name', 'New Campaign');
+      expect(mockFromReturn.insert.mock.calls[0][0][0]).toHaveProperty('brand_id', 'test-brand-id');
     });
   });
 });

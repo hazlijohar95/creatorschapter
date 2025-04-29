@@ -3,30 +3,36 @@ import { vi } from 'vitest';
 
 // Base mock for Supabase client operations
 export const createSupabaseMock = () => {
-  // Base mock with common methods
-  const baseMock = {
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    neq: vi.fn().mockReturnThis(),
-    gt: vi.fn().mockReturnThis(),
-    gte: vi.fn().mockReturnThis(),
-    lt: vi.fn().mockReturnThis(),
-    lte: vi.fn().mockReturnThis(),
-    like: vi.fn().mockReturnThis(),
-    ilike: vi.fn().mockReturnThis(),
-    is: vi.fn().mockReturnThis(),
-    in: vi.fn().mockReturnThis(),
-    contains: vi.fn().mockReturnThis(),
-    containedBy: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(),
-    textSearch: vi.fn().mockReturnThis(),
-    filter: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    single: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockReturnThis(),
+  // Create mock chain builders that maintain method chaining
+  const createChainMock = () => {
+    const chainMock: any = {};
+    const methods = [
+      'from', 'select', 'eq', 'neq', 'gt', 'gte', 'lt', 'lte',
+      'like', 'ilike', 'is', 'in', 'contains', 'containedBy',
+      'range', 'textSearch', 'filter', 'order', 'limit',
+      'single', 'maybeSingle', 'insert', 'upsert', 'update', 'delete'
+    ];
+
+    methods.forEach(method => {
+      chainMock[method] = vi.fn().mockImplementation(() => chainMock);
+    });
+
+    // Add response mock for the end of chains
+    chainMock.mockResponse = (data: any, error: any = null) => {
+      methods.forEach(method => {
+        chainMock[method].mockReturnValue({
+          data,
+          error,
+          count: Array.isArray(data) ? data.length : (data ? 1 : 0)
+        });
+      });
+      return chainMock;
+    };
+
+    return chainMock;
   };
+
+  const chainMock = createChainMock();
 
   // Mock supabase client
   return {
@@ -40,13 +46,7 @@ export const createSupabaseMock = () => {
       onAuthStateChange: vi.fn(),
     },
     // Data mocks
-    from: vi.fn().mockImplementation((table) => ({
-      ...baseMock,
-      insert: vi.fn().mockReturnThis(),
-      upsert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-    })),
+    from: vi.fn().mockReturnValue(chainMock),
     // Storage mocks
     storage: {
       from: vi.fn().mockImplementation((bucket) => ({
@@ -62,16 +62,12 @@ export const createSupabaseMock = () => {
       deleteBucket: vi.fn(),
     },
     // Helper to set return values for common operations
-    mockDataResponse: (data, error = null) => {
-      baseMock.select.mockReturnValue({
-        data,
-        error,
-        count: Array.isArray(data) ? data.length : (data ? 1 : 0)
-      });
-      return baseMock;
+    mockDataResponse: (data: any, error = null) => {
+      chainMock.mockResponse(data, error);
+      return chainMock;
     },
     // Helper for setting auth state
-    mockAuthSession: (session) => {
+    mockAuthSession: (session: any) => {
       const auth = { auth: { getSession: vi.fn().mockResolvedValue({ data: { session } }) } };
       return auth;
     }

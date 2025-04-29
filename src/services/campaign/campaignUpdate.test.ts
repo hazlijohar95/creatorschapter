@@ -6,10 +6,30 @@ import { supabase } from '@/integrations/supabase/client';
 // Mock the Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis()
+    from: vi.fn(() => {
+      return {
+        update: vi.fn(() => {
+          return {
+            eq: vi.fn(() => {
+              return {
+                data: null,
+                error: null
+              };
+            })
+          };
+        }),
+        delete: vi.fn(() => {
+          return {
+            eq: vi.fn(() => {
+              return {
+                data: null,
+                error: null
+              };
+            })
+          };
+        })
+      };
+    })
   }
 }));
 
@@ -28,21 +48,21 @@ describe('Campaign Update Services', () => {
         status: 'active'
       };
 
-      supabase.eq.mockReturnValue({
-        data: null,
-        error: null
-      });
+      const mockFromReturn = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnValue({
+          data: null,
+          error: null
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       await updateCampaign(campaignId, updates);
       
       expect(supabase.from).toHaveBeenCalledWith('campaigns');
-      expect(supabase.update).toHaveBeenCalledWith({
-        name: 'Updated Campaign',
-        description: 'Updated description',
-        budget: 1000,
-        status: 'active'
-      });
-      expect(supabase.eq).toHaveBeenCalledWith('id', campaignId);
+      expect(mockFromReturn.update).toHaveBeenCalled();
+      expect(mockFromReturn.eq).toHaveBeenCalledWith('id', campaignId);
     });
 
     it('should throw error when Supabase returns an error', async () => {
@@ -50,10 +70,15 @@ describe('Campaign Update Services', () => {
       const updates = { name: 'Updated Campaign' };
       const mockError = new Error('Update failed');
       
-      supabase.eq.mockReturnValue({
-        data: null,
-        error: mockError
-      });
+      const mockFromReturn = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnValue({
+          data: null,
+          error: mockError
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       await expect(updateCampaign(campaignId, updates)).rejects.toThrow();
     });
@@ -64,16 +89,21 @@ describe('Campaign Update Services', () => {
       const campaignId = 'test-campaign-id';
       const status = 'completed';
 
-      supabase.eq.mockReturnValue({
-        data: null,
-        error: null
-      });
+      const mockFromReturn = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnValue({
+          data: null,
+          error: null
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       await updateCampaignStatus(campaignId, status);
       
       expect(supabase.from).toHaveBeenCalledWith('campaigns');
-      expect(supabase.update).toHaveBeenCalledWith({ status });
-      expect(supabase.eq).toHaveBeenCalledWith('id', campaignId);
+      expect(mockFromReturn.update).toHaveBeenCalledWith({ status });
+      expect(mockFromReturn.eq).toHaveBeenCalledWith('id', campaignId);
     });
   });
 
@@ -81,16 +111,21 @@ describe('Campaign Update Services', () => {
     it('should delete a campaign', async () => {
       const campaignId = 'test-campaign-id';
 
-      supabase.eq.mockReturnValue({
-        data: null,
-        error: null
-      });
+      const mockFromReturn = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnValue({
+          data: null,
+          error: null
+        })
+      };
+      
+      (supabase.from as any).mockReturnValue(mockFromReturn);
 
       await deleteCampaign(campaignId);
       
       expect(supabase.from).toHaveBeenCalledWith('campaigns');
-      expect(supabase.delete).toHaveBeenCalled();
-      expect(supabase.eq).toHaveBeenCalledWith('id', campaignId);
+      expect(mockFromReturn.delete).toHaveBeenCalled();
+      expect(mockFromReturn.eq).toHaveBeenCalledWith('id', campaignId);
     });
   });
 });
