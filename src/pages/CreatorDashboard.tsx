@@ -42,13 +42,22 @@ export default function CreatorDashboard(): JSX.Element {
       </div>;
   }
 
-  return <SidebarProvider>
+  return (
+    <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <CreatorSidebar />
-        <main className="flex-1 py-0 px-0 mx-[50px] my-[30px]">
-          <Outlet />
+        <main className="flex-1 py-0 px-0 mx-[50px] my-[30px] relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full filter blur-3xl -z-10 animate-pulse" />
+          <div className="absolute bottom-40 left-20 w-72 h-72 bg-neon/5 rounded-full filter blur-3xl -z-10" />
+          
+          {/* Main content */}
+          <div className="relative z-0">
+            <Outlet />
+          </div>
         </main>
       </div>
       <Toaster position="top-right" />
-    </SidebarProvider>;
+    </SidebarProvider>
+  );
 }
