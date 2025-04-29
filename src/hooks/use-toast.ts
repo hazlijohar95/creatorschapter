@@ -1,7 +1,7 @@
 
 import {
   toast as sonnerToast,
-  type Toast as ToastT,
+  type ToastT, // Changed from Toast to ToastT which is the correct export name
 } from 'sonner';
 
 // Define our own ToastOptions type since it's not exported from sonner

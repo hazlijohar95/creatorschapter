@@ -1,18 +1,19 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OpportunityTab } from "../types/opportunity";
-import { Badge } from "@/components/ui/badge";
 
 interface OpportunityTabsProps {
   activeTab: OpportunityTab;
   onTabChange: (value: OpportunityTab) => void;
   applicationsCount: number;
+  children: React.ReactNode;
 }
 
 export function OpportunityTabs({ 
   activeTab, 
   onTabChange,
-  applicationsCount 
+  applicationsCount,
+  children
 }: OpportunityTabsProps) {
   return (
     <Tabs 
@@ -32,6 +33,15 @@ export function OpportunityTabs({
           )}
         </TabsTrigger>
       </TabsList>
+      
+      {/* Render TabsContent components here */}
+      <TabsContent value="discover">
+        {activeTab === "discover" && children}
+      </TabsContent>
+      
+      <TabsContent value="applications">
+        {activeTab === "applications" && children}
+      </TabsContent>
     </Tabs>
   );
 }

@@ -1,8 +1,7 @@
 
-import { TabsContent } from "@/components/ui/tabs";
+import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
 import { OpportunityFilters } from "./OpportunityFilters";
 import { RecommendedOpportunities } from "./RecommendedOpportunities";
-import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
 import { OpportunityList } from "./OpportunityList";
 import { Application, FilterOptions, Opportunity } from "../types/opportunity";
 
@@ -35,47 +34,54 @@ export function OpportunityContent({
   onViewApplication,
   onClearFilters,
 }: OpportunityContentProps) {
+  // Note: We're not using TabsContent here anymore
+  // Instead, we're conditionally rendering content based on activeTab
+  
   return (
     <>
-      <TabsContent value="discover" className="space-y-8">
-        <OpportunityFilters
-          filters={filters}
-          onFilterChange={onFilterChange}
-          totalOpportunities={opportunities.length}
-          filteredCount={filteredOpportunities.length}
-        />
-
-        {filters.search === "" && filters.categories.length === 0 && (
-          <RecommendedOpportunities
-            opportunities={recommendedOpportunities}
-            onViewOpportunity={onViewOpportunity}
-          />
-        )}
-
-        <div>
-          <h2 className="text-lg font-semibold font-space mb-4">
-            {filters.search || filters.categories.length > 0
-              ? "Search Results"
-              : "Available Opportunities"}
-          </h2>
-          <OpportunityList
-            opportunities={opportunities}
-            filteredOpportunities={filteredOpportunities}
-            isLoading={isLoading}
-            onViewOpportunity={onViewOpportunity}
-            onClearFilters={onClearFilters}
+      {activeTab === "discover" && (
+        <div className="space-y-8">
+          <OpportunityFilters
             filters={filters}
+            onFilterChange={onFilterChange}
+            totalOpportunities={opportunities.length}
+            filteredCount={filteredOpportunities.length}
+          />
+
+          {filters.search === "" && filters.categories.length === 0 && (
+            <RecommendedOpportunities
+              opportunities={recommendedOpportunities}
+              onViewOpportunity={onViewOpportunity}
+            />
+          )}
+
+          <div>
+            <h2 className="text-lg font-semibold font-space mb-4">
+              {filters.search || filters.categories.length > 0
+                ? "Search Results"
+                : "Available Opportunities"}
+            </h2>
+            <OpportunityList
+              opportunities={opportunities}
+              filteredOpportunities={filteredOpportunities}
+              isLoading={isLoading}
+              onViewOpportunity={onViewOpportunity}
+              onClearFilters={onClearFilters}
+              filters={filters}
+            />
+          </div>
+        </div>
+      )}
+      
+      {activeTab === "applications" && (
+        <div className="space-y-4">
+          <ApplicationsManagement
+            applications={applications}
+            onViewDetails={onViewApplication}
+            onMessageBrand={onMessageBrand}
           />
         </div>
-      </TabsContent>
-      
-      <TabsContent value="applications" className="space-y-4">
-        <ApplicationsManagement
-          applications={applications}
-          onViewDetails={onViewApplication}
-          onMessageBrand={onMessageBrand}
-        />
-      </TabsContent>
+      )}
     </>
   );
 }

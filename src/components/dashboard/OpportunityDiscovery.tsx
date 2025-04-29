@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { OpportunityTabs } from "./opportunity/OpportunityTabs";
 import { OpportunityContent } from "./opportunity/OpportunityContent";
@@ -462,22 +461,22 @@ export default function OpportunityDiscovery() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         applicationsCount={applications.length}
-      />
-
-      <OpportunityContent
-        activeTab={activeTab}
-        opportunities={opportunities}
-        filteredOpportunities={sortedOpportunities}
-        recommendedOpportunities={recommendedOpportunities}
-        applications={applications}
-        isLoading={isLoading}
-        filters={filters}
-        onFilterChange={setFilters}
-        onViewOpportunity={handleViewOpportunity}
-        onMessageBrand={handleMessageBrand}
-        onViewApplication={handleViewApplication}
-        onClearFilters={handleClearFilters}
-      />
+      >
+        <OpportunityContent
+          activeTab={activeTab}
+          opportunities={opportunities}
+          filteredOpportunities={sortedOpportunities}
+          recommendedOpportunities={recommendedOpportunities}
+          applications={applications}
+          isLoading={isLoading}
+          filters={filters}
+          onFilterChange={setFilters}
+          onViewOpportunity={handleViewOpportunity}
+          onMessageBrand={handleMessageBrand}
+          onViewApplication={handleViewApplication}
+          onClearFilters={handleClearFilters}
+        />
+      </OpportunityTabs>
 
       <OpportunityDetailModal
         opportunity={selectedOpportunity}
