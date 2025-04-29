@@ -1,19 +1,22 @@
 
-import { useState } from "react";
-import { useConversations } from "./messaging/useConversations";
-import { useActiveConversation } from "./messaging/useActiveConversation";
+import { useMessagingState } from "./messaging/useMessagingState";
 import { ConversationList } from "./messaging/ConversationList";
 import { MessageThread } from "./messaging/MessageThread";
 import { MessageInput } from "./messaging/MessageInput";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { MessageSquare } from "lucide-react";
+import { MessageEmptyState } from "./messaging/MessageEmptyState";
+import { MessageThreadHeader } from "./messaging/MessageThreadHeader";
 
 export function BrandMessaging() {
-  const { conversations, loading: conversationsLoading, error } = useConversations();
-  const { activeConversation, setActiveConversation } = useActiveConversation(conversations);
-  
-  const [chatAreaVisible, setChatAreaVisible] = useState(true);
+  const {
+    conversations,
+    loading,
+    error,
+    activeConversation,
+    setActiveConversation,
+    chatAreaVisible,
+    setChatAreaVisible
+  } = useMessagingState();
   
   if (error) {
     return (
@@ -26,6 +29,11 @@ export function BrandMessaging() {
     );
   }
   
+  // Find the active conversation data if available
+  const activeConversationData = activeConversation 
+    ? conversations.find(c => c.id === activeConversation) 
+    : undefined;
+  
   return (
     <div className="h-[calc(100vh-64px)] flex bg-black text-white">
       <ConversationList
@@ -35,20 +43,23 @@ export function BrandMessaging() {
           setActiveConversation(id);
           setChatAreaVisible(true);
         }}
-        isLoading={conversationsLoading}
+        isLoading={loading}
       />
       
       <div className={`flex-1 flex flex-col border-l border-white/10 bg-black ${!chatAreaVisible ? 'hidden md:flex' : 'flex'}`}>
-        {activeConversation ? (
+        {activeConversation && (
           <>
+            <MessageThreadHeader 
+              conversationName={activeConversationData?.creatorName || "Conversation"}
+              avatarUrl={activeConversationData?.avatar || ""}
+            />
             <MessageThread conversationId={activeConversation} />
             <MessageInput conversationId={activeConversation} />
           </>
-        ) : (
-          <EmptyState
-            icon={<MessageSquare className="w-12 h-12 text-white/30" />}
-            title="No conversation selected"
-            description="Select a conversation from the list or start a new one"
+        )}
+
+        {!activeConversation && (
+          <MessageEmptyState
             action={{
               label: "Find Creators",
               onClick: () => window.location.href = "/brand-dashboard/creators"
