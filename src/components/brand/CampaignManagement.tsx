@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useCampaignCore } from "@/hooks/campaign";
 import { useAuthStore } from "@/lib/auth";
 import { CampaignCalendarView } from "./calendar/CampaignCalendarView";
@@ -21,8 +22,9 @@ const defaultFilters = {
 };
 
 export function CampaignManagement() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("all");
-  const [view, setView] = useState<"list" | "calendar">("list");
+  const [view, setView] = useState<"list" | "calendar">(location.pathname.includes("/calendar") ? "calendar" : "list");
   const [searchQuery, setSearchQuery] = useState("");
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -40,6 +42,15 @@ export function CampaignManagement() {
     brandId: user?.id || "", 
     status: activeTab !== "all" ? activeTab : undefined
   });
+
+  // Update view based on current route
+  useEffect(() => {
+    if (location.pathname.includes("/calendar")) {
+      setView("calendar");
+    } else if (location.pathname.includes("/campaigns")) {
+      setView("list");
+    }
+  }, [location.pathname]);
 
   const analyticsData = [
     { name: "Jan", impressions: 1200, engagements: 800 },

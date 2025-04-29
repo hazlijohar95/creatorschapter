@@ -168,8 +168,9 @@ function App() {
             
             <Route path="/brand-dashboard" element={<BrandDashboard />}>
               <Route index element={<BrandOverview />} />
-              <Route path="discover" element={<CreatorDiscovery />} />
+              <Route path="creators" element={<CreatorDiscovery />} />
               <Route path="campaigns" element={<CampaignManagement />} />
+              <Route path="calendar" element={<CampaignManagement />} />
               <Route path="applications" element={<ApplicationReview />} />
               <Route path="messages" element={<BrandMessaging />} />
               <Route path="settings" element={<BrandSettings />} />
