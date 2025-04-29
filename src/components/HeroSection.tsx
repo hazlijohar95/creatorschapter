@@ -61,7 +61,7 @@ const HeroSection: React.FC = () => {
                 height="600"
                 loading="eager"
                 decoding="async"
-                fetchpriority="high"
+                fetchPriority="high"
                 onLoad={handleImageLoad}
               />
               {!imageLoaded && (
