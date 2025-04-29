@@ -61,5 +61,5 @@ export interface ApplicationApiResponse {
   };
 }
 
-// Re-export ApplicationStatus for other files that need it
-export { ApplicationStatus };
+// Re-export ApplicationStatus as a type for other files that need it
+export type { ApplicationStatus };
