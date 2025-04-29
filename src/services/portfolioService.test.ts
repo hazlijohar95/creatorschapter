@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
   getPortfolioItems, 
@@ -8,69 +7,13 @@ import {
   toggleFeaturedStatus
 } from './portfolioService';
 import { supabase } from '@/integrations/supabase/client';
-import { mockSupabaseModule } from '@/test/mocks/supabase';
+import { mockSupabaseModule, createSupabaseMock } from '@/test/mocks/supabase';
 
 // Mock the Supabase client
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => {
-      return {
-        select: vi.fn(() => {
-          return {
-            eq: vi.fn(() => {
-              return {
-                order: vi.fn(() => {
-                  return {
-                    data: null,
-                    error: null
-                  };
-                })
-              };
-            })
-          };
-        }),
-        insert: vi.fn(() => {
-          return {
-            select: vi.fn(() => {
-              return {
-                single: vi.fn(() => {
-                  return {
-                    data: null,
-                    error: null
-                  };
-                })
-              };
-            })
-          };
-        }),
-        update: vi.fn(() => {
-          return {
-            eq: vi.fn(() => {
-              return {
-                data: null,
-                error: null
-              };
-            })
-          };
-        }),
-        delete: vi.fn(() => {
-          return {
-            eq: vi.fn(() => {
-              return {
-                data: null,
-                error: null
-              };
-            })
-          };
-        })
-      };
-    }),
-    storage: {
-      getBucket: vi.fn(),
-      createBucket: vi.fn()
-    }
-  }
-}));
+vi.mock('@/integrations/supabase/client', () => {
+  const mockSupabase = createSupabaseMock();
+  return { supabase: mockSupabase };
+});
 
 describe('Portfolio Service', () => {
   const mockPortfolioItems = [

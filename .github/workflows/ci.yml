@@ -18,6 +18,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
+        cache: 'npm'
         
     - name: Install dependencies
       run: npm ci
@@ -27,15 +28,29 @@ jobs:
       
     - name: Test
       run: npm run test
+      env:
+        CI: true
+      
+    - name: Test Coverage
+      run: npm run test:coverage
+      env:
+        CI: true
       
     - name: Build
       run: npm run build
       
-    - name: Test Coverage
-      run: npm run test:coverage
-      
-    # Add this step if you want to see coverage reports in the PR
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       with:
         directory: ./coverage/
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+        verbose: true
+
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage-report
+        path: coverage/
+        retention-days: 7
+

@@ -19,13 +19,17 @@ export const createSupabaseMock = () => {
 
     // Add response mock for the end of chains
     chainMock.mockResponse = (data: any, error: any = null) => {
+      chainMock.data = data;
+      chainMock.error = error;
+      
+      // For each method, return the chain with data/error
       methods.forEach(method => {
-        chainMock[method].mockReturnValue({
-          data,
-          error,
-          count: Array.isArray(data) ? data.length : (data ? 1 : 0)
-        });
+        chainMock[method].mockImplementation(() => chainMock);
       });
+      
+      // Mock the final promise resolution
+      chainMock.then = (callback: any) => Promise.resolve(callback({ data, error }));
+      chainMock.catch = (callback: any) => Promise.resolve({ data, error });
       return chainMock;
     };
 
@@ -35,7 +39,7 @@ export const createSupabaseMock = () => {
   const chainMock = createChainMock();
 
   // Mock supabase client
-  return {
+  const supabaseMock = {
     // Auth mocks
     auth: {
       getSession: vi.fn(),
@@ -46,7 +50,7 @@ export const createSupabaseMock = () => {
       onAuthStateChange: vi.fn(),
     },
     // Data mocks
-    from: vi.fn().mockReturnValue(chainMock),
+    from: vi.fn().mockImplementation(() => chainMock),
     // Storage mocks
     storage: {
       from: vi.fn().mockImplementation((bucket) => ({
@@ -70,8 +74,15 @@ export const createSupabaseMock = () => {
     mockAuthSession: (session: any) => {
       const auth = { auth: { getSession: vi.fn().mockResolvedValue({ data: { session } }) } };
       return auth;
+    },
+    // Helper to reset all mocks
+    resetMocks: () => {
+      vi.resetAllMocks();
+      return chainMock.mockResponse(null, null);
     }
   };
+
+  return supabaseMock;
 };
 
 // Mock the entire supabase module

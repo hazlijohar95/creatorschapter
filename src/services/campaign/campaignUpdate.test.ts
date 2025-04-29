@@ -1,37 +1,13 @@
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { updateCampaign, updateCampaignStatus, deleteCampaign } from './campaignUpdate';
 import { supabase } from '@/integrations/supabase/client';
+import { createSupabaseMock } from '@/test/mocks/supabase';
 
 // Mock the Supabase client
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => {
-      return {
-        update: vi.fn(() => {
-          return {
-            eq: vi.fn(() => {
-              return {
-                data: null,
-                error: null
-              };
-            })
-          };
-        }),
-        delete: vi.fn(() => {
-          return {
-            eq: vi.fn(() => {
-              return {
-                data: null,
-                error: null
-              };
-            })
-          };
-        })
-      };
-    })
-  }
-}));
+vi.mock('@/integrations/supabase/client', () => {
+  const mockSupabase = createSupabaseMock();
+  return { supabase: mockSupabase };
+});
 
 describe('Campaign Update Services', () => {
   beforeEach(() => {
