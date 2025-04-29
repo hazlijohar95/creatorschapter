@@ -2,11 +2,11 @@
 import {
   toast as sonnerToast,
   type ToastT,
-  type Toast as SonnerToastOptions
+  type ToastOptions
 } from 'sonner';
 
 // Extend the ToastOptions type to include both variant and type for backward compatibility
-export interface ToastProps extends SonnerToastOptions {
+export interface ToastProps extends ToastOptions {
   title?: string;
   description?: string;
   action?: React.ReactNode;

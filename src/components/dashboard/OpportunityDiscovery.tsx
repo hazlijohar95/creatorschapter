@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { OpportunityTabs } from "./opportunity/OpportunityTabs";
 import { OpportunityContent } from "./opportunity/OpportunityContent";
@@ -5,10 +6,13 @@ import { OpportunitySummary } from "./OpportunitySummary";
 import { OpportunityDetailModal } from "./opportunity/OpportunityDetailModal";
 import { OpportunitySkeleton } from "./opportunity/OpportunitySkeleton";
 import { Application, FilterOptions, Opportunity, OpportunityTab } from "./types/opportunity";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthStore } from "@/lib/auth";
 
 export default function OpportunityDiscovery() {
+  const { user } = useAuthStore();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [recommendedOpportunities, setRecommendedOpportunities] = useState<Opportunity[]>([]);
@@ -29,137 +33,211 @@ export default function OpportunityDiscovery() {
 
   const queryClient = useQueryClient();
 
+  // Real data fetching for opportunities
+  const { data: campaignData, isLoading: campaignsLoading } = useQuery({
+    queryKey: ['campaigns', 'active'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("campaigns")
+        .select(`
+          id,
+          name,
+          description,
+          budget,
+          brand_id,
+          created_at,
+          categories,
+          end_date,
+          profiles!brand_id (
+            full_name,
+            company_name
+          )
+        `)
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching campaigns:", error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+    enabled: !!user
+  });
+
+  // Real data fetching for user applications
+  const { data: applicationData, isLoading: applicationsLoading } = useQuery({
+    queryKey: ['applications', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("campaign_creators")
+        .select(`
+          id,
+          status,
+          application_message,
+          brand_response,
+          created_at,
+          campaign_id,
+          campaigns (
+            id,
+            name,
+            description,
+            budget,
+            brand_id
+          ),
+          profiles!brand_id (
+            full_name,
+            company_name
+          )
+        `)
+        .eq("creator_id", user.id)
+        .order("created_at", { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching applications:", error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+    enabled: !!user?.id
+  });
+
+  // Setup realtime subscription for application status updates
   useEffect(() => {
-    const prefetchData = async () => {
-      setIsLoading(true);
+    if (!user?.id) return;
+    
+    const channel = supabase
+      .channel('campaign-creators-changes')
+      .on('postgres_changes', 
+        {
+          event: '*',
+          schema: 'public',
+          table: 'campaign_creators',
+          filter: `creator_id=eq.${user.id}`
+        }, 
+        (payload) => {
+          console.log('Real-time update:', payload);
+          // Refresh applications on any changes
+          queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
+          
+          // Show notification
+          if (payload.eventType === 'UPDATE') {
+            const newStatus = (payload.new as any).status;
+            const oldStatus = (payload.old as any).status;
+            
+            if (newStatus !== oldStatus) {
+              toast({
+                title: "Application Updated",
+                description: `Your application status has been updated to ${newStatus}`,
+                type: "info",
+              });
+            }
+          }
+        })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
+  // Transform campaign data to Opportunity format
+  useEffect(() => {
+    if (campaignData && !campaignsLoading) {
       try {
-        const mockData: Opportunity[] = [
-          {
-            id: "1",
-            title: "Instagram Story Campaign",
-            company: "Fitness Brand",
-            budget: "$500-750",
-            description: "Looking for fitness influencers to create Instagram Stories highlighting our new protein shakes. Must have an audience interested in fitness and nutrition.",
-            match: 95,
-            tags: ["Instagram", "Stories", "Fitness"],
-            deadline: "2025-05-15",
-            isNew: true,
-            createdAt: "2025-04-20T10:30:00Z",
-          },
-          {
-            id: "2",
-            title: "YouTube Product Review",
-            company: "Tech Company",
-            budget: "$1000-1500",
-            description: "We're seeking tech reviewers to create an in-depth review of our latest smartphone. Must have experience reviewing tech products and a sizable YouTube audience.",
-            match: 88,
-            tags: ["YouTube", "Tech", "Review"],
-            deadline: "2025-05-20",
-            isNew: true,
-            createdAt: "2025-04-19T15:45:00Z",
-          },
-          {
-            id: "3",
-            title: "Podcast Guest Appearance",
-            company: "Media Company",
-            budget: "$300",
-            description: "Join our podcast as a guest to discuss content creation strategies. Looking for experienced creators with unique perspectives.",
-            match: 75,
-            tags: ["Podcast", "Guest", "Content Strategy"],
-            deadline: "2025-05-25",
-            isNew: false,
-            createdAt: "2025-04-15T09:20:00Z",
-          },
-          {
-            id: "4",
-            title: "Blog Post Collaboration",
-            company: "Lifestyle Brand",
-            budget: "$200-400",
-            description: "Write an insightful blog post about sustainable living. Audience should be interested in eco-friendly lifestyle choices.",
-            match: 70,
-            tags: ["Blog", "Sustainability", "Lifestyle"],
-            deadline: "2025-05-30",
-            isNew: false,
-            createdAt: "2025-04-10T14:15:00Z",
-          },
-          {
-            id: "5",
-            title: "TikTok Dance Challenge",
-            company: "Music Label",
-            budget: "$800-1200",
-            description: "Create a viral dance challenge for our upcoming song release. Looking for creators with a strong presence in dance and music content.",
-            match: 92,
-            tags: ["TikTok", "Dance", "Music"],
-            deadline: "2025-05-10",
-            isNew: true,
-            createdAt: "2025-04-22T11:30:00Z",
-          },
-          {
-            id: "6",
-            title: "Beauty Product Review Series",
-            company: "Cosmetics Brand",
-            budget: "$600-900",
-            description: "Create a series of reviews featuring our new skincare line. Ideal for beauty influencers with a focus on skincare routines.",
-            match: 83,
-            tags: ["Beauty", "Skincare", "Review"],
-            deadline: "2025-06-05",
-            isNew: false,
-            createdAt: "2025-04-08T16:45:00Z",
-          },
-        ];
+        const transformedOpportunities: Opportunity[] = campaignData.map((campaign: any) => {
+          // Calculate match score based on user categories (simplified)
+          const match = Math.floor(70 + Math.random() * 30); // Replace with actual algorithm
+          
+          // Format budget string
+          const budget = campaign.budget ? `$${campaign.budget}` : "TBD";
+          
+          // Determine if it's new (less than 3 days old)
+          const createdAt = new Date(campaign.created_at);
+          const isNew = (new Date().getTime() - createdAt.getTime()) < (3 * 24 * 60 * 60 * 1000);
+          
+          return {
+            id: campaign.id,
+            title: campaign.name,
+            company: campaign.profiles?.company_name || campaign.profiles?.full_name || "Company",
+            budget: budget,
+            description: campaign.description || "No description provided.",
+            match: match,
+            tags: campaign.categories || [],
+            deadline: campaign.end_date || new Date().toISOString(),
+            isNew: isNew,
+            createdAt: campaign.created_at,
+          };
+        });
         
-        queryClient.setQueryData(['opportunities'], mockData);
+        setOpportunities(transformedOpportunities);
         
-        const recommended = [...mockData]
+        // Set recommended opportunities (highest match scores)
+        const recommended = [...transformedOpportunities]
           .sort((a, b) => b.match - a.match)
           .slice(0, 3);
-        queryClient.setQueryData(['recommendedOpportunities'], recommended);
-        
-        setOpportunities(mockData);
+          
         setRecommendedOpportunities(recommended);
-        
-        const mockApplications: Application[] = [
-          {
-            id: "app1",
-            opportunity: {
-              id: "2",
-              title: "YouTube Product Review",
-              company: "Tech Company",
-              budget: "$1000-1500",
-            },
-            status: "pending",
-            appliedDate: "April 21, 2025",
-            lastUpdateDate: "April 21, 2025",
-            message: "I've been reviewing tech products for over 3 years and would love to collaborate on this opportunity. My audience is very engaged with tech content.",
-          },
-          {
-            id: "app2",
-            opportunity: {
-              id: "5",
-              title: "TikTok Dance Challenge",
-              company: "Music Label",
-              budget: "$800-1200",
-            },
-            status: "approved",
-            appliedDate: "April 18, 2025",
-            lastUpdateDate: "April 19, 2025",
-            message: "I'm a dance content creator with over 100K followers on TikTok. I'd love to create a dance challenge for your upcoming song release!",
-            brandResponse: "We're excited to work with you! Let's discuss the details soon."
-          },
-        ];
-        
-        queryClient.setQueryData(['applications'], mockApplications);
-        setApplications(mockApplications);
       } catch (error) {
-        console.error("Error fetching opportunities:", error);
-        toast.error("Failed to load opportunities. Please try again.");
-      } finally {
-        setIsLoading(false);
+        console.error("Error transforming campaign data:", error);
+        toast({
+          title: "Error loading opportunities",
+          description: "There was an error processing campaign data.",
+          type: "destructive",
+        });
       }
-    };
+    }
+  }, [campaignData, campaignsLoading]);
 
-    prefetchData();
-  }, [queryClient]);
+  // Transform application data to Application format
+  useEffect(() => {
+    if (applicationData && !applicationsLoading) {
+      try {
+        const transformedApplications: Application[] = applicationData.map((app: any) => {
+          return {
+            id: app.id,
+            opportunity: {
+              id: app.campaigns?.id || "",
+              title: app.campaigns?.name || "Unknown Campaign",
+              company: app.profiles?.company_name || app.profiles?.full_name || "Unknown Company",
+              budget: app.campaigns?.budget ? `$${app.campaigns.budget}` : "TBD",
+            },
+            status: app.status,
+            appliedDate: new Date(app.created_at).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            }),
+            lastUpdateDate: new Date(app.updated_at || app.created_at).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            }),
+            message: app.application_message || "",
+            brandResponse: app.brand_response,
+          };
+        });
+        
+        setApplications(transformedApplications);
+      } catch (error) {
+        console.error("Error transforming application data:", error);
+        toast({
+          title: "Error loading applications",
+          description: "There was an error processing your applications.",
+          type: "destructive",
+        });
+      }
+    }
+  }, [applicationData, applicationsLoading]);
+
+  // Updated loading state based on real queries
+  useEffect(() => {
+    setIsLoading(campaignsLoading || applicationsLoading);
+  }, [campaignsLoading, applicationsLoading]);
 
   const filteredOpportunities = opportunities.filter((opp) => {
     const searchMatch =
@@ -204,38 +282,70 @@ export default function OpportunityDiscovery() {
 
   const handleApply = async (opportunityId: string, message: string) => {
     try {
-      console.log("Submitting application:", { opportunityId, message });
+      if (!user) {
+        toast({ 
+          title: "Authentication required", 
+          description: "Please log in to apply for opportunities",
+          type: "destructive"
+        });
+        return Promise.reject("Not authenticated");
+      }
+
+      setIsLoading(true);
       
-      const opportunity = opportunities.find((o) => o.id === opportunityId);
-      if (!opportunity) throw new Error("Opportunity not found");
+      // Check if already applied
+      const { data: existingApplications } = await supabase
+        .from("campaign_creators")
+        .select("id")
+        .eq("campaign_id", opportunityId)
+        .eq("creator_id", user.id)
+        .single();
+        
+      if (existingApplications) {
+        toast({
+          title: "Already applied",
+          description: "You have already applied to this opportunity",
+          type: "warning"
+        });
+        setIsLoading(false);
+        return Promise.reject("Already applied");
+      }
       
-      const newApplication: Application = {
-        id: `app${Date.now()}`,
-        opportunity: {
-          id: opportunity.id,
-          title: opportunity.title,
-          company: opportunity.company,
-          budget: opportunity.budget,
-        },
-        status: "pending",
-        appliedDate: new Date().toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
-        lastUpdateDate: new Date().toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
-        message,
-      };
+      // Submit new application
+      const { data, error } = await supabase
+        .from("campaign_creators")
+        .insert({
+          campaign_id: opportunityId,
+          creator_id: user.id,
+          status: "pending",
+          application_message: message
+        })
+        .select();
+        
+      if (error) {
+        throw error;
+      }
       
-      setApplications((prev) => [...prev, newApplication]);
+      // Refresh applications
+      queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
+      
+      toast({
+        title: "Application submitted",
+        description: "Your application has been successfully submitted",
+        type: "success"
+      });
+      
       return Promise.resolve();
     } catch (error) {
       console.error("Error applying to opportunity:", error);
+      toast({
+        title: "Failed to submit application",
+        description: "There was an error submitting your application. Please try again.",
+        type: "destructive"
+      });
       return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -261,9 +371,69 @@ export default function OpportunityDiscovery() {
     }
   };
 
-  const handleMessageBrand = (applicationId: string) => {
-    toast.info("Messaging feature will be implemented in a future update.");
-    console.log("Opening messages for application:", applicationId);
+  const handleMessageBrand = async (applicationId: string) => {
+    const application = applications.find((a) => a.id === applicationId);
+    if (!application || !user) return;
+
+    try {
+      // Get the brand ID from the application
+      const { data: campaignData, error: campaignError } = await supabase
+        .from("campaigns")
+        .select("brand_id")
+        .eq("id", application.opportunity.id)
+        .single();
+        
+      if (campaignError) throw campaignError;
+      
+      const brandId = campaignData.brand_id;
+      
+      // Check if conversation already exists
+      const { data: existingConversation, error: convError } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("creator_id", user.id)
+        .eq("brand_id", brandId)
+        .maybeSingle();
+        
+      if (convError) throw convError;
+      
+      let conversationId;
+      
+      // Create conversation if it doesn't exist
+      if (!existingConversation) {
+        const { data: newConversation, error: createError } = await supabase
+          .from("conversations")
+          .insert({
+            creator_id: user.id,
+            brand_id: brandId
+          })
+          .select()
+          .single();
+          
+        if (createError) throw createError;
+        conversationId = newConversation.id;
+      } else {
+        conversationId = existingConversation.id;
+      }
+      
+      // Redirect to messages with this conversation open
+      // Note: This is simplified - you would need to implement the messaging UI
+      toast({
+        title: "Conversation ready",
+        description: "You can now message the brand about this opportunity",
+        type: "success"
+      });
+      
+      console.log("Opening conversation:", conversationId);
+      // TODO: Redirect to messaging page with this conversation open
+    } catch (error) {
+      console.error("Error setting up conversation:", error);
+      toast({
+        title: "Couldn't set up messaging",
+        description: "There was an error setting up the conversation with this brand",
+        type: "destructive"
+      });
+    }
   };
 
   const handleClearFilters = () => {

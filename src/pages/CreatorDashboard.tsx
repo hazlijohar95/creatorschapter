@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth";
@@ -5,6 +6,8 @@ import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { CreatorSidebar } from "@/components/creator/CreatorSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader } from "lucide-react";
+import { Toaster } from "sonner";
+
 export default function CreatorDashboard(): JSX.Element {
   const {
     user
@@ -14,17 +17,20 @@ export default function CreatorDashboard(): JSX.Element {
     step2Complete,
     loading
   } = useProfileCompletion();
+
   useEffect(() => {
     if (!loading && !step2Complete && user) {
       navigate("/onboarding");
     }
   }, [loading, step2Complete, user, navigate]);
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
         <Loader className="h-8 w-8 animate-spin text-primary" />
         <span className="ml-2 text-lg">Loading...</span>
       </div>;
   }
+
   if (!user) {
     return <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -35,6 +41,7 @@ export default function CreatorDashboard(): JSX.Element {
         </div>
       </div>;
   }
+
   return <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <CreatorSidebar />
@@ -42,5 +49,6 @@ export default function CreatorDashboard(): JSX.Element {
           <Outlet />
         </main>
       </div>
+      <Toaster position="top-right" />
     </SidebarProvider>;
 }

@@ -1,12 +1,14 @@
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
 import { Collaboration } from "./CollaborationCard";
+import { toast } from "@/hooks/use-toast";
 
 export function useCollaborations(filter: string = "all") {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const {
     data: collaborations,
@@ -26,6 +28,7 @@ export function useCollaborations(filter: string = "all") {
           id,
           status,
           created_at,
+          updated_at,
           campaigns!inner(
             id,
             name,
@@ -54,13 +57,13 @@ export function useCollaborations(filter: string = "all") {
       if (brandIds.length > 0) {
         const { data: brands } = await supabase
           .from("profiles")
-          .select("id, full_name")
+          .select("id, full_name, company_name")
           .in("id", brandIds);
           
         if (brands) {
           brandNames = brands.reduce((acc, brand) => ({
             ...acc,
-            [brand.id]: brand.full_name || "Unknown Brand"
+            [brand.id]: brand.company_name || brand.full_name || "Unknown Brand"
           }), {});
         }
       }
@@ -75,11 +78,62 @@ export function useCollaborations(filter: string = "all") {
         description: item.campaigns.description,
         status: item.status as "active" | "pending" | "completed" | "declined",
         created_at: item.created_at,
+        updated_at: item.updated_at || item.created_at,
         campaign_id: item.campaigns.id
       })) as Collaboration[];
     },
     enabled: !!user
   });
+
+  // Set up real-time subscription for collaboration updates
+  useEffect(() => {
+    if (!user) return;
+    
+    const channel = supabase
+      .channel('collaboration-updates')
+      .on('postgres_changes', 
+        {
+          event: '*',
+          schema: 'public',
+          table: 'campaign_creators',
+          filter: `creator_id=eq.${user.id}`
+        }, 
+        (payload) => {
+          console.log('Collaboration real-time update:', payload);
+          
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ["creator-collaborations"] });
+          
+          // Show notification for status changes
+          if (payload.eventType === 'UPDATE') {
+            const newStatus = (payload.new as any).status;
+            const oldStatus = (payload.old as any).status;
+            
+            if (newStatus !== oldStatus) {
+              // Get campaign details for better notification
+              supabase
+                .from("campaigns")
+                .select("name")
+                .eq("id", (payload.new as any).campaign_id)
+                .single()
+                .then(({ data }) => {
+                  const campaignName = data?.name || "A campaign";
+                  
+                  toast({
+                    title: "Collaboration Updated",
+                    description: `${campaignName} status changed to ${newStatus}`,
+                    type: "info",
+                  });
+                });
+            }
+          }
+        })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
   
   return {
     collaborations: collaborations || [],

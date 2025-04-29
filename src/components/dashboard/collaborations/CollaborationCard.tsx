@@ -1,13 +1,15 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from "react";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MessageSquare, CheckCircle, Clock, XCircle, FileText } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, CheckCircle, X, MessageSquare } from "lucide-react";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/lib/utils";
+import { useAuthStore } from "@/lib/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export interface Collaboration {
   id: string;
@@ -18,219 +20,222 @@ export interface Collaboration {
   description?: string;
   status: "active" | "pending" | "completed" | "declined";
   created_at: string;
+  updated_at?: string;
   campaign_id: string;
 }
 
 interface CollaborationCardProps {
   collaboration: Collaboration;
-  onStatusChange?: () => void;
+  onStatusChange: () => void;
 }
 
 export function CollaborationCard({ collaboration, onStatusChange }: CollaborationCardProps) {
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isMessageOpen, setIsMessageOpen] = useState(false);
-  const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return (
-          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
-            <CheckCircle className="h-3 w-3 mr-1" /> 
-            Active
-          </span>
-        );
-      case "pending":
-        return (
-          <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center">
-            <Clock className="h-3 w-3 mr-1" /> 
-            Pending
-          </span>
-        );
-      case "completed":
-        return (
-          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center">
-            <CheckCircle className="h-3 w-3 mr-1" /> 
-            Completed
-          </span>
-        );
-      case "declined":
-        return (
-          <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center">
-            <XCircle className="h-3 w-3 mr-1" /> 
-            Declined
-          </span>
-        );
-      default:
-        return null;
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM d, yyyy");
+    } catch (e) {
+      return "Invalid date";
     }
   };
 
-  const handleStatusChange = async (newStatus: "active" | "pending" | "completed" | "declined") => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "completed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "declined":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus: "active" | "pending" | "completed" | "declined") => {
+    if (!user) return;
+    
     try {
+      setIsUpdating(true);
+      
       const { error } = await supabase
         .from("campaign_creators")
         .update({ status: newStatus })
         .eq("id", collaboration.id);
-
+        
       if (error) throw error;
-
+      
       toast({
         title: "Status updated",
         description: `Collaboration status changed to ${newStatus}`,
+        type: "success",
       });
+      
+      // Refresh collaborations data
+      queryClient.invalidateQueries({ queryKey: ["creator-collaborations"] });
+      onStatusChange();
+    } catch (error) {
+      console.error("Error updating collaboration status:", error);
+      toast({
+        title: "Error updating status",
+        description: "There was a problem updating the collaboration status",
+        type: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
-      if (onStatusChange) {
-        onStatusChange();
+  const handleMessageBrand = async () => {
+    try {
+      if (!user) return;
+      
+      // Check if conversation already exists
+      const { data: existingConversation, error: convError } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("creator_id", user.id)
+        .eq("brand_id", collaboration.brand_id) // This should come from the collaboration data
+        .maybeSingle();
+        
+      if (convError) throw convError;
+      
+      let conversationId;
+      
+      // Create conversation if it doesn't exist
+      if (!existingConversation) {
+        // First, get the brand_id for this campaign
+        const { data: campaignData } = await supabase
+          .from("campaigns")
+          .select("brand_id")
+          .eq("id", collaboration.campaign_id)
+          .single();
+          
+        if (!campaignData) throw new Error("Campaign not found");
+        
+        // Create the conversation
+        const { data: newConversation, error: createError } = await supabase
+          .from("conversations")
+          .insert({
+            creator_id: user.id,
+            brand_id: campaignData.brand_id
+          })
+          .select()
+          .single();
+          
+        if (createError) throw createError;
+        conversationId = newConversation.id;
+      } else {
+        conversationId = existingConversation.id;
       }
       
-      setIsDetailsOpen(false);
-    } catch (error) {
-      console.error("Error updating status:", error);
+      // Navigate to messaging with this conversation selected
+      navigate("/creator-dashboard/messaging"); // You'll need to implement the conversation selection
+      
+      // For now, just notify the user
       toast({
-        title: "Update failed",
-        description: "Could not update collaboration status",
-        variant: "destructive",
+        title: "Messaging ready",
+        description: "You can now message the brand about this collaboration",
+      });
+    } catch (error) {
+      console.error("Error setting up conversation:", error);
+      toast({
+        title: "Error",
+        description: "Could not set up messaging with this brand",
+        type: "destructive",
       });
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between">
-            <CardTitle className="text-lg">{collaboration.title}</CardTitle>
-            {getStatusBadge(collaboration.status)}
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-muted/30">
+        <div className="flex justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">{collaboration.title}</h3>
+            <p className="text-sm text-muted-foreground">{collaboration.brand_name}</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Brand:</span>
-              <span className="text-sm font-medium">{collaboration.brand_name}</span>
+          <Badge variant="outline" className={`${getStatusColor(collaboration.status)} capitalize`}>
+            {collaboration.status}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-y-2">
+            <div className="flex items-center text-sm w-full sm:w-1/2">
+              <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+              <span className="text-muted-foreground mr-1">Created:</span>
+              {formatDate(collaboration.created_at)}
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Budget:</span>
-              <span className="text-sm font-medium">{formatCurrency(collaboration.budget)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Deadline:</span>
-              <span className="text-sm font-medium">{formatDate(collaboration.deadline)}</span>
-            </div>
-            <div className="pt-2 flex justify-between gap-2">
-              {collaboration.status === "active" && (
-                <>
-                  <Button variant="outline" size="sm">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Schedule
-                  </Button>
-                  <Button size="sm" onClick={() => setIsMessageOpen(true)}>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Message
-                  </Button>
-                </>
-              )}
-              {collaboration.status === "pending" && (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => handleStatusChange("declined")}>
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Decline
-                  </Button>
-                  <Button size="sm" onClick={() => handleStatusChange("active")}>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Accept
-                  </Button>
-                </>
-              )}
-              {(collaboration.status === "completed" || collaboration.status === "declined") && (
-                <Button variant="outline" size="sm" onClick={() => setIsDetailsOpen(true)}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  View Details
-                </Button>
-              )}
-              {!["completed", "declined"].includes(collaboration.status) && (
-                <Button variant="outline" size="sm" onClick={() => setIsDetailsOpen(true)}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Details
-                </Button>
-              )}
+            <div className="flex items-center text-sm w-full sm:w-1/2">
+              <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+              <span className="text-muted-foreground mr-1">Deadline:</span>
+              {formatDate(collaboration.deadline)}
             </div>
           </div>
-        </CardContent>
-      </Card>
+          {collaboration.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {collaboration.description}
+            </p>
+          )}
+          <div className="text-sm">
+            <span className="font-medium">Budget:</span> ${collaboration.budget}
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex flex-wrap gap-2 bg-muted/20 border-t">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleMessageBrand}
+        >
+          <MessageSquare className="h-3.5 w-3.5 mr-1" />
+          Message Brand
+        </Button>
 
-      {/* Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{collaboration.title}</DialogTitle>
-            <DialogDescription>
-              Collaboration with {collaboration.brand_name}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-1">Status</h4>
-              <div>{getStatusBadge(collaboration.status)}</div>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium mb-1">Details</h4>
-              <div className="bg-slate-50 p-3 rounded-md text-sm">
-                <p className="mb-2">{collaboration.description || "No additional details provided."}</p>
-                <div className="space-y-1 text-xs text-slate-500">
-                  <p>Budget: {formatCurrency(collaboration.budget)}</p>
-                  <p>Deadline: {formatDate(collaboration.deadline)}</p>
-                  <p>Created: {formatDate(collaboration.created_at)}</p>
-                </div>
-              </div>
-            </div>
-            
-            {collaboration.status === "active" && (
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Actions</h4>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleStatusChange("completed")} className="flex-1">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Mark as Completed
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
-              Close
+        {collaboration.status === "pending" && (
+          <>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => handleStatusUpdate("active")}
+              disabled={isUpdating}
+            >
+              <CheckCircle className="h-3.5 w-3.5 mr-1" />
+              Accept
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Message Dialog (placeholder - to be implemented in the messaging feature) */}
-      <Dialog open={isMessageOpen} onOpenChange={setIsMessageOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Message {collaboration.brand_name}</DialogTitle>
-          </DialogHeader>
-          <div className="text-center py-4">
-            <p className="text-gray-500 mb-4">Messaging will be implemented in a future update.</p>
-            <Button variant="outline" onClick={() => setIsMessageOpen(false)}>
-              Close
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleStatusUpdate("declined")}
+              disabled={isUpdating}
+              className="text-red-600 hover:text-red-700"
+            >
+              <X className="h-3.5 w-3.5 mr-1" />
+              Decline
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+          </>
+        )}
+        
+        {collaboration.status === "active" && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => handleStatusUpdate("completed")}
+            disabled={isUpdating}
+          >
+            <CheckCircle className="h-3.5 w-3.5 mr-1" />
+            Mark Complete
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   );
 }
