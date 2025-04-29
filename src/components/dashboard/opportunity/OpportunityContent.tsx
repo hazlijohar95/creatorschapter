@@ -1,8 +1,6 @@
 
-import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
-import { OpportunityFilters } from "./OpportunityFilters";
-import { RecommendedOpportunities } from "./RecommendedOpportunities";
-import { OpportunityList } from "./OpportunityList";
+import { DiscoverContent } from "./discover/DiscoverContent";
+import { ApplicationsContent } from "./applications/ApplicationsContent";
 import { Application, FilterOptions, Opportunity } from "../types/opportunity";
 
 interface OpportunityContentProps {
@@ -34,53 +32,28 @@ export function OpportunityContent({
   onViewApplication,
   onClearFilters,
 }: OpportunityContentProps) {
-  // Note: We're not using TabsContent here anymore
-  // Instead, we're conditionally rendering content based on activeTab
-  
+  // Render content based on the active tab
   return (
     <>
       {activeTab === "discover" && (
-        <div className="space-y-8">
-          <OpportunityFilters
-            filters={filters}
-            onFilterChange={onFilterChange}
-            totalOpportunities={opportunities.length}
-            filteredCount={filteredOpportunities.length}
-          />
-
-          {filters.search === "" && filters.categories.length === 0 && (
-            <RecommendedOpportunities
-              opportunities={recommendedOpportunities}
-              onViewOpportunity={onViewOpportunity}
-            />
-          )}
-
-          <div>
-            <h2 className="text-lg font-semibold font-space mb-4">
-              {filters.search || filters.categories.length > 0
-                ? "Search Results"
-                : "Available Opportunities"}
-            </h2>
-            <OpportunityList
-              opportunities={opportunities}
-              filteredOpportunities={filteredOpportunities}
-              isLoading={isLoading}
-              onViewOpportunity={onViewOpportunity}
-              onClearFilters={onClearFilters}
-              filters={filters}
-            />
-          </div>
-        </div>
+        <DiscoverContent
+          opportunities={opportunities}
+          filteredOpportunities={filteredOpportunities}
+          recommendedOpportunities={recommendedOpportunities}
+          isLoading={isLoading}
+          filters={filters}
+          onFilterChange={onFilterChange}
+          onViewOpportunity={onViewOpportunity}
+          onClearFilters={onClearFilters}
+        />
       )}
       
       {activeTab === "applications" && (
-        <div className="space-y-4">
-          <ApplicationsManagement
-            applications={applications}
-            onViewDetails={onViewApplication}
-            onMessageBrand={onMessageBrand}
-          />
-        </div>
+        <ApplicationsContent
+          applications={applications}
+          onViewApplication={onViewApplication}
+          onMessageBrand={onMessageBrand}
+        />
       )}
     </>
   );
