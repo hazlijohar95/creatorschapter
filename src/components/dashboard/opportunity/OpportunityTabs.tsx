@@ -17,7 +17,6 @@ export function OpportunityTabs({
 }: OpportunityTabsProps) {
   return (
     <Tabs 
-      defaultValue="discover" 
       value={activeTab} 
       onValueChange={(value) => onTabChange(value as OpportunityTab)}
       className="space-y-6"
@@ -34,13 +33,8 @@ export function OpportunityTabs({
         </TabsTrigger>
       </TabsList>
       
-      {/* Render TabsContent components here */}
-      <TabsContent value="discover">
-        {activeTab === "discover" && children}
-      </TabsContent>
-      
-      <TabsContent value="applications">
-        {activeTab === "applications" && children}
+      <TabsContent value={activeTab}>
+        {children}
       </TabsContent>
     </Tabs>
   );
