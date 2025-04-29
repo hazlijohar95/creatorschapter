@@ -1,5 +1,6 @@
 
-import { Application, ApplicationApiResponse, ApplicationStatus } from "@/types/domain/application";
+import { Application, ApplicationApiResponse } from "@/types/domain/application";
+import { ApplicationStatus } from "@/types/shared/status";
 
 /**
  * Transforms raw application API response to Application interface

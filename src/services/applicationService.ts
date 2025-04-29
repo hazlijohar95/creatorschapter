@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Application, ApplicationApiResponse, ApplicationStatus } from "@/types/domain/application";
+import { Application, ApplicationApiResponse } from "@/types/domain/application";
+import { ApplicationStatus } from "@/types/shared/status";
 import { withErrorHandling } from "./serviceUtils";
 import { transformApplicationData } from "@/utils/applicationTransformers";
 

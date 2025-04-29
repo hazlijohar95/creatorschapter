@@ -60,3 +60,6 @@ export interface ApplicationApiResponse {
     avatar_url?: string;
   };
 }
+
+// Re-export ApplicationStatus for other files that need it
+export { ApplicationStatus };

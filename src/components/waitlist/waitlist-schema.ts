@@ -1,4 +1,5 @@
 
-import { waitlistSchema, WaitlistFormData } from "@/types/domain/waitlist";
+import { waitlistSchema, type WaitlistFormData } from "@/types/domain/waitlist";
 
-export { waitlistSchema, WaitlistFormData };
+export { waitlistSchema };
+export type { WaitlistFormData };

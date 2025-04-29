@@ -8,7 +8,7 @@ import { useCalendar } from "./hooks/useCalendar";
 import { CalendarToolbar } from "./components/CalendarToolbar";
 import { CalendarLegend } from "./components/CalendarLegend";
 import { CalendarEmptyState } from "./components/CalendarEmptyState";
-import type { CampaignCalendarViewProps, CalendarViewType } from "./types";
+import type { CampaignCalendarViewProps, CalendarViewType } from "@/types/domain/campaign";
 
 const localizer = dateFnsLocalizer({
   format,
