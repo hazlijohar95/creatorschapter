@@ -1,7 +1,7 @@
 
 import { DiscoverContent } from "./discover/DiscoverContent";
 import { ApplicationsContent } from "./applications/ApplicationsContent";
-import { Application, FilterOptions, Opportunity } from "../types/opportunity";
+import { Application, FilterOptions, Opportunity } from "@/types/domain/opportunity";
 
 interface OpportunityContentProps {
   activeTab: string;

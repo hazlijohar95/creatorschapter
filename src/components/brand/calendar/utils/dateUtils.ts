@@ -1,6 +1,6 @@
 
 import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
-import { Campaign } from "../types";
+import { Campaign, CalendarEvent } from "@/types/domain/campaign";
 import { enUS } from "date-fns/locale";
 
 export const locales = {

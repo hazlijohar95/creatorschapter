@@ -1,12 +1,7 @@
 
 import { Badge } from "@/components/ui/badge";
-
-type StatusType = "pending" | "approved" | "rejected" | "in_discussion";
-
-interface StatusBadgeProps {
-  status: StatusType | string;
-  variant?: "compact" | "default";
-}
+import { StatusBadgeProps } from "@/types/components/ui";
+import { ApplicationStatus } from "@/types/shared/status";
 
 export function StatusBadge({ status, variant = "default" }: StatusBadgeProps) {
   const getStatusConfig = (status: string) => {

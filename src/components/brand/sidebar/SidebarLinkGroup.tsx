@@ -1,11 +1,6 @@
 
 import { SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarGroup } from "@/components/ui/sidebar";
-import { ReactNode } from "react";
-
-interface SidebarLinkGroupProps {
-  label: string;
-  children: ReactNode;
-}
+import { SidebarLinkGroupProps } from "@/types/components/sidebar";
 
 export function SidebarLinkGroup({ label, children }: SidebarLinkGroupProps) {
   return (

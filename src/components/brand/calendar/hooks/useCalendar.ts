@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Campaign, CalendarEvent, CalendarViewType } from "../types";
+import { Campaign, CalendarEvent, CalendarViewType } from "@/types/domain/campaign";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { campaignToCalendarEvent } from "../utils/dateUtils";
 

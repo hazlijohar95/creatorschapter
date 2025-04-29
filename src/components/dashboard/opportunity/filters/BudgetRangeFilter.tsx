@@ -1,11 +1,6 @@
 
 import { Input } from "@/components/ui/input";
-
-interface BudgetRangeFilterProps {
-  minBudget: number | null;
-  maxBudget: number | null;
-  onBudgetChange: (min: number | null, max: number | null) => void;
-}
+import { BudgetRangeFilterProps } from "@/types/components/filters";
 
 export function BudgetRangeFilter({
   minBudget,

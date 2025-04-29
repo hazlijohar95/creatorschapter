@@ -4,7 +4,7 @@ import { OpportunityContent } from "./OpportunityContent";
 import { OpportunitySummary } from "../OpportunitySummary";
 import { OpportunityDetailModal } from "./OpportunityDetailModal";
 import { OpportunitySkeleton } from "./OpportunitySkeleton";
-import { useOpportunities } from "@/hooks/opportunity";
+import { useOpportunities } from "@/hooks/useOpportunities";
 
 export function OpportunityContainer() {
   const {

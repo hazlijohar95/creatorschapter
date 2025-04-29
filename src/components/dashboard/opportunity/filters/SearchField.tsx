@@ -1,11 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-
-interface SearchFieldProps {
-  value: string;
-  onChange: (value: string) => void;
-}
+import { SearchFieldProps } from "@/types/components/filters";
 
 export function SearchField({ value, onChange }: SearchFieldProps) {
   return (

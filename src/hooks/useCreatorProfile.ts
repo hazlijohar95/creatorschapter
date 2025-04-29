@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/services/queryKeys';
-import { CreatorProfile } from '@/types/profiles';
+import { CreatorProfile } from '@/types/domain/profile';
 import { useToast } from '@/hooks/use-toast';
 import { Enums } from '@/integrations/supabase/types';
 

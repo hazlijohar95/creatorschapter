@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Application, Status, ApplicationApiResponse } from "@/types/applications";
+import { Application, ApplicationApiResponse, ApplicationStatus } from "@/types/domain/application";
 import { withErrorHandling } from "./serviceUtils";
 import { transformApplicationData } from "@/utils/applicationTransformers";
 
@@ -39,7 +39,7 @@ export async function getBrandApplications(brandId: string) {
 }
 
 // Update application status
-export async function updateApplicationStatus(applicationId: string, status: Status) {
+export async function updateApplicationStatus(applicationId: string, status: ApplicationStatus) {
   return withErrorHandling(async () => {
     const { error } = await supabase
       .from("campaign_creators")

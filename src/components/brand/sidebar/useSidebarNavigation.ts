@@ -1,44 +1,44 @@
 
 import { useLocation } from "react-router-dom";
-import { Users, Briefcase, MessageSquare, Bell, Settings } from "lucide-react";
+import { BarChartBig, BriefcaseBusiness, Calendar, MessageCircle, Settings, Users } from "lucide-react";
+import { SidebarNavigation } from "@/types/components/sidebar";
 
-export interface NavItem {
-  path: string;
-  label: string;
-  icon: any;
-}
-
-export function useSidebarNavigation() {
+export function useSidebarNavigation(): SidebarNavigation {
   const location = useLocation();
 
-  const dashboardLinks: NavItem[] = [
+  const dashboardLinks = [
     {
       path: "/brand-dashboard",
       label: "Overview",
-      icon: Briefcase,
-    },
-  ];
-
-  const creatorManagementLinks: NavItem[] = [
-    {
-      path: "/brand-dashboard/discover",
-      label: "Discover Creators",
-      icon: Users,
+      icon: BarChartBig,
     },
     {
       path: "/brand-dashboard/campaigns",
       label: "Campaigns",
-      icon: Briefcase,
+      icon: BriefcaseBusiness,
+    },
+    {
+      path: "/brand-dashboard/calendar",
+      label: "Calendar",
+      icon: Calendar,
+    },
+  ];
+
+  const creatorManagementLinks = [
+    {
+      path: "/brand-dashboard/creators",
+      label: "Discovery",
+      icon: Users,
     },
     {
       path: "/brand-dashboard/applications",
       label: "Applications",
-      icon: Bell,
+      icon: BriefcaseBusiness,
     },
     {
       path: "/brand-dashboard/messages",
       label: "Messages",
-      icon: MessageSquare,
+      icon: MessageCircle,
     },
     {
       path: "/brand-dashboard/settings",
@@ -48,12 +48,14 @@ export function useSidebarNavigation() {
   ];
 
   const isActive = (path: string) => {
-    return location.pathname === path;
+    if (path === "/brand-dashboard" && location.pathname === "/brand-dashboard") {
+      return true;
+    }
+    if (path !== "/brand-dashboard" && location.pathname.startsWith(path)) {
+      return true;
+    }
+    return false;
   };
 
-  return {
-    dashboardLinks,
-    creatorManagementLinks,
-    isActive,
-  };
+  return { dashboardLinks, creatorManagementLinks, isActive };
 }

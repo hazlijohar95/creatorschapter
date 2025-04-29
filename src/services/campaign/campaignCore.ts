@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { withErrorHandling } from "../serviceUtils";
-import type { Campaign, CreateCampaignData } from "@/types/campaign";
+import { Campaign, CreateCampaignData } from "@/types/domain/campaign";
 
 export async function createCampaign(data: CreateCampaignData) {
   return withErrorHandling(async () => {

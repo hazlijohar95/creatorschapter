@@ -1,16 +1,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FilterOptions } from "@/components/dashboard/types/opportunity";
-
-interface ActiveFilterBadgesProps {
-  filters: FilterOptions;
-  totalOpportunities: number;
-  filteredCount: number;
-  onRemoveCategory: (category: string) => void;
-  onResetSort: () => void;
-  onResetAll: () => void;
-}
+import { FilterOptions } from "@/types/domain/opportunity";
+import { ActiveFilterBadgesProps } from "@/types/components/filters";
 
 export function ActiveFilterBadges({
   filters,

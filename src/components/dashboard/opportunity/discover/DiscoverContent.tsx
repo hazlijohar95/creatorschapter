@@ -1,5 +1,5 @@
 
-import { Opportunity, FilterOptions } from "../../types/opportunity";
+import { Opportunity, FilterOptions } from "@/types/domain/opportunity";
 import { OpportunityFilters } from "../OpportunityFilters";
 import { RecommendedOpportunities } from "../RecommendedOpportunities";
 import { OpportunityList } from "../OpportunityList";

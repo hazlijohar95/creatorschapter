@@ -1,13 +1,7 @@
 
-import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-
-interface ApplicationsFilterProps {
-  count: number;
-  statusFilter: string;
-  onFilterChange: (value: string) => void;
-}
+import { ApplicationsFilterProps } from "@/types/components/filters";
 
 export function ApplicationsFilter({ count, statusFilter, onFilterChange }: ApplicationsFilterProps) {
   return (

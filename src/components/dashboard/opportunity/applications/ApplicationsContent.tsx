@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Application } from "../../types/opportunity";
+import { Application } from "@/types/domain/opportunity";
 import { ApplicationsManagement } from "@/domains/applications/components/ApplicationsManagement";
 import { ApplicationsFilter } from "./ApplicationsFilter";
 

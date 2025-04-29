@@ -1,14 +1,7 @@
 
 import { Link } from "react-router-dom";
-import { LucideIcon } from "lucide-react";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-
-interface SidebarLinkProps {
-  to: string;
-  icon: LucideIcon;
-  label: string;
-  isActive: boolean;
-}
+import { SidebarLinkProps } from "@/types/components/sidebar";
 
 export function SidebarLink({ to, icon: Icon, label, isActive }: SidebarLinkProps) {
   return (

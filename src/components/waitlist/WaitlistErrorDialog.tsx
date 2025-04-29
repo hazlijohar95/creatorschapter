@@ -8,12 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-
-interface WaitlistErrorDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  errorDetails: string | null;
-}
+import { WaitlistErrorDialogProps } from '@/types/components/ui';
 
 export const WaitlistErrorDialog: React.FC<WaitlistErrorDialogProps> = ({
   open,

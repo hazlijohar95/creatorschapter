@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { withErrorHandling } from "../serviceUtils";
-import type { CampaignMetrics } from "@/types/campaign";
+import { CampaignMetrics } from "@/types/domain/campaign";
 
 export async function getCampaignMetrics(campaignId: string) {
   return withErrorHandling(async () => {

@@ -1,10 +1,7 @@
 
 import React from 'react';
 import { Check } from 'lucide-react';
-
-interface WaitlistSuccessMessageProps {
-  hasEmailError?: boolean;
-}
+import { WaitlistSuccessMessageProps } from '@/types/components/ui';
 
 export const WaitlistSuccessMessage: React.FC<WaitlistSuccessMessageProps> = ({ hasEmailError }) => {
   return (

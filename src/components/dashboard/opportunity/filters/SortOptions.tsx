@@ -1,12 +1,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { SortAsc } from "lucide-react";
-import { SortByOption } from "@/components/dashboard/types/opportunity";
-
-interface SortOptionsProps {
-  selectedSort: SortByOption;
-  onSortChange: (sort: SortByOption) => void;
-}
+import { SortOptionsProps } from "@/types/components/filters";
+import { SortByOption } from "@/types/domain/opportunity";
 
 export function SortOptions({ selectedSort, onSortChange }: SortOptionsProps) {
   return (

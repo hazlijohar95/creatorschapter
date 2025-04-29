@@ -1,10 +1,6 @@
 
 import { SidebarFooter as UISidebarFooter } from "@/components/ui/sidebar";
-import { User } from "@supabase/supabase-js";
-
-interface SidebarFooterProps {
-  user: User | null;
-}
+import { SidebarFooterProps } from "@/types/components/sidebar";
 
 export function SidebarFooter({ user }: SidebarFooterProps) {
   return (
