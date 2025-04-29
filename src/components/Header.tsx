@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AuthButton } from './auth/AuthButton';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -14,9 +15,40 @@ const Header: React.FC = () => {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
+  
+  // Add scroll listener for header appearance optimization
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      if (scrollPosition > 20) {
+        setHasScrolled(true);
+      } else {
+        setHasScrolled(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+  
+  // Prefetch functionality
+  const prefetchSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      // If section exists and is not in viewport, start loading its resources
+      const rect = section.getBoundingClientRect();
+      if (rect.top > window.innerHeight) {
+        // Pre-render section that's below the viewport
+        section.style.visibility = 'visible';
+      }
+    }
+  };
 
   return (
-    <header className="fixed top-0 w-full z-50 backdrop-blur-md bg-darkbg/80 border-b border-glassBorder">
+    <header className={`fixed top-0 w-full z-50 backdrop-blur-md ${hasScrolled ? 'bg-darkbg/90' : 'bg-darkbg/80'} border-b border-glassBorder transition-all duration-300`}>
       <div className="container mx-auto flex justify-between items-center py-4 px-5 md:px-8">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
@@ -28,10 +60,34 @@ const Header: React.FC = () => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#how-it-works" className="text-white/80 hover:text-neon transition-colors">How It Works</a>
-          <a href="#features" className="text-white/80 hover:text-neon transition-colors">Features</a>
-          <a href="#testimonials" className="text-white/80 hover:text-neon transition-colors">Testimonials</a>
-          <a href="#for-brands" className="text-white/80 hover:text-neon transition-colors">For Brands</a>
+          <a 
+            href="#how-it-works" 
+            className="text-white/80 hover:text-neon transition-colors"
+            onMouseEnter={() => prefetchSection('how-it-works')}
+          >
+            How It Works
+          </a>
+          <a 
+            href="#features" 
+            className="text-white/80 hover:text-neon transition-colors"
+            onMouseEnter={() => prefetchSection('features')}
+          >
+            Features
+          </a>
+          <a 
+            href="#testimonials" 
+            className="text-white/80 hover:text-neon transition-colors"
+            onMouseEnter={() => prefetchSection('testimonials')}
+          >
+            Testimonials
+          </a>
+          <a 
+            href="#for-brands" 
+            className="text-white/80 hover:text-neon transition-colors"
+            onMouseEnter={() => prefetchSection('for-brands')}
+          >
+            For Brands
+          </a>
           <AuthButton />
         </nav>
         

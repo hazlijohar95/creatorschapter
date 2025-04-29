@@ -122,6 +122,16 @@
   }
 }
 
+/* Feature animation classes */
+.feature-card {
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.feature-visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
 /* Mobile-specific optimizations */
 @media (max-width: 768px) {
   .section-padding {

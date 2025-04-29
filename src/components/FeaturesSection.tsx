@@ -1,8 +1,31 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Bot, LineChart, MousePointerClick, MessageCircle, History, CreditCard } from 'lucide-react';
 
 const FeaturesSection: React.FC = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('feature-visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach(card => {
+      observer.observe(card);
+    });
+    
+    return () => {
+      featureCards.forEach(card => {
+        observer.unobserve(card);
+      });
+    };
+  }, []);
+
   const features = [
     {
       icon: <Bot className="w-8 h-8 text-neon" />,
@@ -37,7 +60,7 @@ const FeaturesSection: React.FC = () => {
   ];
 
   return (
-    <section className="section-padding bg-gradient-to-b from-darkbg to-navygrad/50" id="features">
+    <section ref={sectionRef} className="section-padding bg-gradient-to-b from-darkbg to-navygrad/50" id="features">
       <div className="container mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Features That Empower Creators</h2>
@@ -50,9 +73,8 @@ const FeaturesSection: React.FC = () => {
           {features.map((feature, index) => (
             <div 
               key={index}
-              className="glass-card p-8 hover:shadow-lg hover:shadow-neon/10 transition-all duration-300"
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
+              className={`glass-card p-8 hover:shadow-lg hover:shadow-neon/10 transition-all duration-300 feature-card opacity-0 transform translate-y-8`}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
               <div className="mb-5">{feature.icon}</div>
               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>

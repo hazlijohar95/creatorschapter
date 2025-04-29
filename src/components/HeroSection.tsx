@@ -1,12 +1,32 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { ArrowDown } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Prefetch the features section when the hero is loaded
+  useEffect(() => {
+    const prefetchNextSection = () => {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.as = 'image';
+      link.href = '/lovable-uploads/1a639097-f17e-4568-bc9f-063d6afdde73.png';
+      document.head.appendChild(link);
+    };
+    
+    prefetchNextSection();
+  }, []);
+  
   const scrollToWaitlist = () => {
     const waitlistSection = document.getElementById('waitlist');
     if (waitlistSection) {
       waitlistSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
   };
 
   return (
@@ -36,13 +56,19 @@ const HeroSection: React.FC = () => {
               <img 
                 src="/lovable-uploads/8ccdeef9-35e4-4146-808b-d80bd959b82d.png" 
                 alt="Dashboard UI" 
-                className="relative w-full h-auto rounded-xl shadow-2xl border border-glassBorder"
+                className={`relative w-full h-auto rounded-xl shadow-2xl border border-glassBorder transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 width="800"
                 height="600"
                 loading="eager"
                 decoding="async"
-                fetchPriority="high"
+                fetchpriority="high"
+                onLoad={handleImageLoad}
               />
+              {!imageLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-neon border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
             </div>
           </div>
         </div>
