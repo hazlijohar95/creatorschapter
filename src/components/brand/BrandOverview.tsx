@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBrandDashboardStats } from "@/hooks/useBrandDashboardStats";
+import { useBrandDashboard } from "@/hooks/brand";
 import { format, isValid, parseISO } from "date-fns";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export function BrandOverview() {
-  const { stats, recentApplications, upcomingDeadlines, isLoading } = useBrandDashboardStats();
+  const { stats, recentApplications, upcomingDeadlines, isLoading } = useBrandDashboard();
   const navigate = useNavigate();
 
   if (isLoading) {
