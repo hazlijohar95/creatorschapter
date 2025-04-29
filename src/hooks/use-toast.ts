@@ -1,15 +1,27 @@
 
 import {
   toast as sonnerToast,
-  type ToastT,
-  type ToastOptions
+  type Toast as ToastT,
 } from 'sonner';
 
-// Extend the ToastOptions type to include both variant and type for backward compatibility
-export interface ToastProps extends ToastOptions {
-  title?: string;
+// Define our own ToastOptions type since it's not exported from sonner
+interface SonnerToastOptions {
   description?: string;
   action?: React.ReactNode;
+  icon?: React.ReactNode;
+  id?: string | number;
+  duration?: number;
+  dismissible?: boolean;
+  onDismiss?: (toast: ToastT) => void;
+  onAutoClose?: (toast: ToastT) => void;
+  className?: string;
+  style?: React.CSSProperties;
+  unstyled?: boolean;
+}
+
+// Extend the SonnerToastOptions type to include both variant and type for backward compatibility
+export interface ToastProps extends SonnerToastOptions {
+  title?: string;
   variant?: "default" | "destructive" | "success" | "warning" | "info"; // For backward compatibility
   type?: "default" | "destructive" | "success" | "warning" | "info";
 }

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ export interface Collaboration {
   id: string;
   title: string;
   brand_name: string;
+  brand_id: string; // Add brand_id to the interface
   budget: number;
   deadline: string;
   description?: string;
@@ -101,7 +101,7 @@ export function CollaborationCard({ collaboration, onStatusChange }: Collaborati
         .from("conversations")
         .select("id")
         .eq("creator_id", user.id)
-        .eq("brand_id", collaboration.brand_id) // This should come from the collaboration data
+        .eq("brand_id", collaboration.brand_id)
         .maybeSingle();
         
       if (convError) throw convError;
@@ -110,21 +110,12 @@ export function CollaborationCard({ collaboration, onStatusChange }: Collaborati
       
       // Create conversation if it doesn't exist
       if (!existingConversation) {
-        // First, get the brand_id for this campaign
-        const { data: campaignData } = await supabase
-          .from("campaigns")
-          .select("brand_id")
-          .eq("id", collaboration.campaign_id)
-          .single();
-          
-        if (!campaignData) throw new Error("Campaign not found");
-        
-        // Create the conversation
+        // Create the conversation directly with the brand_id from collaboration
         const { data: newConversation, error: createError } = await supabase
           .from("conversations")
           .insert({
             creator_id: user.id,
-            brand_id: campaignData.brand_id
+            brand_id: collaboration.brand_id
           })
           .select()
           .single();

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,13 +10,13 @@ import {
   MessageSquare, 
   Send, 
   Loader, 
-  ChevronLeft, 
-  ChevronRight
+  ChevronLeft
 } from "lucide-react";
 import { format } from "date-fns";
 
 interface Message {
   id: string;
+  conversation_id: string; // Add this to match what's used in component
   content: string;
   sender_id: string;
   receiver_id: string;
@@ -49,64 +48,72 @@ export default function CreatorMessaging() {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      // Get all conversations for this creator
-      const { data: convs, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('creator_id', user.id)
-        .order('last_message_at', { ascending: false });
-        
-      if (error) throw error;
-      
-      // Get brand names
-      const brandIds = convs.map(conv => conv.brand_id);
-      
-      let brandNames: Record<string, string> = {};
-      if (brandIds.length > 0) {
-        const { data: brands } = await supabase
-          .from('profiles')
-          .select('id, full_name, company_name')
-          .in('id', brandIds);
+      try {
+        // Get all conversations for this creator
+        const { data: convs, error } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('creator_id', user.id)
+          .order('last_message_at', { ascending: false });
           
-        if (brands) {
-          brandNames = brands.reduce((acc, brand) => ({
-            ...acc,
-            [brand.id]: brand.company_name || brand.full_name || "Unknown Brand"
-          }), {});
+        if (error) throw error;
+        if (!convs) return [];
+        
+        // Get brand names
+        const brandIds = convs.map(conv => conv.brand_id);
+        
+        let brandNames: Record<string, string> = {};
+        if (brandIds.length > 0) {
+          const { data: brands, error: brandsError } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', brandIds);
+            
+          if (brandsError) throw brandsError;
+          
+          if (brands) {
+            brandNames = brands.reduce((acc, brand) => ({
+              ...acc,
+              [brand.id]: brand.full_name || "Unknown Brand"
+            }), {});
+          }
         }
+        
+        // Get last messages and unread counts for each conversation
+        const conversationsWithMeta = await Promise.all(
+          convs.map(async (conv) => {
+            // Get last message
+            const { data: lastMsg } = await supabase
+              .from('messages')
+              .select('content, created_at')
+              .eq('conversation_id', conv.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+              
+            // Get unread count (messages TO creator that are unread)
+            const { count } = await supabase
+              .from('messages')
+              .select('*', { count: 'exact', head: true })
+              .eq('conversation_id', conv.id)
+              .eq('receiver_id', user.id)
+              .is('read_at', null);
+              
+            return {
+              ...conv,
+              brand_name: brandNames[conv.brand_id] || "Unknown Brand",
+              last_message: lastMsg?.content || "",
+              last_message_at: lastMsg?.created_at || conv.created_at,
+              unread_count: count || 0
+            };
+          })
+        );
+        
+        return conversationsWithMeta as Conversation[];
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+        throw error;
       }
-      
-      // Get last messages and unread counts for each conversation
-      const conversationsWithMeta = await Promise.all(
-        convs.map(async (conv) => {
-          // Get last message
-          const { data: lastMsg } = await supabase
-            .from('messages')
-            .select('content, created_at')
-            .eq('conversation_id', conv.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-            
-          // Get unread count (messages TO creator that are unread)
-          const { count } = await supabase
-            .from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('conversation_id', conv.id)
-            .eq('receiver_id', user.id)
-            .is('read_at', null);
-            
-          return {
-            ...conv,
-            brand_name: brandNames[conv.brand_id] || "Unknown Brand",
-            last_message: lastMsg?.content || "",
-            last_message_at: lastMsg?.created_at || conv.created_at,
-            unread_count: count || 0
-          };
-        })
-      );
-      
-      return conversationsWithMeta as Conversation[];
     },
     enabled: !!user?.id
   });
@@ -184,11 +191,11 @@ export default function CreatorMessaging() {
             // Get sender name
             supabase
               .from('profiles')
-              .select('full_name, company_name')
+              .select('full_name')
               .eq('id', newMessage.sender_id)
               .single()
               .then(({ data: sender }) => {
-                const senderName = sender?.company_name || sender?.full_name || "Someone";
+                const senderName = sender?.full_name || "Someone";
                 
                 toast({
                   title: "New message",
