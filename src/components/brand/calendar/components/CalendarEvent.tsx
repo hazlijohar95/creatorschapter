@@ -1,5 +1,5 @@
 
-import { CalendarEvent } from "../types";
+import { CalendarEvent } from "@/types/domain/campaign";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
