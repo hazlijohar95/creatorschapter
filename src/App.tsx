@@ -1,6 +1,5 @@
-
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, useState, Suspense, lazy } from 'react';
+import { useEffect, useState, Suspense, lazy, startTransition } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
 import LoadingOverlay from './components/LoadingOverlay';
@@ -49,9 +48,10 @@ const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 
 // Preload module function
 const preloadModule = (importFn: () => Promise<any>) => {
-  startTransition(() => {
+  // Use setTimeout as a safer alternative to startTransition
+  setTimeout(() => {
     importFn();
-  });
+  }, 0);
 };
 
 // Preloader component to trigger on hover
