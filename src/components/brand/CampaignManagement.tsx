@@ -14,6 +14,7 @@ import { CampaignErrorState } from "./campaigns/CampaignErrorState";
 import { CampaignAnalytics } from "./campaigns/CampaignAnalytics";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 
 const defaultFilters = {
   categories: [],
@@ -29,6 +30,7 @@ export function CampaignManagement() {
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [filters, setFilters] = useState(defaultFilters);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { user } = useAuthStore();
   const { toast } = useToast();
@@ -67,23 +69,37 @@ export function CampaignManagement() {
     setFormDialogOpen(false);
   };
   
-  const handleCreateCampaignWizard = (data: any) => {
-    createCampaign({
-      brandId: user?.id || "",
-      name: data.name,
-      description: data.description,
-      budget: data.budget,
-      startDate: data.start_date,
-      endDate: data.end_date,
-      categories: data.categories,
-      status: "draft"
-    });
-    setWizardOpen(false);
-    
-    toast({
-      title: "Campaign Created",
-      description: "Your campaign has been successfully created and saved as a draft."
-    });
+  const handleCreateCampaignWizard = async (data: any) => {
+    setIsSubmitting(true);
+    try {
+      await createCampaign({
+        brandId: user?.id || "",
+        name: data.name,
+        description: data.description,
+        budget: data.budget,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        categories: data.categories,
+        status: "draft",
+        contentRequirements: data.contentRequirements,
+        audienceRequirements: data.audienceRequirements
+      });
+      
+      setWizardOpen(false);
+      toast({
+        title: "Campaign Created",
+        description: "Your campaign has been successfully created and saved as a draft."
+      });
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      toast({
+        title: "Error Creating Campaign",
+        description: "There was an issue creating your campaign. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFilterChange = (newFilters: any) => {
@@ -99,7 +115,7 @@ export function CampaignManagement() {
   if (error) return <CampaignErrorState error={error as Error} />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 animate-in fade-in duration-300">
       <CampaignHeader 
         onCreateClick={handleCreateClick}
         view={view}
@@ -141,7 +157,7 @@ export function CampaignManagement() {
           <CampaignWizard
             onComplete={handleCreateCampaignWizard}
             onCancel={() => setWizardOpen(false)}
-            isSubmitting={isCreating}
+            isSubmitting={isSubmitting || isCreating}
           />
         </DialogContent>
       </Dialog>
