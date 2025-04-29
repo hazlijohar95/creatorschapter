@@ -2,7 +2,7 @@
 import {
   toast as sonnerToast,
   type ToastT,
-  type ToastOptions as SonnerToastOptions
+  type Toast as SonnerToastOptions
 } from 'sonner';
 
 // Extend the ToastOptions type to include both variant and type for backward compatibility
