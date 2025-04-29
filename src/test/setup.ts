@@ -1,11 +1,8 @@
 
 import { expect, afterEach, beforeAll, afterAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom';
+import '@testing-library/jest-dom';
 import { setupServer } from 'msw/node';
-
-// Extend Vitest's expect with testing-library matchers
-expect.extend(matchers);
 
 // Clean up after each test
 afterEach(() => {
