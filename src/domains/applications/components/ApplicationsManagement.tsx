@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,11 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, MessageSquare } from "lucide-react";
-import { useState } from "react";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Application as DashboardApplication } from "@/components/dashboard/types/opportunity";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ApplicationsManagementProps {
   applications: DashboardApplication[];
