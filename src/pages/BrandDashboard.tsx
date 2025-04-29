@@ -7,6 +7,7 @@ import { BrandSidebar } from "@/components/brand/BrandSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader } from "lucide-react";
 import { Toaster } from "sonner";
+import { PageTransition } from "@/components/shared/PageTransition";
 
 export default function BrandDashboard() {
   const { user } = useAuthStore();
@@ -18,21 +19,16 @@ export default function BrandDashboard() {
   }, []);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <Loader className="h-8 w-8 animate-spin text-primary" />
-      <span className="ml-2 text-lg">Loading...</span>
-    </div>;
+    return (
+      <div className="flex items-center justify-center h-16 my-8">
+        <Loader className="h-5 w-5 animate-spin text-primary" />
+        <span className="ml-2 text-sm text-muted-foreground">Loading profile...</span>
+      </div>
+    );
   }
 
   if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <p className="text-xl font-semibold mb-4">Authentication Required</p>
-        <button onClick={() => navigate("/auth")} className="px-4 py-2 bg-primary text-primary-foreground rounded-md">
-          Sign In
-        </button>
-      </div>
-    </div>;
+    return <Navigate to="/auth" replace />;
   }
 
   return (
@@ -44,9 +40,11 @@ export default function BrandDashboard() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full filter blur-3xl -z-10 animate-pulse" />
           <div className="absolute bottom-40 left-20 w-72 h-72 bg-yellow-500/5 rounded-full filter blur-3xl -z-10" />
           
-          {/* Main content */}
-          <div className="relative z-0">
-            <Outlet />
+          {/* Main content with page transition */}
+          <div className="relative z-0 h-full">
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </div>
         </main>
       </div>

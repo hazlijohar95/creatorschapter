@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function OpportunitySkeleton() {
   return (
-    <div className="animate-fade-in">
+    <div className="animate-in fade-in duration-300 space-y-6">
       {/* Header Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div className="space-y-2">
@@ -22,7 +22,7 @@ export function OpportunitySkeleton() {
       {/* Cards Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="border rounded-lg p-4 space-y-4">
+          <div key={i} className="border rounded-lg p-4 space-y-4 animate-in fade-in duration-300" style={{ animationDelay: `${i * 100}ms` }}>
             <Skeleton className="h-6 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
             <div className="space-y-2">

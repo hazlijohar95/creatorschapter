@@ -1,5 +1,6 @@
+
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, useState, Suspense, lazy, startTransition } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
 import LoadingOverlay from './components/LoadingOverlay';
@@ -11,103 +12,59 @@ import './App.css';
 // Import Auth directly instead of lazy loading to prevent dynamic import issues
 import Auth from './pages/Auth';
 
-// Lazy load other page components
+// Main layouts to be loaded upfront instead of lazy loaded
+import Dashboard from './pages/Dashboard';
+import CreatorDashboard from './pages/CreatorDashboard';
+import BrandDashboard from './pages/BrandDashboard';
+
+// Lazy load other pages with lower priority
 const Index = lazy(() => import('./pages/Index'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
 const CreatorOnboarding = lazy(() => import('./pages/CreatorOnboarding'));
-const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
-const BrandDashboard = lazy(() => import('./pages/BrandDashboard'));
 const BrandOnboarding = lazy(() => import('./pages/BrandOnboarding'));
 
-// Lazy load creator components with preloading
-const CreatorOverview = lazy(() => {
-  const module = import('./components/creator/CreatorOverview')
-    .then(module => ({ default: module.CreatorOverview }));
-  return module;
-});
-
-const OpportunityDiscovery = lazy(() => import('./components/dashboard/OpportunityDiscovery'));
-const PortfolioManagement = lazy(() => import('./components/dashboard/PortfolioManagement'));
-const CollaborationManagement = lazy(() => import('./components/dashboard/CollaborationManagement'));
-const SocialMediaProfile = lazy(() => import('./components/dashboard/SocialMediaProfile'));
-const SettingsPanel = lazy(() => import('./components/dashboard/SettingsPanel'));
-
-// Lazy load brand components
-const BrandOverview = lazy(() => import('./components/brand/BrandOverview').then(module => ({ default: module.BrandOverview })));
-const CreatorDiscovery = lazy(() => import('./components/brand/CreatorDiscovery').then(module => ({ default: module.CreatorDiscovery })));
-const CampaignManagement = lazy(() => import('./components/brand/CampaignManagement').then(module => ({ default: module.CampaignManagement })));
-const ApplicationReview = lazy(() => import('./components/brand/ApplicationReview').then(module => ({ default: module.ApplicationReview })));
-const BrandMessaging = lazy(() => import('./components/brand/BrandMessaging').then(module => ({ default: module.BrandMessaging })));
-const BrandSettings = lazy(() => import('./components/brand/BrandSettings').then(module => ({ default: module.BrandSettings })));
+// Lazy load dashboard components with route-based chunking
+const dashboardChunk = {
+  creator: {
+    Overview: lazy(() => import('./components/creator/CreatorOverview').then(module => ({ default: module.CreatorOverview }))),
+    Opportunities: lazy(() => import('./components/dashboard/OpportunityDiscovery')),
+    Portfolio: lazy(() => import('./components/dashboard/PortfolioManagement')),
+    Collaborations: lazy(() => import('./components/dashboard/CollaborationManagement')),
+    Social: lazy(() => import('./components/dashboard/SocialMediaProfile')),
+    Settings: lazy(() => import('./components/dashboard/SettingsPanel')),
+  },
+  brand: {
+    Overview: lazy(() => import('./components/brand/BrandOverview').then(module => ({ default: module.BrandOverview }))),
+    Creators: lazy(() => import('./components/brand/CreatorDiscovery').then(module => ({ default: module.CreatorDiscovery }))),
+    Campaigns: lazy(() => import('./components/brand/CampaignManagement').then(module => ({ default: module.CampaignManagement }))),
+    Applications: lazy(() => import('./components/brand/ApplicationReview').then(module => ({ default: module.ApplicationReview }))),
+    Messages: lazy(() => import('./components/brand/BrandMessaging').then(module => ({ default: module.BrandMessaging }))),
+    Settings: lazy(() => import('./components/brand/BrandSettings').then(module => ({ default: module.BrandSettings }))),
+  }
+};
 
 // Legal pages
 const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 
-// Preload module function
-const preloadModule = (importFn: () => Promise<any>) => {
-  // Use setTimeout as a safer alternative to startTransition
-  setTimeout(() => {
-    importFn();
-  }, 0);
-};
-
-// Preloader component to trigger on hover
-export function ModulePreloader({ path }: { path: string }) {
-  useEffect(() => {
-    // Map paths to lazy components for preloading
-    const moduleMap: Record<string, () => Promise<any>> = {
-      '/creator-dashboard': () => import('./components/creator/CreatorOverview').then(module => ({ default: module.CreatorOverview })),
-      '/creator-dashboard/opportunities': () => import('./components/dashboard/OpportunityDiscovery'),
-      '/creator-dashboard/portfolio': () => import('./components/dashboard/PortfolioManagement'),
-      '/brand-dashboard': () => import('./components/brand/BrandOverview').then(module => ({ default: module.BrandOverview })),
-      // Add other paths as needed
-    };
-    
-    // Preload the module if it exists in our map
-    if (moduleMap[path]) {
-      preloadModule(moduleMap[path]);
-    }
-  }, [path]);
-  
-  return null; // This is just a utility component, doesn't render anything
-}
+// Fallback components for more granular loading states
+const ContentLoadingFallback = () => (
+  <div className="h-full w-full flex items-center justify-center p-8">
+    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 function App() {
   const { setUser, setSession, user } = useAuthStore();
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const navigateEvents = typeof window !== "undefined" && window.addEventListener;
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
     initSupabaseServices();
   }, []);
 
-  useEffect(() => {
-    if (!navigateEvents) return;
-
-    const handleNavigate = () => {
-      if (window.location.pathname === "/auth") {
-        setIsNavigating(true);
-      }
-    };
-    const handleComplete = () => setIsNavigating(false);
-    window.addEventListener("popstate", handleNavigate);
-    window.addEventListener("pushstate", handleNavigate);
-    window.addEventListener("replacestate", handleNavigate);
-    window.addEventListener("load", handleComplete);
-
-    return () => {
-      window.removeEventListener("popstate", handleNavigate);
-      window.removeEventListener("pushstate", handleNavigate);
-      window.removeEventListener("replacestate", handleNavigate);
-      window.removeEventListener("load", handleComplete);
-    };
-  }, [navigateEvents]);
-
+  // Handle auth state and initial app loading
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setSession(session);
@@ -117,37 +74,41 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setIsLoading(false);
+      setIsInitialLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, [setUser, setSession]);
 
-  // Preload the next likely routes based on current route
+  // Preload most likely next routes based on current route
   useEffect(() => {
     if (!user) return;
-    
-    // Only preload after initial authentication to avoid unnecessary loads
-    if (location.pathname === '/') {
-      // When on landing, preload auth related components
-      preloadModule(() => import('./pages/Auth'));
-    } else if (location.pathname === '/auth' && user) {
-      // When authenticated, preload dashboard
-      preloadModule(() => import('./pages/Dashboard'));
-    } else if (location.pathname === '/creator-dashboard') {
-      // When on creator dashboard, preload common sections
-      preloadModule(() => import('./components/dashboard/OpportunityDiscovery'));
-    }
+
+    const preloadNextRoutes = async () => {
+      // Preload based on current location
+      if (location.pathname === '/auth' && user) {
+        // When authenticated, preload dashboard
+        const module = await import('./pages/Dashboard');
+      } else if (location.pathname === '/creator-dashboard') {
+        // When on creator dashboard, preload common sections
+        const module = await import('./components/dashboard/OpportunityDiscovery');
+      } else if (location.pathname === '/brand-dashboard') {
+        // When on brand dashboard, preload campaigns
+        const module = await import('./components/brand/CampaignManagement');
+      }
+    };
+
+    preloadNextRoutes();
   }, [location.pathname, user]);
 
-  if (isLoading) {
+  // Only show full-page loading for initial app load
+  if (isInitialLoading) {
     return <LoadingOverlay />;
   }
 
   return (
     <>
-      {isNavigating && <LoadingOverlay />}
-      <Suspense fallback={<LoadingOverlay />}>
+      <Suspense fallback={<ContentLoadingFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
@@ -155,25 +116,77 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             
             <Route path="/creator-dashboard" element={<CreatorDashboard />}>
-              <Route index element={<CreatorOverview />} />
-              <Route path="opportunities" element={<OpportunityDiscovery />} />
-              <Route path="portfolio" element={<PortfolioManagement />} />
-              <Route path="collaborations" element={<CollaborationManagement />} />
-              <Route path="social" element={<SocialMediaProfile />} />
-              <Route path="settings" element={<SettingsPanel />} />
+              <Route index element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.creator.Overview />
+                </Suspense>
+              } />
+              <Route path="opportunities" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.creator.Opportunities />
+                </Suspense>
+              } />
+              <Route path="portfolio" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.creator.Portfolio />
+                </Suspense>
+              } />
+              <Route path="collaborations" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.creator.Collaborations />
+                </Suspense>
+              } />
+              <Route path="social" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.creator.Social />
+                </Suspense>
+              } />
+              <Route path="settings" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.creator.Settings />
+                </Suspense>
+              } />
             </Route>
             
             <Route path="/onboarding" element={<CreatorOnboarding />} />
             <Route path="/brand-onboarding" element={<BrandOnboarding />} />
             
             <Route path="/brand-dashboard" element={<BrandDashboard />}>
-              <Route index element={<BrandOverview />} />
-              <Route path="creators" element={<CreatorDiscovery />} />
-              <Route path="campaigns" element={<CampaignManagement />} />
-              <Route path="calendar" element={<CampaignManagement />} />
-              <Route path="applications" element={<ApplicationReview />} />
-              <Route path="messages" element={<BrandMessaging />} />
-              <Route path="settings" element={<BrandSettings />} />
+              <Route index element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.brand.Overview />
+                </Suspense>
+              } />
+              <Route path="creators" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.brand.Creators />
+                </Suspense>
+              } />
+              <Route path="campaigns" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.brand.Campaigns />
+                </Suspense>
+              } />
+              <Route path="calendar" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.brand.Campaigns />
+                </Suspense>
+              } />
+              <Route path="applications" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.brand.Applications />
+                </Suspense>
+              } />
+              <Route path="messages" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.brand.Messages />
+                </Suspense>
+              } />
+              <Route path="settings" element={
+                <Suspense fallback={<ContentLoadingFallback />}>
+                  <dashboardChunk.brand.Settings />
+                </Suspense>
+              } />
             </Route>
           </Route>
           <Route path="/terms" element={<TermsAndConditions />} />
