@@ -12,7 +12,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, MessageSquare } from "lucide-react";
 import { useState } from "react";
-import { Application } from "@/types/applications";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Application as DashboardApplication } from "@/components/dashboard/types/opportunity";
 

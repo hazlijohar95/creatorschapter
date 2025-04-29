@@ -1,31 +1,30 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 
-interface Props {
+interface ApplicationDetailHeaderProps {
   creatorName: string;
   creatorHandle: string;
   avatar: string;
-  status: "pending" | "approved" | "rejected" | "in_discussion";
+  status: string;
 }
 
 export function ApplicationDetailHeader({
   creatorName,
   creatorHandle,
   avatar,
-  status
-}: Props) {
+  status,
+}: ApplicationDetailHeaderProps) {
   return (
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-3">
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={avatar} />
-          <AvatarFallback>{creatorName.substring(0, 2)}</AvatarFallback>
+        <Avatar className="h-12 w-12 border">
+          <AvatarImage src={avatar} alt={creatorName} />
+          <AvatarFallback>{creatorName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div>
-          <SheetTitle className="text-lg font-space">{creatorName}</SheetTitle>
-          <SheetDescription>{creatorHandle}</SheetDescription>
+          <h3 className="font-semibold text-lg">{creatorName}</h3>
+          <p className="text-sm text-muted-foreground">{creatorHandle}</p>
         </div>
       </div>
       <StatusBadge status={status} />
