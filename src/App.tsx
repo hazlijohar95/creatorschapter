@@ -1,5 +1,6 @@
+
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, useState, Suspense, lazy, startTransition } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
 import LoadingOverlay from './components/LoadingOverlay';
@@ -8,9 +9,11 @@ import { Toaster } from "./components/ui/toaster";
 import { initSupabaseServices } from './lib/initSupabaseServices';
 import './App.css';
 
-// Lazy load page components
+// Import Auth directly instead of lazy loading to prevent dynamic import issues
+import Auth from './pages/Auth';
+
+// Lazy load other page components
 const Index = lazy(() => import('./pages/Index'));
-const Auth = lazy(() => import('./pages/Auth'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const CreatorOnboarding = lazy(() => import('./pages/CreatorOnboarding'));
