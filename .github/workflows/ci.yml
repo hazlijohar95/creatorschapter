@@ -25,9 +25,17 @@ jobs:
     - name: Lint
       run: npm run lint
       
+    - name: Test
+      run: npm run test
+      
     - name: Build
       run: npm run build
       
-    # Uncomment when tests are added
-    # - name: Test
-    #   run: npm test
+    - name: Test Coverage
+      run: npm run test:coverage
+      
+    # Add this step if you want to see coverage reports in the PR
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./coverage/
