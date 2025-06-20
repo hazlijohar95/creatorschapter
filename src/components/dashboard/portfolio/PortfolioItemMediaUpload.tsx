@@ -46,7 +46,6 @@ export function PortfolioItemMediaUpload({
                   alt="Preview" 
                   className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                   onLoad={handleImageLoad}
-                  loading="lazy"
                 />
               </>
             ) : (
