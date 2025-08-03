@@ -1,0 +1,132 @@
+name: 🛡️ Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # Weekly on Monday
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dependency-scan:
+    name: 📦 Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📦 Install dependencies
+      run: npm ci --legacy-peer-deps
+      
+    - name: 🔒 Run npm audit
+      run: |
+        npm audit --audit-level=moderate --json > audit-results.json || true
+        
+    - name: 📊 Generate security report
+      run: |
+        echo "## 🔒 Security Audit Results" >> $GITHUB_STEP_SUMMARY
+        if [ -s audit-results.json ]; then
+          echo "Found vulnerabilities - see details below:" >> $GITHUB_STEP_SUMMARY
+          cat audit-results.json | jq -r '.vulnerabilities | to_entries[] | "- **\(.key)**: \(.value.severity) severity"' >> $GITHUB_STEP_SUMMARY || echo "No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ No vulnerabilities found!" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+  codeql-analysis:
+    name: 🔍 CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript' ]
+        
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 🔍 Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+        
+    - name: 🏗️ Autobuild
+      uses: github/codeql-action/autobuild@v2
+      
+    - name: 🔍 Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      
+  secret-scan:
+    name: 🗝️ Secret Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 🗝️ Run secret detection
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+        
+  dockerfile-scan:
+    name: 🐳 Dockerfile Security Scan
+    runs-on: ubuntu-latest
+    if: false # Enable if you add Docker support
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐳 Run Dockerfile security scan
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+        
+  license-check:
+    name: 📜 License Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📦 Install dependencies
+      run: npm ci --legacy-peer-deps
+      
+    - name: 📜 Check licenses
+      run: |
+        npx license-checker --summary > license-summary.txt
+        echo "## 📜 License Summary" >> $GITHUB_STEP_SUMMARY
+        cat license-summary.txt >> $GITHUB_STEP_SUMMARY
+        
+    - name: 🚫 Check for forbidden licenses
+      run: |
+        npx license-checker --excludePackages 'dev@0.0.0' --onlyAllow 'MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;CC0-1.0;Unlicense' || {
+          echo "❌ Found forbidden licenses!" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        }
+        echo "✅ All licenses are compliant!" >> $GITHUB_STEP_SUMMARY

@@ -15,6 +15,8 @@ export function useProfileCompletion() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['profile-check', user?.id],
     enabled: !!user,
+    staleTime: 1000 * 30, // Consider data fresh for 30 seconds
+    retry: 1, // Only retry once to avoid infinite loading
     queryFn: async (): Promise<ProfileCheck> => {
       if (!user) return { step1Complete: false, step2Complete: false };
       const { data: profile } = await supabase
@@ -37,12 +39,16 @@ export function useProfileCompletion() {
         !!profile?.username &&
         !!profile?.full_name &&
         !!profile?.bio &&
-        ((creatorProfile?.categories && creatorProfile.categories.length >=1 && creatorProfile.categories.length <= 3));
+        !!profile?.role &&
+        ((profile.role === 'creator' && creatorProfile?.categories && creatorProfile.categories.length >= 1 && creatorProfile.categories.length <= 3) ||
+         (profile.role === 'brand'));
 
       const step2Complete =
         step1Complete &&
-        (creatorProfile?.content_formats?.length ?? 0) > 0 &&
-        (portfolio?.length ?? 0) > 0;
+        ((profile.role === 'creator' && 
+          (creatorProfile?.content_formats?.length ?? 0) > 0 &&
+          (portfolio?.length ?? 0) > 0) ||
+         (profile.role === 'brand'));
 
       return { step1Complete, step2Complete, username: profile?.username };
     },

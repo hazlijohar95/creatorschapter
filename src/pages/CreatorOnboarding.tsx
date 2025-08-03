@@ -8,7 +8,8 @@ import Step1Identity from "../components/onboarding/Step1Identity";
 import Step2Portfolio from "../components/onboarding/Step2Portfolio";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check, Loader } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { OnboardingSkeleton } from "@/components/shared/QuickSkeleton";
 
 const TOTAL_STEPS = 2;
 
@@ -18,11 +19,7 @@ export default function CreatorOnboarding() {
   const { toast } = useToast();
   
   const { step1Complete, step2Complete, loading, refetch } = useProfileCompletion();
-  const [step, setStep] = useState(() => {
-    // Initialize step based on completion status if available
-    if (step1Complete) return 2;
-    return 1;
-  });
+  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle automatic navigation if onboarding already completed
@@ -34,20 +31,13 @@ export default function CreatorOnboarding() {
 
   // Handle step navigation based on completion status
   useEffect(() => {
-    if (step === 1 && step1Complete) {
+    if (!loading && step1Complete && step === 1) {
       setStep(2);
     }
-  }, [step1Complete]);
+  }, [step1Complete, loading, step]);
 
   if (loading || !user) {
-    return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="flex flex-col items-center gap-2">
-          <Loader className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-gray-500">Loading your profile...</p>
-        </div>
-      </div>
-    );
+    return <OnboardingSkeleton />;
   }
 
   const handleBackStep = () => {

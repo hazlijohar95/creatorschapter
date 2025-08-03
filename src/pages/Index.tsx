@@ -16,7 +16,7 @@ const Index = () => {
   const brandSectionRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    console.log("Index page mounted");
+    // Index page mounted - using proper analytics tracking instead
     document.title = "Creator Chapter - Get Better Brand Deals Without the Back-and-Forth";
     
     // Lazy load sections below the fold

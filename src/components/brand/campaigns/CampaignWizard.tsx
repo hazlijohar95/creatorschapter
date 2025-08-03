@@ -16,9 +16,10 @@ import { CampaignReview } from "./wizard/CampaignReview";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Loader } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { CampaignFormData } from "@/types/forms";
 
 interface CampaignWizardProps {
-  onComplete: (data: any) => void;
+  onComplete: (data: CampaignFormData) => void;
   onCancel: () => void;
   isSubmitting: boolean;
 }

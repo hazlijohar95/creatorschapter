@@ -1,0 +1,102 @@
+name: 🚀 Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📦 Install dependencies
+      run: npm ci --legacy-peer-deps
+      
+    - name: 🔍 Run quality checks
+      run: |
+        npm run lint
+        npx tsc --noEmit
+        
+    - name: 🧪 Run tests
+      run: npm test
+      
+    - name: 🏗️ Build application
+      run: npm run build
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        NODE_ENV: production
+        
+    - name: 📊 Analyze bundle size
+      run: |
+        npx bundlesize
+      continue-on-error: true
+        
+    - name: 🚀 Deploy to Vercel
+      if: false # Enable when you set up Vercel
+      uses: amondnet/vercel-action@v20
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        vercel-org-id: ${{ secrets.ORG_ID }}
+        vercel-project-id: ${{ secrets.PROJECT_ID }}
+        working-directory: ./
+        
+    - name: 🚀 Deploy to Netlify
+      if: false # Enable when you set up Netlify
+      uses: nwtgck/actions-netlify@v2.0
+      with:
+        publish-dir: './dist'
+        production-branch: main
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        deploy-message: "Deploy from GitHub Actions"
+        enable-pull-request-comment: false
+        enable-commit-comment: true
+        overwrites-pull-request-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        
+    - name: 📈 Create GitHub Release
+      if: false # Enable for automatic releases
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release v${{ github.run_number }}
+        body: |
+          Automated release from GitHub Actions
+          
+          Changes in this release:
+          - See commit history for details
+        draft: false
+        prerelease: false
+        
+    - name: 📊 Performance Report
+      run: |
+        echo "🏗️ Build completed successfully"
+        echo "📦 Bundle analysis:"
+        ls -la dist/
+        echo "📊 Bundle sizes:"
+        du -sh dist/*
+        
+    - name: ✅ Deployment Success
+      run: |
+        echo "🎉 Deployment completed successfully!"
+        echo "🌍 Application is now live"

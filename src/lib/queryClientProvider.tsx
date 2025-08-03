@@ -32,6 +32,10 @@ export function QueryProvider({ children }: QueryProviderProps) {
         refetchOnMount: prefetchData,
         refetchOnWindowFocus: prefetchData,
         refetchOnReconnect: true,
+        // Network mode optimizations
+        networkMode: 'online',
+        // Disable background refetching in low bandwidth scenarios
+        refetchInterval: false,
       },
       mutations: {
         onError: (error) => {

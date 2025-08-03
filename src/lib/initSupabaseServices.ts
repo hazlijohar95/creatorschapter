@@ -1,5 +1,6 @@
 
 import { ensurePortfolioStorageBucket } from "@/services/portfolioService";
+import { logger } from "@/lib/logger";
 
 /**
  * Initialize Supabase services when the app loads
@@ -14,9 +15,9 @@ export async function initSupabaseServices() {
       await ensurePortfolioStorageBucket();
       // Mark as initialized for this session
       sessionStorage.setItem('supabase_storage_initialized', 'true');
-      console.log("Supabase services initialized successfully");
+      logger.info("Supabase services initialized successfully");
     }
   } catch (error) {
-    console.error("Failed to initialize Supabase services:", error);
+    logger.error("Failed to initialize Supabase services", error);
   }
 }

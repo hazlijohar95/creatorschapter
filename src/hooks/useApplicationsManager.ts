@@ -7,6 +7,7 @@ import { useToast } from './use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { queryKeys } from '@/services/queryKeys';
+import { logger } from '@/lib/logger';
 
 interface AddNoteParams {
   id: string;
@@ -34,7 +35,7 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
   
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string, status: Status }) => {
-      console.log(`Updating application ${id} status to ${status}`);
+      logger.debug(`Updating application status`, { applicationId: id, status });
       const { error } = await supabase
         .from('campaign_creators')
         .update({ status })
@@ -63,7 +64,7 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
       }
     },
     onError: (error) => {
-      console.error("Error updating application status:", error);
+      logger.error("Error updating application status", error);
       toast({
         title: "Error updating application",
         description: "There was a problem updating the application status. Please try again.",
@@ -74,7 +75,7 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
   
   const addNoteMutation = useMutation({
     mutationFn: async ({ id, note }: AddNoteParams) => {
-      console.log(`Adding note to application ${id}: ${note}`);
+      logger.debug(`Adding note to application`, { applicationId: id, noteLength: note.length });
       const { error } = await supabase
         .from('campaign_creators')
         .update({ brand_response: note })
@@ -92,7 +93,7 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
       });
     },
     onError: (error) => {
-      console.error("Error adding note:", error);
+      logger.error("Error adding note", error);
       toast({
         title: "Error adding note",
         description: "There was a problem adding your note. Please try again.",
@@ -145,12 +146,12 @@ export function useApplicationsManager(options: UseApplicationsManagerOptions = 
           
         if (createError) throw createError;
         
-        console.log("Created new conversation:", newConversation);
+        logger.info("Created new conversation", { conversationId: newConversation.id, applicationId });
       } else {
-        console.log("Conversation already exists:", existingConversation);
+        logger.debug("Conversation already exists", { conversationId: existingConversation.id, applicationId });
       }
     } catch (error) {
-      console.error("Error creating conversation:", error);
+      logger.error("Error creating conversation", error, { applicationId });
     }
   };
 

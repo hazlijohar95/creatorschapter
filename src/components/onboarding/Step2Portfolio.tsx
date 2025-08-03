@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Upload, ExternalLink, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { ensurePortfolioStorageBucket } from "@/services/portfolioService";
+import { AuthUser } from "@/types/auth";
 
 type ContentFormat = Database["public"]["Enums"]["content_format"];
 
 interface Step2Props {
-  user: any;
+  user: AuthUser;
   onDone: () => void;
 }
 

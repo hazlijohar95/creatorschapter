@@ -6,15 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
+import { AuthUser } from "@/types/auth";
 
 interface Step1Props {
-  user: any;
+  user: AuthUser;
   onNext: () => void;
 }
 
 export default function Step1Identity({ user, onNext }: Step1Props) {
   const { toast } = useToast();
   const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [photo, setPhoto] = useState<File | null>(null);
@@ -27,6 +29,18 @@ export default function Step1Identity({ user, onNext }: Step1Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim()) {
+      toast({ title: "Full name is required", variant: "destructive" });
+      return;
+    }
+    if (!username.trim()) {
+      toast({ title: "Username is required", variant: "destructive" });
+      return;
+    }
+    if (!bio.trim()) {
+      toast({ title: "Bio is required", variant: "destructive" });
+      return;
+    }
     if (categories.length < 1 || categories.length > 3) {
       toast({ title: "Select 1-3 categories", variant: "destructive" });
       return;
@@ -73,28 +87,38 @@ export default function Step1Identity({ user, onNext }: Step1Props) {
         }
       }
 
-      // Save to profiles table - note that we're NOT using photo_url which seems to be missing
-      const profileUpdate: Record<string, any> = {
+      // First, ensure the user profile exists (create or update)
+      const profileData: Record<string, string | string[]> = {
         username,
+        full_name: fullName,
         bio,
+        role: 'creator',
+        email: user.email || '',
       };
       
       // Only add photo URL if we have one
       if (photoUrl) {
-        // Use avatar_url instead of photo_url as it seems that's what's available in the schema
-        profileUpdate.avatar_url = photoUrl;
+        profileData.avatar_url = photoUrl;
       }
 
+      // Add the ID for upsert
+      profileData.id = user.id;
+
+      // Upsert the profile (insert if doesn't exist, update if exists)
       const { error: profileError } = await supabase
         .from("profiles")
-        .update(profileUpdate)
-        .eq("id", user.id);
+        .upsert(profileData, { onConflict: 'id' });
 
-      // Save to creator_profiles
+      // Ensure creator_profiles entry exists (create or update)
       const { error: creatorProfileError } = await supabase
         .from("creator_profiles")
-        .update({ categories })
-        .eq("id", user.id);
+        .upsert(
+          { 
+            id: user.id, 
+            categories 
+          }, 
+          { onConflict: 'id' }
+        );
 
       if (profileError || creatorProfileError) {
         throw new Error(profileError?.message || creatorProfileError?.message);
@@ -111,6 +135,20 @@ export default function Step1Identity({ user, onNext }: Step1Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium leading-none">
+          Full Name<span className="text-red-500">*</span>
+        </label>
+        <Input 
+          required 
+          className="w-full" 
+          value={fullName} 
+          onChange={e => setFullName(e.target.value)} 
+          maxLength={100} 
+          placeholder="Your full name"
+        />
+      </div>
+      
       <div className="space-y-2">
         <label className="text-sm font-medium leading-none">
           Username / Handle<span className="text-red-500">*</span>

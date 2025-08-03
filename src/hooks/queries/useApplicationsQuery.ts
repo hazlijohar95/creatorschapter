@@ -5,6 +5,7 @@ import { useAuthStore } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Application, Status } from "@/types/applications";
 import { transformApplicationData } from "@/utils/applicationTransformers";
+import { logger } from "@/lib/logger";
 
 export interface UseApplicationsQueryOptions {
   brandId?: string;
@@ -26,7 +27,7 @@ export function useApplicationsQuery(options: UseApplicationsQueryOptions = {}) 
         throw new Error("Brand ID is required to fetch applications.");
       }
 
-      console.log(`Fetching applications for brand: ${brand_id}, status: ${status || 'all'}, page: ${page}, limit: ${limit}`);
+      logger.debug(`Fetching applications for brand`, { brandId: brand_id, status: status || 'all', page, limit });
       
       try {
         // First get the campaign IDs for this brand
@@ -36,17 +37,17 @@ export function useApplicationsQuery(options: UseApplicationsQueryOptions = {}) 
           .eq("brand_id", brand_id);
           
         if (campaignError) {
-          console.error("Error fetching brand campaigns:", campaignError);
+          logger.error("Error fetching brand campaigns", campaignError, { brandId: brand_id });
           throw new Error(`Failed to fetch brand campaigns: ${campaignError.message}`);
         }
         
         if (!campaignData || campaignData.length === 0) {
-          console.log("No campaigns found for this brand");
+          logger.debug("No campaigns found for this brand", { brandId: brand_id });
           return [];
         }
         
         const campaignIds = campaignData.map(c => c.id);
-        console.log(`Found ${campaignIds.length} campaigns for brand ${brand_id}`);
+        logger.debug(`Found campaigns for brand`, { brandId: brand_id, campaignCount: campaignIds.length });
         
         // Now get applications for these campaigns
         let query = supabase
@@ -87,16 +88,16 @@ export function useApplicationsQuery(options: UseApplicationsQueryOptions = {}) 
         const { data, error } = await query;
 
         if (error) {
-          console.error("Error fetching applications:", error);
+          logger.error("Error fetching applications", error, { brandId: brand_id });
           throw new Error(`Failed to fetch applications: ${error.message}`);
         }
 
-        console.log(`Retrieved ${data?.length || 0} applications`);
+        logger.debug(`Retrieved applications`, { brandId: brand_id, applicationCount: data?.length || 0 });
         
         // Transform data to match the Application interface
-        return (data || []).map((item: any) => transformApplicationData(item));
+        return (data || []).map((item) => transformApplicationData(item));
       } catch (error) {
-        console.error("Error in useApplicationsQuery:", error);
+        logger.error("Error in useApplicationsQuery", error, { brandId: brand_id });
         throw error;
       }
     },

@@ -2,44 +2,63 @@
 import { useAuthStore } from "@/lib/auth";
 import { Navigate } from "react-router-dom";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader } from "lucide-react";
+import { useEffect } from "react";
+import { ProfileSkeleton } from "@/components/shared/QuickSkeleton";
+import { logger } from "@/lib/logger";
 
 export default function Dashboard() {
-  const { user } = useAuthStore();
-  const { step2Complete, loading } = useProfileCompletion();
-  const [role, setRole] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { 
+    user, 
+    profile, 
+    isLoading: authLoading, 
+    isAuthenticated,
+    refreshProfile 
+  } = useAuthStore();
+  const { step2Complete, loading: profileLoading } = useProfileCompletion();
 
+  // Ensure profile is loaded
   useEffect(() => {
-    const fetchRole = async () => {
-      if (user?.id) {
-        const { data: p } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-        setRole(p?.role ?? null);
-        setIsLoading(false);
-      } else {
-        setIsLoading(false);
-      }
-    };
-    if (user) fetchRole();
-    else setIsLoading(false);
-  }, [user]);
+    if (user && !profile) {
+      refreshProfile();
+    }
+  }, [user, profile, refreshProfile]);
 
-  if (!user) return <Navigate to="/auth" replace />;
-  
-  if (loading || isLoading) {
-    return (
-      <div className="flex items-center justify-center h-16 my-8">
-        <Loader className="h-5 w-5 animate-spin text-primary" />
-        <span className="ml-2 text-sm text-muted-foreground">Redirecting to dashboard...</span>
-      </div>
-    );
+  // Show skeleton while auth or profile data is loading
+  if (authLoading || profileLoading || (user && !profile)) {
+    return <ProfileSkeleton />;
   }
 
-  if (role === "brand") return <Navigate to="/brand-dashboard" replace />;
-  if (!step2Complete && role === "creator") return <Navigate to="/onboarding" replace />;
+  // Redirect to auth if not authenticated
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/auth" replace />;
+  }
 
-  // Default: creator & finished
-  return <Navigate to="/creator-dashboard" replace />;
+  // Ensure we have profile data
+  if (!profile) {
+    logger.error('Profile data missing for authenticated user', { userId: user.id });
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Role-based redirection with security logging
+  if (profile.role === "brand") {
+    logger.info('Brand user accessing dashboard', { userId: user.id });
+    return <Navigate to="/brand-dashboard" replace />;
+  }
+
+  if (profile.role === "creator") {
+    if (!step2Complete) {
+      logger.info('Creator user needs onboarding', { userId: user.id });
+      return <Navigate to="/onboarding" replace />;
+    }
+    
+    logger.info('Creator user accessing dashboard', { userId: user.id });
+    return <Navigate to="/creator-dashboard" replace />;
+  }
+
+  // Fallback for unknown roles
+  logger.warn('User with unknown role accessing dashboard', { 
+    userId: user.id, 
+    role: profile.role 
+  });
+  return <Navigate to="/auth" replace />;
 }

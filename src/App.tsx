@@ -3,7 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, useState, Suspense, lazy } from 'react';
 import { supabase } from './integrations/supabase/client';
 import { useAuthStore } from './lib/auth';
-import LoadingOverlay from './components/LoadingOverlay';
+import { AuthSkeleton, QuickSkeleton } from './components/shared/QuickSkeleton';
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { Toaster } from "./components/ui/toaster";
 import { initSupabaseServices } from './lib/initSupabaseServices';
@@ -50,13 +50,17 @@ const CookiePolicy = lazy(() => import('./pages/CookiePolicy'));
 
 // Fallback components for more granular loading states
 const ContentLoadingFallback = () => (
-  <div className="h-full w-full flex items-center justify-center p-8">
-    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  <div className="h-full w-full p-8">
+    <div className="space-y-4 max-w-2xl mx-auto">
+      <QuickSkeleton height="h-8" width="w-64" />
+      <QuickSkeleton height="h-4" width="w-96" />
+      <QuickSkeleton height="h-4" width="w-80" />
+    </div>
   </div>
 );
 
 function App() {
-  const { setUser, setSession, user } = useAuthStore();
+  const { user } = useAuthStore();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const location = useLocation();
 
@@ -64,21 +68,55 @@ function App() {
     initSupabaseServices();
   }, []);
 
+  // Fail-safe: Clear loading state after 1 second max to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
   // Handle auth state and initial app loading
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const { setSession, setUser, setLoading, refreshProfile, setProfile } = useAuthStore.getState();
+      
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Refresh profile when user signs in
+        await refreshProfile();
+      } else if (event === 'SIGNED_OUT') {
+        // Clear profile when user signs out
+        setProfile(null);
+      }
+      
+      setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Initialize auth state
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const { setSession, setUser, setLoading, refreshProfile } = useAuthStore.getState();
+      
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await refreshProfile();
+      }
+      
+      setIsInitialLoading(false);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error initializing auth state:', error);
+      // Always clear loading state even on error
       setIsInitialLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, setSession]);
+  }, []);
 
   // Preload most likely next routes based on current route
   useEffect(() => {
@@ -88,22 +126,22 @@ function App() {
       // Preload based on current location
       if (location.pathname === '/auth' && user) {
         // When authenticated, preload dashboard
-        const module = await import('./pages/Dashboard');
+        await import('./pages/Dashboard');
       } else if (location.pathname === '/creator-dashboard') {
         // When on creator dashboard, preload common sections
-        const module = await import('./components/dashboard/OpportunityDiscovery');
+        await import('./components/dashboard/OpportunityDiscovery');
       } else if (location.pathname === '/brand-dashboard') {
         // When on brand dashboard, preload campaigns
-        const module = await import('./components/brand/CampaignManagement');
+        await import('./components/brand/CampaignManagement');
       }
     };
 
     preloadNextRoutes();
   }, [location.pathname, user]);
 
-  // Only show full-page loading for initial app load
+  // Only show skeleton for initial app load (with timeout to prevent infinite loading)
   if (isInitialLoading) {
-    return <LoadingOverlay />;
+    return <AuthSkeleton />;
   }
 
   return (
@@ -115,7 +153,8 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             
-            <Route path="/creator-dashboard" element={<CreatorDashboard />}>
+            <Route element={<ProtectedRoute requiredRole="creator" requireProfile={true} />}>
+              <Route path="/creator-dashboard" element={<CreatorDashboard />}>
               <Route index element={
                 <Suspense fallback={<ContentLoadingFallback />}>
                   <dashboardChunk.creator.Overview />
@@ -151,7 +190,10 @@ function App() {
             <Route path="/onboarding" element={<CreatorOnboarding />} />
             <Route path="/brand-onboarding" element={<BrandOnboarding />} />
             
-            <Route path="/brand-dashboard" element={<BrandDashboard />}>
+            </Route>
+            
+            <Route element={<ProtectedRoute requiredRole="brand" requireProfile={true} />}>
+              <Route path="/brand-dashboard" element={<BrandDashboard />}>
               <Route index element={
                 <Suspense fallback={<ContentLoadingFallback />}>
                   <dashboardChunk.brand.Overview />
@@ -187,6 +229,7 @@ function App() {
                   <dashboardChunk.brand.Settings />
                 </Suspense>
               } />
+              </Route>
             </Route>
           </Route>
           <Route path="/terms" element={<TermsAndConditions />} />

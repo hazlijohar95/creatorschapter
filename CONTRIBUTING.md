@@ -1,82 +1,276 @@
+# 🤝 Contributing to Creator Chapter
 
-# Contributing to Chapter Creator
+We love your input! We want to make contributing to Creator Chapter as easy and transparent as possible, whether it's:
 
-First off, thank you for considering contributing to Chapter Creator! It's people like you that make Chapter Creator such a great tool.
+- Reporting a bug
+- Discussing the current state of the code
+- Submitting a fix
+- Proposing new features
+- Becoming a maintainer
 
-## Code of Conduct
+## 📋 **Table of Contents**
 
-By participating in this project, you are expected to uphold our [Code of Conduct](CODE_OF_CONDUCT.md).
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Process](#development-process)
+- [Pull Request Process](#pull-request-process)
+- [Code Style](#code-style)
+- [Testing](#testing)
+- [Reporting Bugs](#reporting-bugs)
+- [Feature Requests](#feature-requests)
 
-## How Can I Contribute?
+## 📜 **Code of Conduct**
 
-### Reporting Bugs
+This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-1. Check the [GitHub Issues](https://github.com/yourusername/chapter-creator/issues) to avoid duplicates
-2. If you're unable to find an open issue addressing the problem, open a new one
-3. Use the bug report template provided and include:
-   - A clear title and description
-   - Steps to reproduce the issue
-   - Expected behavior and what actually happens
-   - Screenshots if applicable
-   - Environment details (OS, browser, etc.)
+## 🚀 **Getting Started**
 
-### Suggesting Enhancements
-
-1. Check the [ROADMAP.md](ROADMAP.md) to see if your suggestion is already planned
-2. Open a [GitHub Discussion](https://github.com/yourusername/chapter-creator/discussions) in the "Feature Suggestions" category
-3. Provide as much context as possible including:
-   - The problem your enhancement would solve
-   - Who would benefit from this enhancement
-   - How it would work in practice
-
-### Pull Requests
-
-1. Fork the repo and create your branch from `main`
-2. If you've added code that should be tested, add tests
-3. Ensure the test suite passes
-4. Make sure your code lints
-5. Issue that pull request!
-
-## Development Setup
-
-1. Clone the repo
+1. **Fork the repository** on GitHub
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/your-username/creator-chapter.git
+   cd creator-chapter
    ```
-   git clone https://github.com/yourusername/chapter-creator.git
-   cd chapter-creator
+3. **Install dependencies**:
+   ```bash
+   npm install --legacy-peer-deps
    ```
-
-2. Install dependencies
+4. **Set up environment variables**:
+   ```bash
+   cp env.example .env.local
+   # Fill in your Supabase credentials
    ```
-   npm install
-   ```
-
-3. Copy the example environment file
-   ```
-   cp .env.example .env
-   ```
-
-4. Update the `.env` file with your Supabase credentials
-
-5. Start the development server
-   ```
+5. **Start the development server**:
+   ```bash
    npm run dev
    ```
 
-## Development Process
+## 🔄 **Development Process**
 
-1. Choose an issue to work on (or create one if needed)
-2. Create a branch for your changes
-3. Make your changes
-4. Test your changes
-5. Submit a pull request
+We use GitHub Flow, so all code changes happen through Pull Requests:
 
-## Git Commit Messages
+1. **Create a branch** from `main`:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+2. **Make your changes** following our code style guidelines
+3. **Test your changes** thoroughly
+4. **Commit your changes** using semantic commit messages
+5. **Push to your fork** and create a Pull Request
 
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- Limit the first line to 72 characters or less
-- Reference issues and pull requests liberally after the first line
+### **Branch Naming Convention**
+- `feature/description` - for new features
+- `fix/description` - for bug fixes
+- `docs/description` - for documentation updates
+- `refactor/description` - for code refactoring
+- `test/description` - for adding tests
 
-## License
+### **Commit Message Format**
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-By contributing, you agree that your contributions will be licensed under the project's MIT License.
+```
+type(scope): description
+
+[optional body]
+
+[optional footer]
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, etc.)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+
+**Examples:**
+```
+feat(auth): add social login support
+fix(dashboard): resolve data loading issue
+docs(readme): update installation instructions
+```
+
+## 🔀 **Pull Request Process**
+
+1. **Update documentation** if you've changed APIs or added features
+2. **Add tests** for new functionality
+3. **Ensure all tests pass**:
+   ```bash
+   npm test
+   npm run lint
+   ```
+4. **Update the changelog** if needed
+5. **Request review** from maintainers
+6. **Address feedback** and update your PR
+
+### **PR Requirements**
+- ✅ All tests pass
+- ✅ ESLint rules pass
+- ✅ TypeScript compiles without errors
+- ✅ Code coverage doesn't decrease
+- ✅ Documentation is updated
+- ✅ Semantic commit messages
+- ✅ No merge conflicts
+
+## 🎨 **Code Style**
+
+We use ESLint and TypeScript to enforce code style:
+
+### **TypeScript Guidelines**
+- Use strict mode (configured in `tsconfig.json`)
+- Avoid `any` types - use proper interfaces
+- Use meaningful variable and function names
+- Add type annotations for complex types
+
+### **React Guidelines**
+- Use functional components with hooks
+- Follow React best practices for performance
+- Use proper error boundaries
+- Implement accessibility features
+
+### **File Organization**
+- Group related files in directories
+- Use barrel exports (`index.ts`) for clean imports
+- Separate concerns (components, hooks, services)
+- Keep components small and focused
+
+### **Styling Guidelines**
+- Use Tailwind CSS utility classes
+- Follow mobile-first responsive design
+- Maintain consistent spacing and colors
+- Use shadcn/ui components when possible
+
+## 🧪 **Testing**
+
+We use Vitest and Testing Library for testing:
+
+### **Running Tests**
+```bash
+npm test                # Run all tests
+npm run test:ui         # Run tests with UI
+npm run test:coverage   # Run tests with coverage
+```
+
+### **Writing Tests**
+- Write tests for all new features
+- Test user interactions, not implementation details
+- Use descriptive test names
+- Mock external dependencies
+
+### **Test Structure**
+```typescript
+describe('ComponentName', () => {
+  it('should render correctly', () => {
+    // Test implementation
+  });
+
+  it('should handle user interaction', () => {
+    // Test implementation
+  });
+});
+```
+
+## 🐛 **Reporting Bugs**
+
+We use GitHub Issues to track bugs. When reporting a bug:
+
+### **Bug Report Template**
+```markdown
+## Bug Description
+A clear description of what the bug is.
+
+## Steps to Reproduce
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+
+## Expected Behavior
+What you expected to happen.
+
+## Actual Behavior
+What actually happened.
+
+## Environment
+- OS: [e.g. macOS, Windows, Linux]
+- Browser: [e.g. Chrome, Firefox, Safari]
+- Version: [e.g. 22]
+- Node.js Version: [e.g. 18.0.0]
+
+## Additional Context
+Any other context about the problem.
+```
+
+### **Before Reporting**
+- Check existing issues to avoid duplicates
+- Try to reproduce the bug
+- Provide minimal reproduction code if possible
+
+## ✨ **Feature Requests**
+
+We welcome feature requests! Use GitHub Issues with the "enhancement" label:
+
+### **Feature Request Template**
+```markdown
+## Feature Description
+A clear description of the feature you'd like to see.
+
+## Problem it Solves
+What problem does this feature solve?
+
+## Proposed Solution
+How would you like this feature to work?
+
+## Alternative Solutions
+Other solutions you've considered.
+
+## Additional Context
+Any other context about the feature.
+```
+
+## 🏷️ **Issue Labels**
+
+- `bug` - Something isn't working
+- `enhancement` - New feature or request
+- `documentation` - Documentation needs improvement
+- `good first issue` - Good for newcomers
+- `help wanted` - Extra attention is needed
+- `question` - Further information is requested
+- `wontfix` - This will not be worked on
+
+## 📖 **Documentation**
+
+Help us improve our documentation:
+
+- Fix typos and grammatical errors
+- Add examples and clarifications
+- Update outdated information
+- Add missing documentation
+
+## 🏆 **Recognition**
+
+Contributors will be:
+- Listed in our README.md
+- Added to our contributors page
+- Mentioned in release notes
+- Invited to our contributors Discord
+
+## 💬 **Community**
+
+Join our community discussions:
+- [GitHub Discussions](https://github.com/yourusername/creator-chapter/discussions)
+- [Discord Server](https://discord.gg/creator-chapter)
+- [Twitter](https://twitter.com/creatorchapter)
+
+## ❓ **Questions?**
+
+If you have questions about contributing:
+- Check our [FAQ](https://docs.creatorchapter.com/faq)
+- Ask in [GitHub Discussions](https://github.com/yourusername/creator-chapter/discussions)
+- Reach out to maintainers
+
+---
+
+Thank you for contributing to Creator Chapter! 🎉

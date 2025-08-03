@@ -5,9 +5,9 @@ import { useAuthStore } from "@/lib/auth";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { CreatorSidebar } from "@/components/creator/CreatorSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Loader } from "lucide-react";
 import { Toaster } from "sonner";
 import { PageTransition } from "@/components/shared/PageTransition";
+import { DashboardSkeleton } from "@/components/shared/QuickSkeleton";
 
 export default function CreatorDashboard(): JSX.Element {
   const { user } = useAuthStore();
@@ -21,12 +21,7 @@ export default function CreatorDashboard(): JSX.Element {
   }, [loading, step2Complete, user, navigate]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-16 my-8">
-        <Loader className="h-5 w-5 animate-spin text-primary" />
-        <span className="ml-2 text-sm text-muted-foreground">Loading profile...</span>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!user) {

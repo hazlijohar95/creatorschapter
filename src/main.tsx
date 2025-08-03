@@ -6,8 +6,12 @@ import { ThemeProvider } from "next-themes";
 import { QueryProvider } from "./lib/queryClientProvider";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from './components/ui/toaster';
+import { initSecurityMonitoring } from './lib/security';
 import App from './App';
 import './index.css';
+
+// Initialize security monitoring
+initSecurityMonitoring();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

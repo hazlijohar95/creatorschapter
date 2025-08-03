@@ -9,6 +9,7 @@ import { handleError } from "@/lib/auth";
 import { toast } from "@/components/ui/use-toast";
 import { validateEmail, validateFullName } from "@/lib/validation";
 import { validatePasswordStrength } from "@/lib/passwordStrength";
+import { createInitialProfile } from "@/services/profileCreationService";
 import AuthHeader from "./AuthHeader";
 import AuthPremiumHeader from "./AuthPremiumHeader";
 import AuthGlassCard from "./AuthGlassCard";
@@ -37,7 +38,11 @@ export default function AuthForm() {
   const [passwordValid, setPasswordValid] = useState(true);
 
   useEffect(() => {
-    try { sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false"); } catch { }
+    try { 
+      sessionStorage.setItem("isSignUp", isSignUp ? "true" : "false"); 
+    } catch (error) {
+      // Ignore sessionStorage errors in private browsing mode
+    }
   }, [isSignUp]);
 
   useEffect(() => {
@@ -74,11 +79,12 @@ export default function AuthForm() {
     setIsLoading(true);
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { full_name: fullName, role } }
         });
+        
         if (error) {
           if (error.message && error.message.toLowerCase().includes("duplicate key value") && error.message.includes("profiles_email_key")) {
             toast({ title: "Sign up error", description: "Email is already in use.", variant: "destructive" });
@@ -88,7 +94,29 @@ export default function AuthForm() {
           setIsLoading(false);
           return;
         }
+
+        // Create initial profile entries
+        if (data.user) {
+          const profileResult = await createInitialProfile({
+            userId: data.user.id,
+            email,
+            fullName,
+            role
+          });
+
+          if (!profileResult.success) {
+            toast({ 
+              title: "Profile creation error", 
+              description: profileResult.error || "Failed to create profile",
+              variant: "destructive" 
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
+
         toast({ title: "Account created!", description: "Welcome to Creator Chapter" });
+        
         // Redirect new users to the appropriate onboarding
         if (role === "brand") {
           navigate("/brand-onboarding");
@@ -102,19 +130,11 @@ export default function AuthForm() {
           setIsLoading(false);
           return;
         }
-        toast({ title: "Welcome back!", description: "Signed in successfully" });
-        // Retrieve profile to check role and redirect
-        const userId = data?.user?.id;
-        if (userId) {
-          const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
-          if (profile?.role === "brand") {
-            navigate("/brand-dashboard");
-          } else {
-            navigate("/dashboard");
-          }
-        } else {
-          navigate("/dashboard");
-        }
+        // Let the auth state change handler manage the redirection
+        // This prevents race conditions and ensures proper profile loading
+        
+        // The useEffect in App.tsx will handle the redirection based on role
+        // after the profile is properly loaded
       }
     } catch (error) {
       handleError(error as Error);
