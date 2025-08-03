@@ -1,283 +1,268 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Database } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Upload, ExternalLink, Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { ensurePortfolioStorageBucket } from "@/services/portfolioService";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, AlertCircle, SkipForward, Plus, X } from "lucide-react";
 import { AuthUser } from "@/types/auth";
-
-type ContentFormat = Database["public"]["Enums"]["content_format"];
 
 interface Step2Props {
   user: AuthUser;
   onDone: () => void;
+  onSkip?: () => void; // Added skip option
 }
 
-export default function Step2Portfolio({ user, onDone }: Step2Props) {
+export default function Step2Portfolio({ user, onDone, onSkip }: Step2Props) {
   const { toast } = useToast();
-
-  // State to manage selected formats (multi-select)
-  const [formats, setFormats] = useState<ContentFormat[]>([]);
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
-  const [media, setMedia] = useState<File | null>(null);
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const [externalLink, setExternalLink] = useState("");
   const [loading, setLoading] = useState(false);
-  const [formatsSaving, setFormatsSaving] = useState(false);
+  const [contentFormats, setContentFormats] = useState<string[]>([]);
+  const [portfolioItems, setPortfolioItems] = useState([
+    { title: "", description: "", url: "", type: "instagram" }
+  ]);
 
-  // Initialize storage bucket when component loads
-  useEffect(() => {
-    ensurePortfolioStorageBucket();
-  }, []);
-
-  // Define valid content format options using the union type
-  const formatOptions: ContentFormat[] = [
-    "video",
-    "photo",
-    "blog",
-    "podcast",
-    "livestream",
-    "story",
+  const formatList = [
+    "Instagram Posts", "Instagram Stories", "TikTok Videos", "YouTube Videos",
+    "YouTube Shorts", "Twitter/X Posts", "LinkedIn Posts", "Blog Posts", "Podcasts", "Live Streams"
   ];
 
-  const toggleFormat = (fmt: ContentFormat) =>
-    setFormats((f) => (f.includes(fmt) ? f.filter((v) => v !== fmt) : [...f, fmt]));
-
-  const saveFormats = async () => {
-    setFormatsSaving(true);
-    const { error } = await supabase
-      .from("creator_profiles")
-      .update({ content_formats: formats })
-      .eq("id", user.id);
-
-    setFormatsSaving(false);
-    if (!error) toast({ title: "Formats saved successfully" });
-    else
-      toast({
-        title: "Error saving formats",
-        description: error.message,
-        variant: "destructive",
-      });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setMedia(file);
-      const fileReader = new FileReader();
-      fileReader.onload = (e) => {
-        setMediaPreview(e.target?.result as string);
-      };
-      fileReader.readAsDataURL(file);
+  const addPortfolioItem = () => {
+    if (portfolioItems.length < 5) {
+      setPortfolioItems([...portfolioItems, { title: "", description: "", url: "", type: "instagram" }]);
     }
   };
 
-  const handlePortfolioUpload = async (e: React.FormEvent) => {
+  const removePortfolioItem = (index: number) => {
+    if (portfolioItems.length > 1) {
+      setPortfolioItems(portfolioItems.filter((_, i) => i !== index));
+    }
+  };
+
+  const updatePortfolioItem = (index: number, field: string, value: string) => {
+    const updated = [...portfolioItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setPortfolioItems(updated);
+  };
+
+  const getValidPortfolioItems = () => {
+    return portfolioItems.filter(item => 
+      item.title.trim() && item.url.trim()
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      if (!title.trim()) {
-        toast({ 
-          title: "Title required", 
-          description: "Please enter a title for your portfolio item",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-      
-      if (!media && !externalLink) {
-        toast({ 
-          title: "Media or link required", 
-          description: "Please upload media or provide an external link",
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
+      // Update creator profile with content formats if selected
+      if (contentFormats.length > 0) {
+        const { error: creatorProfileError } = await supabase
+          .from("creator_profiles")
+          .upsert({
+            id: user.id,
+            content_formats: contentFormats,
+          }, { onConflict: 'id' });
+
+        if (creatorProfileError) {
+          throw new Error(creatorProfileError.message);
+        }
       }
 
-      let mediaUrl = null;
-      if (media) {
-        const fileExt = media.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        
-        const { data, error } = await supabase.storage
-          .from("portfolio-media")
-          .upload(fileName, media, { upsert: true });
-          
-        if (error) {
-          toast({
-            title: "Portfolio Upload Error",
-            description: error.message,
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-        
-        mediaUrl = `https://xceitaturyhtqzuoibrd.supabase.co/storage/v1/object/public/portfolio-media/${fileName}`;
-      }
-      
-      const { error } = await supabase.from("portfolio_items").insert([
-        {
+      // Add valid portfolio items
+      const validItems = getValidPortfolioItems();
+      if (validItems.length > 0) {
+        const portfolioData = validItems.map(item => ({
           creator_id: user.id,
-          title,
-          description: desc,
-          media_url: mediaUrl,
-          external_link: externalLink || null,
-          is_featured: false,
-        },
-      ]);
-      
-      if (!error) {
-        toast({ 
-          title: "Portfolio item added", 
-          description: "Your work has been saved" 
-        });
-        setTitle("");
-        setDesc("");
-        setMedia(null);
-        setMediaPreview(null);
-        setExternalLink("");
-        onDone();
-      } else {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
+          title: item.title.trim(),
+          description: item.description.trim() || null,
+          url: item.url.trim(),
+          type: item.type,
+        }));
+
+        const { error: portfolioError } = await supabase
+          .from("portfolio_items")
+          .insert(portfolioData);
+
+        if (portfolioError) {
+          console.warn("Portfolio items error:", portfolioError);
+          // Don't block completion for portfolio errors
+        }
       }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
+
+      toast({ 
+        title: "Portfolio saved!", 
+        description: validItems.length > 0 
+          ? `Added ${validItems.length} portfolio item${validItems.length > 1 ? 's' : ''}!`
+          : "Profile completed! You can add portfolio items later."
       });
+      onDone();
+    } catch (error: any) {
+      console.error("Portfolio save error:", error);
+      toast({ 
+        title: "Error saving portfolio", 
+        description: error.message || "Something went wrong. You can add items later in your dashboard.", 
+        variant: "destructive" 
+      });
+      // Still proceed to dashboard even if portfolio save fails
+      onDone();
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSkip = () => {
+    if (onSkip) {
+      toast({ 
+        title: "Portfolio skipped", 
+        description: "You can add portfolio items anytime from your dashboard!" 
+      });
+      onSkip();
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <label className="text-sm font-medium leading-none mb-2 block">
-          Content Formats You Create
-          <span className="text-red-500">*</span>
-        </label>
-        <div className="flex gap-2 flex-wrap">
-          {formatOptions.map((fmt) => (
-            <button
-              key={fmt}
-              type="button"
-              onClick={() => toggleFormat(fmt)}
-              className={`px-3 py-1 rounded-full border transition-colors ${
-                formats.includes(fmt) 
-                  ? "bg-primary text-primary-foreground border-transparent" 
-                  : "bg-background border-input hover:bg-accent hover:text-accent-foreground"
-              }`}
-            >
-              {formats.includes(fmt) && <CheckCircle className="h-3 w-3 inline mr-1" />}
-              {typeof fmt === "string"
-                ? fmt.charAt(0).toUpperCase() + fmt.slice(1)
-                : fmt}
-            </button>
-          ))}
-        </div>
-        <Button
-          onClick={saveFormats}
-          className="mt-3"
-          variant="outline"
-          disabled={!formats.length || formatsSaving}
-          size="sm"
-        >
-          {formatsSaving ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...
-            </>
-          ) : (
-            "Save Formats"
+      {/* Simplified intro */}
+      <Alert className="border-green-200 bg-green-50">
+        <AlertCircle className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-800">
+          <strong>Optional step!</strong> Add your content formats and best work samples, 
+          or skip and add them later from your dashboard.
+        </AlertDescription>
+      </Alert>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Content Formats - Optional */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium leading-none">
+            Content Formats <span className="text-sm text-gray-400">(optional - what type of content do you create?)</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {formatList.map(format => (
+              <button
+                type="button"
+                key={format}
+                className={`px-3 py-1 rounded-full border transition-colors text-sm ${
+                  contentFormats.includes(format)
+                    ? "bg-green-500 text-white border-green-500"
+                    : "bg-background border-input hover:bg-gray-50"
+                }`}
+                onClick={() => setContentFormats(c =>
+                  c.includes(format) 
+                    ? c.filter(x => x !== format) 
+                    : [...c, format]
+                )}
+              >
+                {contentFormats.includes(format) && <CheckCircle className="h-3 w-3 inline mr-1" />}
+                {format}
+              </button>
+            ))}
+          </div>
+          {contentFormats.length > 0 && (
+            <p className="text-xs text-gray-500">{contentFormats.length} format{contentFormats.length > 1 ? 's' : ''} selected</p>
           )}
-        </Button>
-      </div>
+        </div>
 
-      <Separator />
-
-      <div>
-        <h2 className="text-lg font-semibold mb-2">Portfolio Items <span className="text-sm text-gray-500 font-normal">(at least 1 required)</span></h2>
-        
-        <form onSubmit={handlePortfolioUpload} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium leading-none mb-2 block">Title<span className="text-red-500">*</span></label>
-            <Input
-              required
-              placeholder="Portfolio item title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium leading-none mb-2 block">Description</label>
-            <Textarea
-              placeholder="Briefly describe this work"
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              rows={3}
-            />
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium leading-none mb-2 block">
-              Upload Media <span className="text-sm text-gray-500">(or provide link below)</span>
+        {/* Portfolio Items - Optional */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium leading-none">
+              Portfolio Items <span className="text-sm text-gray-400">(optional - show your best work)</span>
             </label>
-            <Input
-              type="file"
-              onChange={handleFileChange}
-              accept="image/*,video/*"
-            />
-            
-            {mediaPreview && (
-              <div className="mt-2 relative aspect-video bg-muted rounded-md overflow-hidden">
-                <img 
-                  src={mediaPreview} 
-                  alt="Preview" 
-                  className="w-full h-full object-cover"
-                />
+            {portfolioItems.length < 5 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addPortfolioItem}
+                className="flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                Add Item
+              </Button>
+            )}
+          </div>
+
+          {portfolioItems.map((item, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium">Item {index + 1}</h4>
+                {portfolioItems.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removePortfolioItem(index)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
-            )}
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium leading-none mb-2 block flex items-center">
-              <ExternalLink className="h-4 w-4 mr-1" /> External Link
-            </label>
-            <Input
-              placeholder="https://..."
-              value={externalLink}
-              onChange={(e) => setExternalLink(e.target.value)}
-            />
-            <p className="text-xs text-gray-500 mt-1">Media upload OR external link required</p>
-          </div>
-          
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Adding...
-              </>
-            ) : (
-              "Add Portfolio Item"
-            )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Input
+                    placeholder="Title (e.g., 'Skincare Routine Video')"
+                    value={item.title}
+                    onChange={(e) => updatePortfolioItem(index, 'title', e.target.value)}
+                    maxLength={100}
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="URL (Instagram, TikTok, YouTube, etc.)"
+                    value={item.url}
+                    onChange={(e) => updatePortfolioItem(index, 'url', e.target.value)}
+                    type="url"
+                  />
+                </div>
+              </div>
+
+              <Textarea
+                placeholder="Brief description (optional)"
+                value={item.description}
+                onChange={(e) => updatePortfolioItem(index, 'description', e.target.value)}
+                maxLength={200}
+                className="min-h-[60px]"
+              />
+            </div>
+          ))}
+
+          {/* Portfolio Summary */}
+          {getValidPortfolioItems().length > 0 && (
+            <p className="text-xs text-gray-500">
+              {getValidPortfolioItems().length} portfolio item{getValidPortfolioItems().length > 1 ? 's' : ''} ready to save
+            </p>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="submit"
+            className="flex-1"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : getValidPortfolioItems().length > 0 ? "Save & Continue" : "Complete Setup"}
           </Button>
-        </form>
-      </div>
+          
+          {onSkip && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSkip}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              <SkipForward className="h-4 w-4" />
+              Skip to Dashboard
+            </Button>
+          )}
+        </div>
+      </form>
     </div>
   );
 }

@@ -34,21 +34,19 @@ export function useProfileCompletion() {
         .select("id")
         .eq("creator_id", user.id);
 
-      // Requirement logic for onboarding steps
+      // Simplified requirement logic for onboarding steps
+      // Step 1: Only requires username, full_name, and role
       const step1Complete =
         !!profile?.username &&
         !!profile?.full_name &&
-        !!profile?.bio &&
-        !!profile?.role &&
-        ((profile.role === 'creator' && creatorProfile?.categories && creatorProfile.categories.length >= 1 && creatorProfile.categories.length <= 3) ||
-         (profile.role === 'brand'));
+        !!profile?.role;
 
+      // Step 2: Either has portfolio items OR content formats (both optional)
+      // We consider step 2 complete if step 1 is done, regardless of portfolio/formats
+      // This allows users to skip portfolio and go straight to dashboard
       const step2Complete =
         step1Complete &&
-        ((profile.role === 'creator' && 
-          (creatorProfile?.content_formats?.length ?? 0) > 0 &&
-          (portfolio?.length ?? 0) > 0) ||
-         (profile.role === 'brand'));
+        ((profile.role === 'creator') || (profile.role === 'brand')); // Both roles can complete onboarding with just step 1
 
       return { step1Complete, step2Complete, username: profile?.username };
     },
