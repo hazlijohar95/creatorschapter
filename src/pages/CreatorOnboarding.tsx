@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/lib/auth";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { useAuthFlow } from "@/hooks/useAuthFlow";
 import Step1Identity from "../components/onboarding/Step1Identity";
 import Step2Portfolio from "../components/onboarding/Step2Portfolio";
+import { OnboardingDebugInfo } from "../components/onboarding/OnboardingDebugInfo";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -13,17 +15,37 @@ const TOTAL_STEPS = 2;
 
 export default function CreatorOnboarding() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, profile } = useAuthStore();
   
   const { step1Complete, step2Complete, loading, refetch } = useProfileCompletion();
+  const { isExistingUser } = useAuthFlow();
   const [step, setStep] = useState(1);
 
-  // Handle automatic navigation if onboarding already completed
+  // Handle automatic navigation if onboarding already completed OR if this is an existing user
   useEffect(() => {
     if (step2Complete) {
       navigate("/creator-dashboard");
+      return;
     }
-  }, [step2Complete, navigate]);
+
+    // If this is an existing user (sign-in), redirect them immediately to dashboard
+    if (isExistingUser && profile) {
+      console.log("Existing user detected, bypassing onboarding", { userId: user?.id, hasProfile: !!profile });
+      navigate("/creator-dashboard");
+      return;
+    }
+
+    // Also check if user already has a profile with basic info (fallback)
+    if (profile?.username && profile?.full_name) {
+      console.log("User has complete profile, skipping onboarding", { 
+        userId: user?.id, 
+        username: profile.username,
+        fullName: profile.full_name 
+      });
+      navigate("/creator-dashboard");
+      return;
+    }
+  }, [step2Complete, navigate, isExistingUser, profile, user]);
 
   // Handle step navigation based on completion status
   useEffect(() => {
@@ -62,6 +84,9 @@ export default function CreatorOnboarding() {
         </CardHeader>
 
         <CardContent>
+          {/* Debug info for development */}
+          <OnboardingDebugInfo />
+
           {/* Progress indicator */}
           <div className="w-full flex items-center mb-6">
             <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
