@@ -19,6 +19,7 @@ import { AnimatedStats, AnimatedProgress } from "@/components/premium/AnimatedSt
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CreatorDashboardHeader } from "./CreatorDashboardHeader";
 import { useNavigate } from "react-router-dom";
 
 export function PremiumCreatorOverview() {
@@ -71,6 +72,9 @@ export function PremiumCreatorOverview() {
         initial="hidden"
         animate="visible"
       >
+        {/* Profile completion prompt for existing users */}
+        <CreatorDashboardHeader />
+        
         {/* Welcome Header */}
         <motion.div variants={itemVariants} className="flex items-center justify-between">
           <div>

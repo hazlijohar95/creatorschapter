@@ -147,8 +147,13 @@ export default function AuthForm() {
           return;
         }
 
-        // For sign-in, don't redirect immediately - let the auth state change handler
-        // in App.tsx manage the redirection after profile is loaded
+        // For sign-in, clear any sign-up session indicators and let App.tsx handle redirection
+        try {
+          sessionStorage.removeItem('isSignUp');
+        } catch {
+          // Ignore sessionStorage errors
+        }
+        
         toast({ 
           title: "Welcome back!", 
           description: "Redirecting to your dashboard...",

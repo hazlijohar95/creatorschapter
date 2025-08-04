@@ -2,6 +2,7 @@
 import { useAuthStore } from "@/lib/auth";
 import { Navigate } from "react-router-dom";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { useAuthFlow } from "@/hooks/useAuthFlow";
 import { useEffect } from "react";
 import { ProfileSkeleton } from "@/components/shared/QuickSkeleton";
 import { logger } from "@/lib/logger";
@@ -15,6 +16,7 @@ export default function Dashboard() {
     refreshProfile 
   } = useAuthStore();
   const { step2Complete, loading: profileLoading } = useProfileCompletion();
+  const { authFlowType, isNewUser, isExistingUser } = useAuthFlow();
 
   // Ensure profile is loaded
   useEffect(() => {
@@ -46,15 +48,26 @@ export default function Dashboard() {
   }
 
   if (profile.role === "creator") {
-    // Only send to onboarding if they lack basic profile info (new users)
-    // If they have username and full_name, they're existing users - go to dashboard
-    if (!profile.username || !profile.full_name) {
-      logger.info('New creator user needs onboarding', { userId: user.id });
+    // Different logic for new vs existing users
+    if (isNewUser) {
+      // New users (sign-up) go through full onboarding regardless of profile data
+      logger.info('New creator user needs onboarding', { userId: user.id, authFlow: 'sign-up' });
       return <Navigate to="/onboarding" replace />;
+    } else if (isExistingUser) {
+      // Existing users (sign-in) go directly to dashboard
+      // Even if profile is incomplete, they shouldn't go through full onboarding
+      logger.info('Existing creator user accessing dashboard', { 
+        userId: user.id, 
+        authFlow: 'sign-in',
+        hasUsername: !!profile.username,
+        hasFullName: !!profile.full_name
+      });
+      return <Navigate to="/creator-dashboard" replace />;
+    } else {
+      // Fallback for unknown auth flow - treat as existing user
+      logger.warn('Unknown auth flow for creator, treating as existing user', { userId: user.id });
+      return <Navigate to="/creator-dashboard" replace />;
     }
-    
-    logger.info('Existing creator user accessing dashboard', { userId: user.id });
-    return <Navigate to="/creator-dashboard" replace />;
   }
 
   // Fallback for unknown roles
