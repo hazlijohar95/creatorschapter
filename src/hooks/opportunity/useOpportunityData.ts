@@ -2,6 +2,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { Application, Opportunity } from "@/components/dashboard/types/opportunity";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
@@ -38,7 +39,7 @@ export function useOpportunityData() {
         .order("created_at", { ascending: false });
       
       if (error) {
-        console.error("Error fetching campaigns:", error);
+        logger.error("Error fetching campaigns", error);
         throw error;
       }
       
@@ -78,7 +79,7 @@ export function useOpportunityData() {
         .order("created_at", { ascending: false });
       
       if (error) {
-        console.error("Error fetching applications:", error);
+        logger.error("Error fetching applications", error);
         throw error;
       }
       
@@ -101,7 +102,7 @@ export function useOpportunityData() {
           filter: `creator_id=eq.${user.id}`
         }, 
         (payload) => {
-          console.log('Real-time update:', payload);
+          logger.info('Real-time update received', { payload });
           // Refresh applications on any changes
           queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
           
@@ -164,7 +165,7 @@ export function useOpportunityData() {
           
         setRecommendedOpportunities(recommended);
       } catch (error) {
-        console.error("Error transforming campaign data:", error);
+        logger.error("Error transforming campaign data", error);
         toast({
           title: "Error loading opportunities",
           description: "There was an error processing campaign data.",

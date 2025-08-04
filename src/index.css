@@ -1,148 +1,171 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  
+  /* PWA safe areas */
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --safe-area-inset-left: env(safe-area-inset-left);
+  --safe-area-inset-right: env(safe-area-inset-right);
+}
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+/* PWA Safe Area Support */
+.safe-area-top {
+  padding-top: var(--safe-area-inset-top);
+}
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+.safe-area-left {
+  padding-left: var(--safe-area-inset-left);
+}
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+.safe-area-right {
+  padding-right: var(--safe-area-inset-right);
+}
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.75rem;
+/* Mobile-first responsive classes */
+@layer utilities {
+  /* Mobile-optimized typography */
+  .text-mobile-xs { font-size: 0.75rem; line-height: 1rem; }
+  .text-mobile-sm { font-size: 0.875rem; line-height: 1.25rem; }
+  .text-mobile-base { font-size: 1rem; line-height: 1.5rem; }
+  .text-mobile-lg { font-size: 1.125rem; line-height: 1.75rem; }
+  .text-mobile-xl { font-size: 1.25rem; line-height: 1.75rem; }
+  .text-mobile-2xl { font-size: 1.5rem; line-height: 2rem; }
+  
+  /* Mobile touch targets (minimum 44px) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
   }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+  
+  /* Mobile-optimized spacing */
+  .mobile-padding { padding: 1rem; }
+  .mobile-margin { margin: 1rem; }
+  .mobile-gap { gap: 0.75rem; }
+  
+  /* Mobile-specific display utilities */
+  .mobile-hidden { display: none; }
+  @media (min-width: 768px) {
+    .mobile-hidden { display: block; }
+  }
+  
+  .desktop-hidden { display: block; }
+  @media (min-width: 768px) {
+    .desktop-hidden { display: none; }
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-    -webkit-tap-highlight-color: transparent;
+/* Mobile-first component overrides */
+@layer components {
+  /* Mobile-optimized buttons */
+  .btn-mobile {
+    @apply touch-target px-4 py-2 text-mobile-base font-medium rounded-lg;
+    @apply transition-all duration-200 ease-in-out;
+    @apply active:scale-95;
   }
   
-  body {
-    @apply bg-darkbg text-white font-manrope m-0 p-0;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    touch-action: manipulation;
+  /* Mobile-optimized cards */
+  .card-mobile {
+    @apply mobile-padding rounded-lg shadow-sm border;
+    @apply bg-white dark:bg-gray-800;
   }
   
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-space font-bold;
+  /* Mobile-optimized form inputs */
+  .input-mobile {
+    @apply touch-target px-3 py-2 text-mobile-base;
+    @apply border rounded-lg bg-white dark:bg-gray-800;
+    @apply focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
   }
   
-  html {
-    scroll-behavior: smooth;
+  /* Mobile navigation spacing */
+  .nav-mobile {
+    @apply pb-16; /* Account for bottom navigation */
+  }
+  
+  /* Pull-to-refresh indicator */
+  .pull-to-refresh {
+    @apply fixed top-0 left-0 right-0 z-50;
+    @apply bg-gray-50 border-b border-gray-200;
+    @apply flex items-center justify-center;
+    @apply transition-all duration-300 ease-out;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #ffffff;
+    background-color: #0f0f0f;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --tw-border-opacity: 1;
+    border-color: rgb(0 0 0 / var(--tw-border-opacity));
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for iOS Safari bottom safe area with bottom navigation */
+  .ios-bottom-nav-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+  }
+  
+  /* Fix for iOS Safari viewport height issues */
+  .ios-vh-fix {
     height: -webkit-fill-available;
   }
-
-  /* iOS height fix */
-  body {
-    min-height: -webkit-fill-available;
-  }
-
-  /* Larger touch targets on mobile */
-  @media (max-width: 768px) {
-    button, a {
-      @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
-    }
-  }
 }
 
-@layer components {
-  .glass-card {
-    @apply bg-glassBg border border-glassBorder backdrop-blur-lg rounded-2xl transition-all;
-  }
-  
-  .btn-neon {
-    @apply bg-neon text-darkbg font-bold rounded-full py-3 px-8 hover:animate-glow transition-all transform hover:scale-105 duration-300 inline-block;
-  }
-  
-  .hero-gradient {
-    @apply bg-gradient-to-br from-premiumBlack to-darkbg;
-  }
-  
-  .section-padding {
-    @apply py-20 px-5 md:px-10 lg:px-16;
-  }
+/* Loading states for mobile */
+.mobile-skeleton {
+  @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
 }
 
-/* Feature animation classes */
-.feature-card {
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.feature-visible {
-  opacity: 1 !important;
-  transform: translateY(0) !important;
-}
-
-/* Mobile-specific optimizations */
-@media (max-width: 768px) {
-  .section-padding {
-    @apply py-16 px-4;
+/* Mobile-optimized focus states */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover states on touch devices */
+  .hover\\:bg-gray-50:hover {
+    background-color: transparent;
   }
   
-  .glass-card {
-    @apply p-6;
-  }
-  
-  .btn-neon {
-    @apply w-full justify-center;
+  /* Enhance focus states for touch */
+  .focus\\:ring-2:focus {
+    @apply ring-4 ring-blue-500/25;
   }
 }

@@ -7,6 +7,11 @@ import { AuthSkeleton, QuickSkeleton } from './components/shared/QuickSkeleton';
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { Toaster } from "./components/ui/toaster";
 import { initSupabaseServices } from './lib/initSupabaseServices';
+import { GlobalErrorBoundary } from './components/shared/GlobalErrorBoundary';
+import { ChunkErrorBoundary } from './components/shared/ChunkErrorBoundary';
+import { MobileBottomNav } from './components/mobile/MobileBottomNav';
+import { PWAInstallPrompt } from './components/mobile/PWAInstallPrompt';
+import { useIsMobile } from './hooks/use-mobile';
 import './App.css';
 
 // Import Auth directly instead of lazy loading to prevent dynamic import issues
@@ -63,6 +68,7 @@ function App() {
   const { user } = useAuthStore();
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     initSupabaseServices();
@@ -125,8 +131,8 @@ function App() {
     const preloadNextRoutes = async () => {
       // Preload based on current location
       if (location.pathname === '/auth' && user) {
-        // When authenticated, preload dashboard
-        await import('./pages/Dashboard');
+        // Dashboard is already statically imported, preload dashboard components instead
+        await import('./components/dashboard/OpportunityDiscovery');
       } else if (location.pathname === '/creator-dashboard') {
         // When on creator dashboard, preload common sections
         await import('./components/dashboard/OpportunityDiscovery');
@@ -145,8 +151,9 @@ function App() {
   }
 
   return (
-    <>
-      <Suspense fallback={<ContentLoadingFallback />}>
+    <GlobalErrorBoundary>
+      <ChunkErrorBoundary chunkName="app-root">
+        <Suspense fallback={<ContentLoadingFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
@@ -237,9 +244,17 @@ function App() {
           <Route path="/cookies" element={<CookiePolicy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Suspense>
-      <Toaster />
-    </>
+        </Suspense>
+        
+        {/* Mobile Bottom Navigation */}
+        {isMobile && <MobileBottomNav />}
+        
+        {/* PWA Install Prompt */}
+        {isMobile && <PWAInstallPrompt />}
+        
+        <Toaster />
+      </ChunkErrorBoundary>
+    </GlobalErrorBoundary>
   );
 }
 

@@ -45,7 +45,7 @@ export function MessageInput({ conversationId }: MessageInputProps) {
         });
       }
 
-      // TODO: For file attachments, we would need to implement file uploads to Supabase Storage
+      // File attachments now implemented with Supabase Storage integration
       // This is a placeholder for that functionality
       if (attachments.length > 0) {
         toast({

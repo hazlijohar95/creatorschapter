@@ -1,65 +1,147 @@
-name: 🚀 Deploy
+name: Deploy Creator Chapter PWA
 
 on:
   push:
+    branches: [ main, develop ]
+  pull_request:
     branches: [ main ]
-  workflow_dispatch:
-
-env:
-  NODE_VERSION: '18'
 
 jobs:
-  deploy:
-    name: 🚀 Deploy to Production
+  # Job 1: Code Quality & Security Checks
+  quality:
+    name: Code Quality & Security
     runs-on: ubuntu-latest
-    environment: production
     
     steps:
-    - name: 📥 Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: 🔧 Setup Node.js
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ env.NODE_VERSION }}
+        node-version: '18'
         cache: 'npm'
         
-    - name: 📦 Install dependencies
+    - name: Install dependencies
       run: npm ci --legacy-peer-deps
       
-    - name: 🔍 Run quality checks
-      run: |
-        npm run lint
-        npx tsc --noEmit
-        
-    - name: 🧪 Run tests
-      run: npm test
+    - name: Run TypeScript type check
+      run: npm run type-check
       
-    - name: 🏗️ Build application
+    - name: Run ESLint
+      run: npm run lint
+      
+    - name: Run security audit
+      run: npm audit --audit-level moderate
+      
+    - name: Check bundle size
+      run: npm run build && npm run analyze
+      
+  # Job 2: Testing
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: quality
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci --legacy-peer-deps
+      
+    - name: Run unit tests
+      run: npm run test
+      
+    - name: Run E2E tests
+      run: npm run test:e2e
+      env:
+        CI: true
+        
+    - name: Upload test coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        
+  # Job 3: Build and Deploy
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci --legacy-peer-deps
+      
+    - name: Create environment file
+      run: |
+        echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env.production
+        echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env.production
+        echo "NODE_ENV=production" >> .env.production
+        
+    - name: Build application
       run: npm run build
       env:
+        NODE_ENV: production
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        NODE_ENV: production
         
-    - name: 📊 Analyze bundle size
+    - name: Generate PWA icons
+      run: npm run generate-icons
+      
+    - name: Optimize build
       run: |
-        npx bundlesize
-      continue-on-error: true
+        # Compress images
+        npx imagemin dist/**/*.{jpg,jpeg,png} --out-dir=dist --plugin=imagemin-mozjpeg --plugin=imagemin-pngquant
         
-    - name: 🚀 Deploy to Vercel
-      if: false # Enable when you set up Vercel
-      uses: amondnet/vercel-action@v20
+        # Generate service worker precache
+        npx workbox generateSW workbox-config.js
+        
+    - name: Deploy to Staging (develop branch)
+      if: github.ref == 'refs/heads/develop'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        destination_dir: staging
+        
+    - name: Deploy to Production (main branch)
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        cname: app.creatorchapter.com
+        
+    - name: Deploy to Vercel
+      if: github.ref == 'refs/heads/main'
+      uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        vercel-org-id: ${{ secrets.ORG_ID }}
-        vercel-project-id: ${{ secrets.PROJECT_ID }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         working-directory: ./
+        vercel-args: '--prod'
         
-    - name: 🚀 Deploy to Netlify
-      if: false # Enable when you set up Netlify
-      uses: nwtgck/actions-netlify@v2.0
+    - name: Deploy to Netlify
+      if: github.ref == 'refs/heads/main'
+      uses: nwtgck/actions-netlify@v2.1
       with:
         publish-dir: './dist'
         production-branch: main
@@ -72,31 +154,57 @@ jobs:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         
-    - name: 📈 Create GitHub Release
-      if: false # Enable for automatic releases
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Job 4: Performance & PWA Audit
+  audit:
+    name: Performance & PWA Audit
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Lighthouse CI
+      uses: treosh/lighthouse-ci-action@v10
       with:
-        tag_name: v${{ github.run_number }}
-        release_name: Release v${{ github.run_number }}
-        body: |
-          Automated release from GitHub Actions
-          
-          Changes in this release:
-          - See commit history for details
-        draft: false
-        prerelease: false
+        urls: |
+          https://app.creatorchapter.com
+          https://app.creatorchapter.com/auth
+          https://app.creatorchapter.com/dashboard
+        configPath: './lighthouse.config.js'
+        uploadArtifacts: true
+        temporaryPublicStorage: true
         
-    - name: 📊 Performance Report
+    - name: PWA Asset Validation
       run: |
-        echo "🏗️ Build completed successfully"
-        echo "📦 Bundle analysis:"
-        ls -la dist/
-        echo "📊 Bundle sizes:"
-        du -sh dist/*
+        # Check if PWA manifest is valid
+        curl -f https://app.creatorchapter.com/manifest.json
         
-    - name: ✅ Deployment Success
-      run: |
-        echo "🎉 Deployment completed successfully!"
-        echo "🌍 Application is now live"
+        # Check if service worker is accessible
+        curl -f https://app.creatorchapter.com/sw.js
+        
+        # Check if icons exist
+        curl -f https://app.creatorchapter.com/icons/icon-192x192.png
+        curl -f https://app.creatorchapter.com/icons/icon-512x512.png
+        
+  # Job 5: Notification
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [build-and-deploy, audit]
+    if: always()
+    
+    steps:
+    - name: Slack Notification (Success)
+      if: needs.build-and-deploy.result == 'success'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: ':rocket: Creator Chapter PWA deployed successfully!'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        
+    - name: Slack Notification (Failure)
+      if: needs.build-and-deploy.result == 'failure'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: ':x: Creator Chapter PWA deployment failed!'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
