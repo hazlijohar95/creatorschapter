@@ -11,6 +11,8 @@ import { GlobalErrorBoundary } from './components/shared/GlobalErrorBoundary';
 import { ChunkErrorBoundary } from './components/shared/ChunkErrorBoundary';
 import { MobileBottomNav } from './components/mobile/MobileBottomNav';
 import { PWAInstallPrompt } from './components/mobile/PWAInstallPrompt';
+import { PremiumCreatorOverview } from './components/creator/PremiumCreatorOverview';
+import { PremiumBrandOverview } from './components/brand/PremiumBrandOverview';
 import { useIsMobile } from './hooks/use-mobile';
 import './App.css';
 
@@ -164,7 +166,7 @@ function App() {
               <Route path="/creator-dashboard" element={<CreatorDashboard />}>
               <Route index element={
                 <Suspense fallback={<ContentLoadingFallback />}>
-                  <dashboardChunk.creator.Overview />
+                  <PremiumCreatorOverview />
                 </Suspense>
               } />
               <Route path="opportunities" element={
@@ -203,7 +205,7 @@ function App() {
               <Route path="/brand-dashboard" element={<BrandDashboard />}>
               <Route index element={
                 <Suspense fallback={<ContentLoadingFallback />}>
-                  <dashboardChunk.brand.Overview />
+                  <PremiumBrandOverview />
                 </Suspense>
               } />
               <Route path="creators" element={
