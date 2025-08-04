@@ -46,12 +46,14 @@ export default function Dashboard() {
   }
 
   if (profile.role === "creator") {
-    if (!step2Complete) {
-      logger.info('Creator user needs onboarding', { userId: user.id });
+    // Only send to onboarding if they lack basic profile info (new users)
+    // If they have username and full_name, they're existing users - go to dashboard
+    if (!profile.username || !profile.full_name) {
+      logger.info('New creator user needs onboarding', { userId: user.id });
       return <Navigate to="/onboarding" replace />;
     }
     
-    logger.info('Creator user accessing dashboard', { userId: user.id });
+    logger.info('Existing creator user accessing dashboard', { userId: user.id });
     return <Navigate to="/creator-dashboard" replace />;
   }
 

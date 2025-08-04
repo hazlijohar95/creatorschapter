@@ -124,17 +124,36 @@ export default function AuthForm() {
           navigate("/onboarding");
         }
       } else {
+        // Sign-in flow for existing users
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
-          toast({ title: "Login error", description: "Invalid credentials. Try again.", variant: "destructive" });
+          // Provide better error messages based on error type
+          let errorMessage = "Invalid credentials. Please check your email and password.";
+          
+          if (error.message?.includes("Invalid login credentials")) {
+            errorMessage = "Incorrect email or password. Please try again.";
+          } else if (error.message?.includes("Email not confirmed")) {
+            errorMessage = "Please check your email and click the confirmation link.";
+          } else if (error.message?.includes("signup")) {
+            errorMessage = "This email isn't registered yet. Please sign up first.";
+          }
+          
+          toast({ 
+            title: "Sign-in Error", 
+            description: errorMessage, 
+            variant: "destructive" 
+          });
           setIsLoading(false);
           return;
         }
-        // Let the auth state change handler manage the redirection
-        // This prevents race conditions and ensures proper profile loading
-        
-        // The useEffect in App.tsx will handle the redirection based on role
-        // after the profile is properly loaded
+
+        // For sign-in, don't redirect immediately - let the auth state change handler
+        // in App.tsx manage the redirection after profile is loaded
+        toast({ 
+          title: "Welcome back!", 
+          description: "Redirecting to your dashboard...",
+          duration: 2000
+        });
       }
     } catch (error) {
       handleError(error as Error);

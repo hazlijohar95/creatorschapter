@@ -41,12 +41,11 @@ export function useProfileCompletion() {
         !!profile?.full_name &&
         !!profile?.role;
 
-      // Step 2: Either has portfolio items OR content formats (both optional)
-      // We consider step 2 complete if step 1 is done, regardless of portfolio/formats
-      // This allows users to skip portfolio and go straight to dashboard
+      // Step 2: For EXISTING users, if they have a profile with basic info, they're done
+      // For NEW users during onboarding, they need to complete the process
+      // If user has an email in the profile, they're an existing user who already completed onboarding
       const step2Complete =
-        step1Complete &&
-        ((profile.role === 'creator') || (profile.role === 'brand')); // Both roles can complete onboarding with just step 1
+        step1Complete && !!profile?.email; // Existing users with email have completed onboarding
 
       return { step1Complete, step2Complete, username: profile?.username };
     },
